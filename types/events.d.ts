@@ -13,10 +13,10 @@ export interface LauncherEvents {
   ]
   launch_install_loader: [
     {
-      loader: 'vanilla' | 'forge'
-      minecraft_version: string
-      loader_version: string | null
-      loader_type?: 'installer' | 'universal' | 'client'
+      type: 'VANILLA' | 'FORGE'
+      minecraftVersion: string
+      loaderVersion: string | null
+      format: 'INSTALLER' | 'UNIVERSAL' | 'CLIENT'
     }
   ]
   launch_copy_assets: []
@@ -24,7 +24,7 @@ export interface LauncherEvents {
   launch_patch_loader: []
   launch_check_java: []
   launch_clean: []
-  launch_launch: [{ version: string; loader: 'vanilla' | 'forge', loaderVersion: string | null }]
+  launch_launch: [{ version: string; type: 'VANILLA' | 'FORGE'; loaderVersion: string | null }]
   launch_data: [string]
   launch_close: [number]
   launch_debug: [string]
@@ -70,3 +70,5 @@ export interface PatcherEvents {
   patch_end: [{ amount: number }]
   patch_debug: [string]
 }
+
+

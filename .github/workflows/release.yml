@@ -49,9 +49,16 @@ jobs:
 
       - name: Build package
         run: npm run build --if-present
+      
+      - name: Prepare npm package
+        run: |
+          cp LICENSE dist/
+          cp README.md dist/
+          cp package.json dist/
 
       - name: Publish to npm
-        run: npm publish
+        working-directory: dist
+        run: npm publish --tag latest
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

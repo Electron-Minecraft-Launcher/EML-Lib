@@ -169,7 +169,7 @@ export default class Launcher extends EventEmitter<LauncherEvents & DownloaderEv
     cleaner.clean(files, this.config.cleaning.ignored, !this.config.cleaning.clean)
 
     //* Launch
-    this.emit('launch_launch', { version: manifest.id, loader: loader.loader, loaderVersion: loader.loader_version })
+    this.emit('launch_launch', { version: manifest.id, type: loader.type, loaderVersion: loader.loaderVersion })
 
     const args = argumentsManager.getArgs([...loaderFiles.libraries, ...librariesFiles.libraries], loader, loaderFiles.loaderManifest)
 
