@@ -16,7 +16,7 @@ class Manifests {
     if (!minecraftVersion && !url) return { type: 'VANILLA', minecraftVersion: 'latest_release', loaderVersion: 'latest_release' } as ILoader
     if (minecraftVersion) return { type: 'VANILLA', minecraftVersion, loaderVersion: minecraftVersion } as ILoader
 
-    const res = await fetch(`${url}/api/files-updater/loader`)
+    const res = await fetch(`${url}/api/loader`)
       .then((res) => res.json())
       .catch((err) => {
         throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch loader info: ${err.message}`)
