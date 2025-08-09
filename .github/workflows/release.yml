@@ -1,0 +1,68 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+      - 'v*.*.*-beta.*'
+      - 'v*.*.*-alpha.*'
+
+jobs:
+  build:
+    name: Build, publish Release and Docker image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify branch is main
+        run: |
+          if ! git branch -r --contains ${{ github.ref_name }} | grep -q "origin/main"; then
+            echo "Error: Tag ${{ github.ref_name }} is not on the main branch."
+            exit 1
+          fi
+          echo "✅ Tag is on the main branch."
+
+      - name: Verify changelog file exists
+        run: |
+          CHANGELOG_FILE=".github/changelogs/${{ github.ref_name }}.md"
+          if [ ! -f "$CHANGELOG_FILE" ]; then
+            echo "Error: Changelog file $CHANGELOG_FILE does not exist."
+            exit 1
+          fi
+          echo "✅ Changelog file found."
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build package
+        run: npm run build --if-present
+
+      - name: Publish to npm
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: EML AdminTool ${{ github.ref_name }}
+          draft: false
+          prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') }}
+          body_path: .github/changelogs/${{ github.ref_name }}.md
+          files: docker/docker-compose.prod.yml
