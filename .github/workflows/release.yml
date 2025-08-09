@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    name: Build, publish Release and Docker image
+    name: Build, publish Release and NPM package
     runs-on: ubuntu-latest
     permissions:
       contents: write
