@@ -22,7 +22,7 @@ import Launcher from './lib/launcher/launcher'
  * 
  * **Recommandations:** 
  * - To get all the capacities of this Node.js library, you must set up your
- * [EML AdminTool `v2.0.0--beta.4`](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool-v2) website!
+ * [EML AdminTool `v2.0.0--beta.5`](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool-v2) website!
  * - If you don't want to use the EML AdminTool, you should rather use the
  * [Minecraft Launcher Core](https://npmjs.com/package/minecraft-launcher-core) library.
  *
@@ -35,7 +35,7 @@ import Launcher from './lib/launcher/launcher'
  *
  * ---
  *
- * @version 2.0.0-beta.4
+ * @version 2.0.0-beta.5
  * @license MIT — See the `LICENSE` file for more information
  * @copyright Copyright (c) 2024, GoldFrite
  */

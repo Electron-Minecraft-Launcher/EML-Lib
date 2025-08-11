@@ -52,7 +52,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
 
     const modpack = await fetch(`${this.config.url}/api/files-updater`)
       .then((res) => res.json())
-      .then((res) => res.data as File[])
+      .then((res) => res.data.files as File[])
       .catch((err) => {
         throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch modpack files: ${err}`)
       })
