@@ -4,16 +4,17 @@
  */
 
 import { File } from '../../types/file'
-import fs from 'fs'
-import path_ from 'path'
+import fs from 'node:fs'
+import path_ from 'node:path'
 import fetch from 'node-fetch'
 import EventEmitter from '../utils/events'
 import { DownloaderEvents } from '../../types/events'
 import utils from './utils'
 import { EMLLibError, ErrorType } from '../../types/errors'
+import { chmod } from 'node:fs/promises'
 
 export default class Downloader extends EventEmitter<DownloaderEvents> {
-  private dest: string
+  private readonly dest: string
   private size: number = 0
   private downloaded: { amount: number; size: number } = { amount: 0, size: 0 }
   private error: boolean = false
@@ -32,7 +33,7 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
   /**
    * Download files from the list.
    * @param files List of files to download. This list must include folders.
-   * @param skipCheck [Optional: default is `false`] Skip files that already exist in the 
+   * @param skipCheck [Optional: default is `false`] Skip files that already exist in the
    * destination folder (force to download all files).
    */
   async download(files: File[], skipCheck: boolean = false): Promise<void> {
@@ -50,7 +51,7 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
       return
     }
 
-    const max = filesToDownload.length > 5 ? 5 : filesToDownload.length
+    const max = Math.min(filesToDownload.length, 5)
 
     for (let i = 0; i < max; i++) this.downloadFile(filesToDownload, i)
 
@@ -67,7 +68,7 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
    */
   getFilesToDownload(files: File[]) {
     let filesToDownload: File[] = []
-    
+
     files.forEach((file) => {
       const filePath = path_.join(this.dest, file.path, file.name)
       if (file.type === 'FOLDER') {
@@ -160,13 +161,14 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
           reject(new EMLLibError(ErrorType.DOWNLOAD_ERROR, `Error while downloading ${file.name}: ${err}`))
         })
 
-        res.body.on('end', (val) => {
+        res.body.on('end', async (val) => {
           this.downloaded.amount++
           if (this.downloaded.amount === files.length) {
             this.emit('download_end', { downloaded: this.downloaded })
           } else if (i + 5 < files.length) {
             this.downloadFile(files, i + 5)
           }
+          await this.chmodJavaFiles(filePath, file)
           stream.close()
           resolve(val)
         })
@@ -185,4 +187,21 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
       return
     }
   }
+
+  private async chmodJavaFiles(filePath: string, file: File) {
+    if (process.platform !== 'win32') {
+      if (file.executable) {
+        try {
+          await chmod(filePath, 0o755)
+        } catch (error: any) {
+          this.emit('download_error', {
+            filename: file.name,
+            type: file.type,
+            message: error
+          })
+        }
+      }
+    }
+  }
 }
+

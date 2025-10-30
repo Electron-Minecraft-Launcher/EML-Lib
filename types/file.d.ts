@@ -37,6 +37,7 @@ export interface File {
    * `'OTHER'`: Other files
    */
   type: 'JAVA' | 'ASSET' | 'LIBRARY' | 'NATIVE' | 'MOD' | 'CONFIG' | 'BOOTSTRAP' | 'BACKGROUND' | 'FOLDER' | 'IMAGE' | 'OTHER'
+  executable?: boolean
 }
 
 export interface ILoader {

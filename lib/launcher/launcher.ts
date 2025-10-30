@@ -186,3 +186,4 @@ export default class Launcher extends EventEmitter<LauncherEvents & DownloaderEv
     minecraft.on('close', (code) => this.emit('launch_close', code || 0))
   }
 }
+
