@@ -78,7 +78,7 @@ Please refer to the [wiki](https://github.com/Electron-Minecraft-Launcher/EML-Li
 
 ## Tests
 
-The library have been tested on:
+The library has been tested on:
 
 <table>
   <tr>
