@@ -2,9 +2,8 @@ import EMLLib from '../index'
 
 
 async function main() {
-  new EMLLib.MicrosoftAuth()
   const launcher = new EMLLib.Launcher({
-    url: 'http://localhost:5173',
+    url: 'http://localhost:8080',
     serverId: 'goldfrite',
     account: new EMLLib.CrackAuth().auth('GoldFrite'),
     cleaning: {
@@ -20,7 +19,7 @@ async function main() {
     launcher.on('download_error', (error) => console.error(error.type, `=> Error downloading ${error.filename}: ${error.message}`))
     launcher.on('download_end', (info) => console.log(`Downloaded ${info.downloaded.amount} files.`))
 
-    launcher.on('launch_install_loader', (loader) => console.log(`\nInstalling loader ${loader.loader} ${loader.loader_version}...`))
+    launcher.on('launch_install_loader', (loader) => console.log(`\nInstalling loader ${loader.type} ${loader.loaderVersion}...`))
 
     launcher.on('launch_extract_natives', () => console.log('\nExtracting natives...'))
     launcher.on('extract_progress', (progress) => console.log(`Extracted ${progress.filename}.`))
@@ -43,7 +42,7 @@ async function main() {
     launcher.on('clean_end', (info) => console.log(`Cleaned ${info.amount} files.`))
 
     launcher.on('launch_launch', (info) =>
-      console.log(`\nLaunching Minecraft ${info.version} (${info.loader}${info.loaderVersion ? ` ${info.loaderVersion}` : ''})...`)
+      console.log(`\nLaunching Minecraft ${info.version} (${info.type}${info.loaderVersion ? ` ${info.loaderVersion}` : ''})...`)
     )
     launcher.on('launch_data', (message) => console.log(message))
     launcher.on('launch_close', (code) => console.log(`Closed with code ${code}.`))
@@ -58,3 +57,4 @@ async function main() {
 }
 
 main()
+

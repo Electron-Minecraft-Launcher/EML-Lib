@@ -1,3 +1,8 @@
+/**
+ * @license MIT
+ * @copyright Copyright (c) 2025, GoldFrite
+ */
+
 import { MinecraftManifest } from './../../types/manifest.d'
 import { EMLLibError, ErrorType } from '../../types/errors'
 import { JAVA_RUNTIME_URL, MINECRAFT_MANIFEST_URL } from './consts'
@@ -83,9 +88,10 @@ class Manifests {
       | 'java-runtime-delta'
       | 'java-runtime-gamma'
       | 'java-runtime-gamma-snapshot'
-      | 'jre-legacy'
+      | 'jre-legacy',
+    jreV: string
   ): Promise<{ files: any }> {
-    const url = await this.getJavaManifestUrl(javaVersion)
+    const url = await this.getJavaManifestUrl(javaVersion, jreV)
 
     const res = await fetch(url)
       .then((res) => res.json())
@@ -99,6 +105,7 @@ class Manifests {
   /**
    * Get the manifest URL of the Java version.
    * @param javaVersion The version of Java you want to get the manifest for.
+   * @param jreV The major version of Java Runtime Environment (JRE) you want to get the manifest for (fallback if `javaVersion` is not found).
    * @returns The manifest URL of the Java version.
    */
   async getJavaManifestUrl(
@@ -108,7 +115,8 @@ class Manifests {
       | 'java-runtime-delta'
       | 'java-runtime-gamma'
       | 'java-runtime-gamma-snapshot'
-      | 'jre-legacy'
+      | 'jre-legacy',
+    jreV: string
   ) {
     const archMapping = {
       win32: { x64: 'windows-x64', ia32: 'windows-x86', arm64: 'windows-arm64' },
@@ -136,17 +144,21 @@ class Manifests {
         throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch Java manifest: ${err.message}`)
       })
 
-    if (
-      !res[archMapping[platform][arch]] ||
-      !res[archMapping[platform][arch]][javaVersion] ||
-      !res[archMapping[platform][arch]][javaVersion][0] ||
-      !res[archMapping[platform][arch]][javaVersion][0].manifest
-    ) {
-      throw new EMLLibError(ErrorType.JAVA_ERROR, `Java version ${javaVersion} not found in manifest`)
+    if (res[archMapping[platform][arch]][javaVersion][0]?.manifest) {
+      return res[archMapping[platform][arch]][javaVersion][0].manifest.url as string
     }
 
-    return res[archMapping[platform][arch]][javaVersion][0].manifest.url as string
+    const fallbackJavaVersion = Object.keys(res[archMapping[platform][arch]]).find(
+      (version) => res[archMapping[platform][arch]][version][0]?.version.name.split('.')[0] === jreV
+    )
+
+    if (fallbackJavaVersion) {
+      return res[archMapping[platform][arch]][fallbackJavaVersion][0].manifest.url as string
+    }
+
+    throw new EMLLibError(ErrorType.JAVA_ERROR, `Java version ${javaVersion} not found in manifest`)
   }
 }
 
 export default new Manifests()
+

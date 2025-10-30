@@ -1,12 +1,12 @@
 /**
  * @license MIT
- * @copyright Copyright (c) 2024, GoldFrite
+ * @copyright Copyright (c) 2025, GoldFrite
  */
 
-import { EventEmitter as EM } from 'events'
+import { EventEmitter as EM } from 'node:events'
 
 export default class EventEmitter<T extends EventMap<T> = DefaultEventMap> {
-  private emitter: EM<T>
+  private readonly emitter: EM<T>
 
   constructor() {
     this.emitter = new EM<T>()

@@ -1,6 +1,6 @@
 /**
  * @license MIT
- * @copyright Copyright (c) 2024, GoldFrite
+ * @copyright Copyright (c) 2025, GoldFrite
  * @copyright Copyright (c) 2019, Pierce Harriz, from [Minecraft Launcher Core](https://github.com/Pierce01/MinecraftLauncher-core)
  */
 
@@ -9,8 +9,8 @@ import { EMLLibError, ErrorType } from '../../types/errors'
 import { ExtraFile, File, ILoader } from '../../types/file'
 import { Artifact, MinecraftManifest, Assets } from '../../types/manifest'
 import utils from '../utils/utils'
-import path_ from 'path'
-import fs from 'fs'
+import path_ from 'node:path'
+import fs from 'node:fs'
 import AdmZip from 'adm-zip'
 import EventEmitter from '../utils/events'
 import { FilesManagerEvents } from '../../types/events'

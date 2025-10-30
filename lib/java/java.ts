@@ -1,16 +1,16 @@
 /**
  * @license MIT
- * @copyright Copyright (c) 2024, GoldFrite
+ * @copyright Copyright (c) 2025, GoldFrite
  */
 
 import { DownloaderEvents, JavaEvents } from '../../types/events'
 import EventEmitter from '../utils/events'
 import manifests from '../utils/manifests'
 import { File } from '../../types/file'
-import path_ from 'path'
+import path_ from 'node:path'
 import Downloader from '../utils/downloader'
 import utils from '../utils/utils'
-import { spawnSync } from 'child_process'
+import { spawnSync } from 'node:child_process'
 import { EMLLibError, ErrorType } from '../../types/errors'
 import { MinecraftManifest } from '../../types/manifest'
 
@@ -21,9 +21,9 @@ import { MinecraftManifest } from '../../types/manifest'
  * the configuration.
  */
 export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
-  private minecraftVersion: string | null
-  private serverId: string
-  private url?: string
+  private readonly minecraftVersion: string | null
+  private readonly serverId: string
+  private readonly url?: string
 
   /**
    * @param minecraftVersion The version of Minecraft you want to install Java for. Set to
@@ -51,36 +51,40 @@ export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
    * @returns The files of the Java version.
    */
   async getFiles(manifest?: MinecraftManifest) {
-    manifest = manifest || (await manifests.getMinecraftManifest(this.minecraftVersion, this.url))
-    const jreVersion = (manifest.javaVersion?.component || 'jre-legacy') as
+    manifest = manifest ?? (await manifests.getMinecraftManifest(this.minecraftVersion, this.url))
+    const jreVersion = (manifest.javaVersion?.component ?? 'jre-legacy') as
       | 'java-runtime-alpha'
       | 'java-runtime-beta'
       | 'java-runtime-delta'
       | 'java-runtime-gamma'
       | 'java-runtime-gamma-snapshot'
       | 'jre-legacy'
-    const jreV = manifest.javaVersion?.majorVersion || '8'
+    const jreV = manifest.javaVersion?.majorVersion.toString() ?? '8'
 
-    const jreManifest = await manifests.getJavaManifest(jreVersion)
+    const jreManifest = await manifests.getJavaManifest(jreVersion, jreV)
 
     let files: File[] = []
 
     Object.entries(jreManifest.files).forEach((file: [string, any]) => {
+      const normalizedPath = this.normalizeJavaPath(file[0], jreV)
+      if (!normalizedPath) return
+
       if (file[1].type === 'directory') {
         files.push({
           name: path_.basename(file[0]),
-          path: path_.join('runtime', `jre-${jreV}`, path_.dirname(file[0]), '/'),
+          path: normalizedPath,
           url: '',
           type: 'FOLDER'
         })
       } else if (file[1].downloads) {
         files.push({
           name: path_.basename(file[0]),
-          path: path_.join('runtime', `jre-${jreV}`, path_.dirname(file[0]), '/'),
+          path: normalizedPath,
           url: file[1].downloads.raw.url,
           size: file[1].downloads.raw.size,
           sha1: file[1].downloads.raw.sha1,
-          type: 'JAVA'
+          type: 'JAVA',
+          executable: file[1].executable === true
         })
       }
     })
@@ -123,7 +127,7 @@ export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
           .map((o) => o?.toString('utf8'))
           .join(' ')
           .match(/"(.*?)"/)
-          ?.pop() || majorVersion + '',
+          ?.pop() ?? majorVersion + '',
       arch: check.output
         .map((o) => o?.toString('utf8'))
         .join(' ')
@@ -134,4 +138,18 @@ export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
     this.emit('java_info', res)
     return res
   }
+
+  private normalizeJavaPath(filePath: string, jreV: string) {
+    if (filePath.endsWith('.bundle')) return null
+    if (filePath.includes('.bundle/')) {
+      const homeIndex = filePath.indexOf('.bundle/Contents/Home/')
+      if (homeIndex === -1) return null
+
+      const relativePath = filePath.slice(homeIndex + '.bundle/Contents/Home/'.length)
+      return path_.join('runtime', `jre-${jreV}`, path_.dirname(relativePath), '/')
+    }
+
+    return path_.join('runtime', `jre-${jreV}`, path_.dirname(filePath), '/')
+  }
 }
+

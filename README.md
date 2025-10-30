@@ -4,7 +4,7 @@
 
 [<img src="https://img.shields.io/badge/Discord-EML-5561e6?&style=for-the-badge">](https://discord.gg/YVB4k6HzAY)
 [<img src="https://img.shields.io/badge/platforms-Windows%2C%20macOS%2C%20Linux-0077DA?style=for-the-badge&color=0077DA">](#platforms)
-[<img src="https://img.shields.io/badge/version-2.0.0--beta.6-orangered?style=for-the-badge&color=orangered">](package.json)
+[<img src="https://img.shields.io/badge/version-2.0.0--beta.7-orangered?style=for-the-badge&color=orangered">](package.json)
 
 ---
 
@@ -69,7 +69,12 @@ Please refer to the [wiki](https://github.com/Electron-Minecraft-Launcher/EML-Li
 | Others                     | Not officially | -                          |
 
 > [!WARNING]
+> Mac with Apple Silicon (M1, M2, etc.) is supported only for Minecraft 1.19 and above.
+
+> [!WARNING]
 > No support will be provided for older versions of Windows, macOS and Linux, or for other operating systems.
+
+
 
 ## Tests
 
@@ -81,6 +86,16 @@ The library have been tested on:
     <th>OS</th>
     <th>Loader</th>
     <th>Result</th>
+  </tr>
+  <tr>
+    <td rowspan="2">1.21.10</td>
+    <td rowspan="2">macOS Tahoe 26.1 (M3)</td>
+    <td>Vanilla</td>
+    <td>OK</td>
+  </tr>
+  <tr>
+    <td>Forge (60.0.12)</td>
+    <td>OK</td>
   </tr>
   <tr>
     <td rowspan="2">1.21.1</td>
@@ -100,6 +115,12 @@ The library have been tested on:
   </tr>
   <tr>
     <td>Forge (45.3.0)</td>
+    <td>OK</td>
+  </tr>
+  <tr>
+    <td>1.19</td>
+    <td>macOS Tahoe 26.1 (M3)</td>
+    <td>Forge (41.1.0)</td>
     <td>OK</td>
   </tr>
   <tr>
@@ -198,3 +219,4 @@ Please indicate the following information in your issue:
 <br>
 
 [^1]: Requires [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool-v2).
+

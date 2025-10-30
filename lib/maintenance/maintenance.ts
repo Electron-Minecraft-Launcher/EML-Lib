@@ -1,6 +1,6 @@
 /**
  * @license MIT
- * @copyright Copyright (c) 2024, GoldFrite
+ * @copyright Copyright (c) 2025, GoldFrite
  */
 
 import { EMLLibError, ErrorType } from '../../types/errors'
@@ -12,7 +12,7 @@ import { IMaintenance } from '../../types/maintenance'
  * **Attention!** This class only works with the EML AdminTool. Please do not use it without the AdminTool.
  */
 export default class Maintenance {
-  private url: string
+  private readonly url: string
 
   /**
    * @param url The URL of your EML AdminTool website.

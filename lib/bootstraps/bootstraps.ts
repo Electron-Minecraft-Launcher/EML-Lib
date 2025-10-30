@@ -1,13 +1,13 @@
 /**
  * @license MIT
- * @copyright Copyright (c) 2024, GoldFrite
+ * @copyright Copyright (c) 2025, GoldFrite
  */
 
 import Downloader from '../utils/downloader'
 import utils from '../utils/utils'
 import EventEmitter from '../utils/events'
-import path_ from 'path'
-import { spawnSync } from 'child_process'
+import path_ from 'node:path'
+import { spawnSync } from 'node:child_process'
 import { EMLLibError, ErrorType } from '../../types/errors'
 import { IBootstraps } from '../../types/bootstraps'
 import { File } from '../../types/file'
@@ -20,7 +20,7 @@ import { DownloaderEvents } from '../../types/events'
  * @workInProgress
  */
 export default class Bootstraps extends EventEmitter<DownloaderEvents> {
-  private url: string
+  private readonly url: string
 
   /**
    * @param url The URL of your EML AdminTool website
@@ -115,7 +115,5 @@ export default class Bootstraps extends EventEmitter<DownloaderEvents> {
 
       this.runUpdate(bootstrapPath)
     }
-
-    return
   }
 }

@@ -1,13 +1,13 @@
 /**
  * @license MIT
- * @copyright Copyright (c) 2024, GoldFrite
+ * @copyright Copyright (c) 2025, GoldFrite
  */
 
 import { FullConfig } from '../../types/config'
 import { MinecraftManifest } from '../../types/manifest'
 import utils from '../utils/utils'
-import path_ from 'path'
-import { ExtraFile, File, ILoader } from '../../types/file'
+import path_ from 'node:path'
+import { ExtraFile, ILoader } from '../../types/file'
 
 export default class ArgumentsManager {
   private config: FullConfig
@@ -193,6 +193,6 @@ export default class ArgumentsManager {
   }
 
   private getMainClass() {
-    return this.loaderManifest?.mainClass || this.manifest.mainClass
+    return this.loaderManifest?.mainClass ?? this.manifest.mainClass
   }
 }

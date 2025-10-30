@@ -1,16 +1,16 @@
 /**
  * @license MIT
- * @copyright Copyright (c) 2024, GoldFrite
+ * @copyright Copyright (c) 2025, GoldFrite
  */
 
 import EventEmitter from './events'
-import path_ from 'path'
-import fs from 'fs'
+import path_ from 'node:path'
+import fs from 'node:fs'
 import { CleanerEvents } from '../../types/events'
 import { File } from '../../types/file'
 
 export default class Cleaner extends EventEmitter<CleanerEvents> {
-  private dest: string = ''
+  private readonly dest: string = ''
   private browsed: { name: string; path: string }[] = []
 
   /**
