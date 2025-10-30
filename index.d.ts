@@ -37,7 +37,7 @@ import Launcher from './lib/launcher/launcher'
  *
  * @version 2.0.0-7
  * @license MIT — See the `LICENSE` file for more information
- * @copyright Copyright (c) 2024, GoldFrite
+ * @copyright Copyright (c) 2025, GoldFrite
  */
 
 declare namespace EMLLib {

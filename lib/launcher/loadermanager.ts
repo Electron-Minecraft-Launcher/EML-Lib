@@ -1,6 +1,6 @@
 /**
  * @license MIT
- * @copyright Copyright (c) 2024, GoldFrite
+ * @copyright Copyright (c) 2025, GoldFrite
  */
 
 import { FullConfig } from '../../types/config'
@@ -12,9 +12,9 @@ import ForgeLoader from './loaders/forgeloader'
 import Patcher from './loaders/patcher'
 
 export default class LoaderManager extends EventEmitter<FilesManagerEvents & PatcherEvents> {
-  private config: FullConfig
-  private manifest: MinecraftManifest
-  private loader: ILoader
+  private readonly config: FullConfig
+  private readonly manifest: MinecraftManifest
+  private readonly loader: ILoader
 
   constructor(config: FullConfig, manifest: MinecraftManifest, loader: ILoader) {
     super()

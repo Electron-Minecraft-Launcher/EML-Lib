@@ -1,22 +1,22 @@
 /**
  * @license MIT
- * @copyright Copyright (c) 2024, GoldFrite
+ * @copyright Copyright (c) 2025, GoldFrite
  */
 
 import { FullConfig } from '../../../types/config'
 import { ExtraFile, File, ILoader } from '../../../types/file'
 import { Artifact, MinecraftManifest } from '../../../types/manifest'
 import AdmZip from 'adm-zip'
-import fs from 'fs'
-import path_ from 'path'
+import fs from 'node:fs'
+import path_ from 'node:path'
 import utils from '../../utils/utils'
 import EventEmitter from '../../utils/events'
 import { FilesManagerEvents } from '../../../types/events'
 
 export default class ForgeLoader extends EventEmitter<FilesManagerEvents> {
-  private config: FullConfig
-  private manifest: MinecraftManifest
-  private loader: ILoader
+  private readonly config: FullConfig
+  private readonly manifest: MinecraftManifest
+  private readonly loader: ILoader
 
   constructor(config: FullConfig, manifest: MinecraftManifest, loader: ILoader) {
     super()
@@ -31,9 +31,9 @@ export default class ForgeLoader extends EventEmitter<FilesManagerEvents> {
    * to download; `files`: all files created by this method or that will be created (including `libraries`)
    */
   async setup() {
-    const forgePath = path_.join(this.config.root, this.loader.file!.path)
+    const forgePath = path_.join(this.config.root, this.loader.file.path)
     const minecraftPath = path_.join(this.config.root, 'versions', this.manifest.id)
-    const zip = new AdmZip(path_.join(forgePath, this.loader.file!.name))
+    const zip = new AdmZip(path_.join(forgePath, this.loader.file.name))
     const jar = new AdmZip(path_.join(minecraftPath, `${this.manifest.id}.jar`))
 
     if (!fs.existsSync(forgePath)) fs.mkdirSync(forgePath, { recursive: true })

@@ -1,25 +1,24 @@
 /**
  * @license MIT
- * @copyright Copyright (c) 2024, GoldFrite
+ * @copyright Copyright (c) 2025, GoldFrite
  */
 
 import AdmZip from 'adm-zip'
 import { FullConfig } from '../../../types/config'
-import { ILoader } from '../../../types/file'
+import { ILoader, File } from '../../../types/file'
 import { MinecraftManifest } from '../../../types/manifest'
 import utils from '../../utils/utils'
-import fs from 'fs'
-import path_ from 'path'
-import { spawn } from 'child_process'
-import { File } from '../../../types/file'
+import fs from 'node:fs'
+import path_ from 'node:path'
+import { spawn } from 'node:child_process'
 import EventEmitter from '../../utils/events'
 import { PatcherEvents } from '../../../types/events'
 
 export default class Patcher extends EventEmitter<PatcherEvents> {
-  private config: FullConfig
-  private manifest: MinecraftManifest
-  private loader: ILoader
-  private installProfile: any
+  private readonly config: FullConfig
+  private readonly manifest: MinecraftManifest
+  private readonly loader: ILoader
+  private readonly installProfile: any
 
   constructor(config: FullConfig, manifest: MinecraftManifest, loader: ILoader, installProfile: any) {
     super()

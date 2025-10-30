@@ -1,6 +1,6 @@
 /**
  * @license MIT
- * @copyright Copyright (c) 2024, GoldFrite
+ * @copyright Copyright (c) 2025, GoldFrite
  */
 
 import { Account } from '../../types/account'
@@ -10,7 +10,7 @@ import { EMLLibError, ErrorType } from '../../types/errors'
  * Authenticate a user with [Azuriom](https://azuriom.com/).
  */
 export default class AzAuth {
-  private url: string
+  private readonly url: string
 
   /**
    * @param url The URL of your Azuriom website.

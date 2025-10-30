@@ -1,10 +1,10 @@
 /**
  * @license MIT
- * @copyright Copyright (c) 2024, GoldFrite
+ * @copyright Copyright (c) 2025, GoldFrite
  * @copyright Copyright (c) 2020, Nick Krecklow
  */
 
-import * as net from 'net'
+import * as net from 'node:net'
 import type { ServerStatus as ServerStatus_ } from '../../types/status'
 import { EMLLibError, ErrorType } from '../../types/errors'
 import BufferWriter from './bufferwriter'
@@ -14,11 +14,11 @@ import BufferReader from './bufferreader'
  * Get the status of a Minecraft server.
  */
 export default class ServerStatus {
-  private ip: string
-  private port: number
-  private protocol: 'modern' | '1.6' | '1.4-1.5' | 'Beta1.8-1.3'
-  private pvn: number
-  private timeout: number
+  private readonly ip: string
+  private readonly port: number
+  private readonly protocol: 'modern' | '1.6' | '1.4-1.5' | 'Beta1.8-1.3'
+  private readonly pvn: number
+  private readonly timeout: number
 
   /**
    * **Attention!** This class may not work for some Minecraft servers (Minecraft 1.4 and below, or 

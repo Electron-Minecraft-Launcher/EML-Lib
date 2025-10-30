@@ -1,3 +1,8 @@
+/**
+ * @license MIT
+ * @copyright Copyright (c) 2025, GoldFrite
+ */
+
 import { MinecraftManifest } from './../../types/manifest.d'
 import { EMLLibError, ErrorType } from '../../types/errors'
 import { JAVA_RUNTIME_URL, MINECRAFT_MANIFEST_URL } from './consts'

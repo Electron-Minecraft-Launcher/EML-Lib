@@ -1,13 +1,13 @@
 /**
  * @license MIT
- * @copyright Copyright (c) 2024, GoldFrite
+ * @copyright Copyright (c) 2025, GoldFrite
  */
 
 import { EMLLibError, ErrorType } from '../../types/errors'
-import path_ from 'path'
-import fs from 'fs'
-import crypto from 'crypto'
-import os from 'os'
+import path_ from 'node:path'
+import fs from 'node:fs'
+import crypto from 'node:crypto'
+import os from 'node:os'
 import { ExtraFile } from '../../types/file'
 
 class Utils {
@@ -184,8 +184,6 @@ class Utils {
    */
   isNewer(ref: ExtraFile, check: ExtraFile) {
     if (ref.sha1 === check.sha1) return null // Same file, so same version
-    // if (ref.extra === 'MINECRAFT' && check.extra !== 'MINECRAFT') return false // Minecraft always wins
-    // if (ref.extra !== 'MINECRAFT' && check.extra === 'MINECRAFT') return true // Minecraft always wins
 
     if (ref.name.split('-').pop() !== check.name.split('-').pop()) return false // Different libraries, so keep both of them (always return false)
 

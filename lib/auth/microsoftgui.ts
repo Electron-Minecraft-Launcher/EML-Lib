@@ -1,13 +1,13 @@
 /**
  * @license MIT
- * @copyright Copyright (c) 2024, GoldFrite
+ * @copyright Copyright (c) 2025, GoldFrite
  */
 
 import { BrowserWindow, app, session } from 'electron'
 
 export default class MicrosoftAuthGui {
-  private window: BrowserWindow
-  private clientId: string
+  private readonly window: BrowserWindow
+  private readonly clientId: string
 
   constructor(mainWindow: BrowserWindow, clientId: string) {
     this.window = new BrowserWindow({
@@ -45,7 +45,7 @@ export default class MicrosoftAuthGui {
           `https://login.live.com/oauth20_authorize.srf?client_id=${this.clientId}&response_type=code&redirect_uri=https://login.live.com/oauth20_desktop.srf&scope=XboxLive.signin%20offline_access&cobrandid=8058f65d-ce06-4c30-9559-473c9275a65d&prompt=select_account`
         )
 
-        var loading = false
+        let loading = false
 
         this.window.on('close', () => {
           if (!loading) resolve('cancel')

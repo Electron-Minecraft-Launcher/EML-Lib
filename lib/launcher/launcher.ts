@@ -1,6 +1,6 @@
 /**
  * @license MIT
- * @copyright Copyright (c) 2024, GoldFrite
+ * @copyright Copyright (c) 2025, GoldFrite
  */
 
 import { CleanerEvents, DownloaderEvents, FilesManagerEvents, JavaEvents, LauncherEvents, PatcherEvents } from '../../types/events'
@@ -8,21 +8,23 @@ import EventEmitter from '../utils/events'
 import manifests from '../utils/manifests'
 import utils from '../utils/utils'
 import { Config, FullConfig } from './../../types/config'
-import path_ from 'path'
+import path_ from 'node:path'
 import FilesManager from './filesmanager'
 import Downloader from '../utils/downloader'
 import Cleaner from '../utils/cleaner'
 import Java from '../java/java'
 import LoaderManager from './loadermanager'
 import ArgumentsManager from './argumentsmanager'
-import { spawn } from 'child_process'
+import { spawn } from 'node:child_process'
 
 /**
  * Launch Minecraft.
  * @workInProgress
  */
-export default class Launcher extends EventEmitter<LauncherEvents & DownloaderEvents & CleanerEvents & FilesManagerEvents & JavaEvents & PatcherEvents> {
-  private config: FullConfig
+export default class Launcher extends EventEmitter<
+  LauncherEvents & DownloaderEvents & CleanerEvents & FilesManagerEvents & JavaEvents & PatcherEvents
+> {
+  private readonly config: FullConfig
 
   /**
    * @param config The configuration of the Launcher.
@@ -174,16 +176,16 @@ export default class Launcher extends EventEmitter<LauncherEvents & DownloaderEv
     const args = argumentsManager.getArgs([...loaderFiles.libraries, ...librariesFiles.libraries], loader, loaderFiles.loaderManifest)
 
     const blindArgs = args.map((arg, i) => (i === args.findIndex((p) => p === '--accessToken') + 1 ? '**********' : arg))
-    this.emit('launch_debug', `Launching Minecraft with args: ${args.join(' ')}`)
+    this.emit('launch_debug', `Launching Minecraft with args: ${blindArgs.join(' ')}`)
 
-    this.run(this.config.java.absolutePath.replace('${X}', manifest.javaVersion?.majorVersion.toString() || '8'), args)
+    this.run(this.config.java.absolutePath.replace('${X}', manifest.javaVersion?.majorVersion.toString() ?? '8'), args)
   }
 
   private async run(javaPath: string, args: string[]) {
     const minecraft = spawn(javaPath, args, { cwd: this.config.root, detached: true })
     minecraft.stdout.on('data', (data: Buffer) => this.emit('launch_data', data.toString('utf8').replace(/\n$/, '')))
     minecraft.stderr.on('data', (data: Buffer) => this.emit('launch_data', data.toString('utf8').replace(/\n$/, '')))
-    minecraft.on('close', (code) => this.emit('launch_close', code || 0))
+    minecraft.on('close', (code) => this.emit('launch_close', code ?? 0))
   }
 }
 

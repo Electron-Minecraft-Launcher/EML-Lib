@@ -1,6 +1,6 @@
 /**
  * @license MIT
- * @copyright Copyright (c) 2024, GoldFrite
+ * @copyright Copyright (c) 2025, GoldFrite
  */
 
 import { BrowserWindow } from 'electron'
@@ -14,8 +14,8 @@ import { EMLLibError, ErrorType } from '../../types/errors'
  * **Attention!** Using this class requires Electron. Use `npm i electron` to install it.
  */
 export default class MicrosoftAuth {
-  private mainWindow: BrowserWindow
-  private clientId: string
+  private readonly mainWindow: BrowserWindow
+  private readonly clientId: string
 
   /**
    * @param mainWindow Your Electron application's main window (to create a child window for the Microsoft login).
@@ -190,8 +190,8 @@ export default class MicrosoftAuth {
   }
 
   private getUuid() {
-    var result = ''
-    for (var i = 0; i <= 4; i++) {
+    let result = ''
+    for (let i = 0; i <= 4; i++) {
       result += (Math.floor(Math.random() * 16777216) + 1048576).toString(16)
       if (i < 4) result += '-'
     }
