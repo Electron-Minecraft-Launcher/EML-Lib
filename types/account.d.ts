@@ -5,7 +5,8 @@ export interface Account {
   clientToken: string
   refreshToken?: string
   userProperties?: any
-  meta: { online: boolean; type: 'msa' | 'azuriom' | 'crack' }
+  availableProfiles?: any
+  meta: { online: boolean; type: 'msa' | 'azuriom' | 'yggdrasil' | 'crack' }
   xbox?: {
     xuid: string
     gamertag: string

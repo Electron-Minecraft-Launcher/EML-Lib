@@ -6,6 +6,7 @@
 import MicrosoftAuth from './lib/auth/microsoft'
 import AzAuth from './lib/auth/azuriom'
 import CrackAuth from './lib/auth/crack'
+import YggdrasilAuth from './lib/auth/yggdrasil'
 import Bootstraps from './lib/bootstraps/bootstraps'
 import Maintenance from './lib/maintenance/maintenance'
 import News from './lib/news/news'
@@ -37,6 +38,15 @@ export { MicrosoftAuth }
  * Authenticate a user with [Azuriom](https://azuriom.com/).
  */
 export { AzAuth }
+
+/**
+ * Authenticate a user with an yggdrasil-compatible server (Based on [Authlib-Injector](https://github-com.translate.goog/yushijinhun/authlib-injector/wiki/Yggdrasil-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E6%8A%80%E6%9C%AF%E8%A7%84%E8%8C%83?_x_tr_sl=zh-CN&_x_tr_tl=en&_x_tr_hl=es&_x_tr_pto=wapp) and [original yggdrasil](https://minecraft.wiki/w/Yggdrasil) specs).
+ * **Attention!** While yggdrasil has been depracated by mojang, the API is maintained by a community who wants to keep the protocol alive and a migration to OIDC is on the works.
+ * usage of a custom authserver may or may not violate Minecraft's Terms of Service according to this [Mojang email](https://github.com/unmojang/drasl/issues/106#issuecomment-2408930094)
+ * make sure to validate your player's minecraft ownership!
+ * @workInProgress
+ */
+export { YggdrasilAuth }
 
 /**
  * Authenticate a user with a crack account.
@@ -134,6 +144,15 @@ const EMLLib = {
    * Authenticate a user with [Azuriom](https://azuriom.com/).
    */
   AzAuth,
+
+  /**
+   * Authenticate a user with an yggdrasil-compatible server (Based on [Authlib-Injector](https://github-com.translate.goog/yushijinhun/authlib-injector/wiki/Yggdrasil-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E6%8A%80%E6%9C%AF%E8%A7%84%E8%8C%83?_x_tr_sl=zh-CN&_x_tr_tl=en&_x_tr_hl=es&_x_tr_pto=wapp) and [original yggdrasil](https://minecraft.wiki/w/Yggdrasil) specs).
+   * **Attention!** While yggdrasil has been depracated by mojang, the API is maintained by a community who wants to keep the protocol alive and a migration to OIDC is on the works.
+   * usage of a custom authserver may or may not violate Minecraft's Terms of Service according to this [Mojang email](https://github.com/unmojang/drasl/issues/106#issuecomment-2408930094)
+   * make sure to validate your player's minecraft ownership!
+   * @workInProgress
+   */
+  YggdrasilAuth,
 
   /**
    * Authenticate a user with a crack account.

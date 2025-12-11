@@ -10,7 +10,7 @@
 
 ## Features
 
-- **Authentication**: Authenticate users with Microsoft, Azuriom or Crack.
+- **Authentication**: Authenticate users with Microsoft, Azuriom, Yggdrasil or Crack.
 - **Minecraft**: Automatically download and launch Minecraft (Vanilla and Forge [^1]; Fabric, NeoForge, Quilt and MCP are coming soon), and remove unwanted files (such as unwanted mods).
 - **Java**: Automatically download and install Java.
 - **Bootstraps [^1]**: Auto-update your launcher.
