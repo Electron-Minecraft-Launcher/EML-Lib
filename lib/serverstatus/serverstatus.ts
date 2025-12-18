@@ -97,7 +97,8 @@ export default class ServerStatus {
 
       socket.on('data', (data) => {
         const ping = Date.now() - start
-        incomingBuf = Buffer.concat([incomingBuf, data])
+        const chunk = typeof data === 'string' ? Buffer.from(data) : data
+        incomingBuf = Buffer.concat([incomingBuf, chunk])
 
         if (incomingBuf.length < 5) {
           return
@@ -168,3 +169,4 @@ export default class ServerStatus {
     })
   }
 }
+
