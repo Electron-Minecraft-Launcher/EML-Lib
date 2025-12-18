@@ -10,7 +10,7 @@ import { EMLLibError, ErrorType } from '../../types/errors'
 
 /**
  * Authenticate a user with Microsoft.
- * 
+ *
  * **Attention!** Using this class requires Electron. Use `npm i electron` to install it.
  */
 export default class MicrosoftAuth {
@@ -30,21 +30,22 @@ export default class MicrosoftAuth {
    * Authenticate a user with Microsoft. This method will open a child window to login.
    * @returns The account information.
    */
-  async auth(): Promise<Account> {
+  async auth() {
     let userCode = await new MicrosoftAuthGui(this.mainWindow, this.clientId).openWindow()
     if (userCode == 'cancel') throw new EMLLibError(ErrorType.AUTH_CANCELLED, 'User cancelled the login')
 
-    let res = await fetch('https://login.live.com/oauth20_token.srf', {
+    const response = await fetch('https://login.live.com/oauth20_token.srf', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: `client_id=${this.clientId}&code=${userCode}&grant_type=authorization_code&redirect_uri=https://login.live.com/oauth20_desktop.srf`
     })
-      .then((res) => res.json())
-      .catch((err) => {
-        throw new EMLLibError(ErrorType.AUTH_ERROR, 'Error while getting the OAuth2 token')
-      })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new EMLLibError(ErrorType.AUTH_ERROR, `Error getting OAuth2 token: HTTP ${response.status} - ${errorText}`)
+    }
+
+    const res = await response.json()
 
     try {
       return await this.getAccount(res)
@@ -54,22 +55,43 @@ export default class MicrosoftAuth {
   }
 
   /**
+   * Validate a user's access token with Microsoft. This method will check if the token is still valid.
+   * @param user The user account to validate.
+   * @returns True if the token is valid, false otherwise (then you should call `MicrosoftAuth.refresh`).
+   */
+  async validate(user: Account) {
+    try {
+      const response = await fetch('https://api.minecraftservices.com/minecraft/profile', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${user.accessToken}`
+        }
+      })
+
+      return response.ok
+    } catch (err) {
+      return false
+    }
+  }
+
+  /**
    * Refresh a user with Microsoft. This method will renew the user's token.
    * @param user The user account to refresh.
    * @returns The refreshed account information.
    */
   async refresh(user: Account) {
-    let res = await fetch('https://login.live.com/oauth20_token.srf', {
+    const response = await fetch('https://login.live.com/oauth20_token.srf', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: `client_id=${this.clientId}&grant_type=refresh_token&refresh_token=${user.refreshToken}`
     })
-      .then((res) => res.json())
-      .catch((err) => {
-        throw new EMLLibError(ErrorType.AUTH_ERROR, 'Error while getting the OAuth2 token')
-      })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new EMLLibError(ErrorType.AUTH_ERROR, `Error refreshing OAuth2 token: HTTP ${response.status} - ${errorText}`)
+    }
+
+    const res = await response.json()
 
     try {
       return await this.getAccount(res)
@@ -79,8 +101,8 @@ export default class MicrosoftAuth {
   }
 
   private async getAccount(authInfo: any) {
-    let xboxLive = await fetch('https://user.auth.xboxlive.com/user/authenticate', {
-      method: 'POSt',
+    const xboxLiveRes = await fetch('https://user.auth.xboxlive.com/user/authenticate', {
+      method: 'POST',
       body: JSON.stringify({
         Properties: {
           AuthMethod: 'RPS',
@@ -92,17 +114,15 @@ export default class MicrosoftAuth {
       }),
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' }
     })
-      .then((res) => res.json())
-      .catch((err) => {
-        throw new EMLLibError(ErrorType.AUTH_ERROR, 'Error while getting the Xbox Live token')
-      })
 
-    let xsts = await fetch('https://xsts.auth.xboxlive.com/xsts/authorize', {
+    if (!xboxLiveRes.ok) {
+      throw new EMLLibError(ErrorType.AUTH_ERROR, `Xbox Live Auth failed: ${xboxLiveRes.statusText}`)
+    }
+    const xboxLive = await xboxLiveRes.json()
+
+    const xstsRes = await fetch('https://xsts.auth.xboxlive.com/xsts/authorize', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify({
         Properties: {
           SandboxId: 'RETAIL',
@@ -112,43 +132,47 @@ export default class MicrosoftAuth {
         TokenType: 'JWT'
       })
     })
-      .then((res) => res.json())
-      .catch((err) => {
-        throw new EMLLibError(ErrorType.AUTH_ERROR, 'Error while getting the XSTS token')
-      })
 
-    let launch = await fetch('https://api.minecraftservices.com/launcher/login', {
+    if (!xstsRes.ok) {
+      const errJson = await xstsRes.json().catch(() => ({}))
+      const errCode = errJson.XErr ?? xstsRes.status
+      throw new EMLLibError(ErrorType.AUTH_ERROR, `XSTS Auth failed (Code: ${errCode}). Check Xbox account settings.`)
+    }
+    const xsts = await xstsRes.json()
+
+    const launchRes = await fetch('https://api.minecraftservices.com/launcher/login', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ xtoken: `XBL3.0 x=${xboxLive.DisplayClaims.xui[0].uhs};${xsts.Token}`, platform: 'PC_LAUNCHER' })
     })
-      .then((res) => res.json())
-      .catch((err) => {
-        throw new EMLLibError(ErrorType.AUTH_ERROR, 'Error while launching the game')
-      })
 
-    let mcLogin = await fetch('https://api.minecraftservices.com/authentication/login_with_xbox', {
+    if (!launchRes.ok) {
+      throw new EMLLibError(ErrorType.AUTH_ERROR, `Minecraft Launcher Login failed: ${launchRes.statusText}`)
+    }
+    await launchRes.json()
+
+    const mcLoginRes = await fetch('https://api.minecraftservices.com/authentication/login_with_xbox', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ identityToken: `XBL3.0 x=${xboxLive.DisplayClaims.xui[0].uhs};${xsts.Token}` })
     })
-      .then((res) => res.json())
-      .catch((err) => {
-        throw new EMLLibError(ErrorType.AUTH_ERROR, 'Error while logging into Minecraft')
-      })
 
-    let hasGame = await fetch('https://api.minecraftservices.com/entitlements/mcstore', {
+    if (!mcLoginRes.ok) {
+      throw new EMLLibError(ErrorType.AUTH_ERROR, `Minecraft Login failed: ${mcLoginRes.statusText}`)
+    }
+    const mcLogin = await mcLoginRes.json()
+
+    const hasGameRes = await fetch('https://api.minecraftservices.com/entitlements/mcstore', {
       method: 'GET',
-      headers: {
-        Authorization: `Bearer ${mcLogin.access_token}`
-      }
-    }).then((res: any) => res.json())
+      headers: { Authorization: `Bearer ${mcLogin.access_token}` }
+    })
 
-    if (!hasGame.items.find((i: any) => i.name == 'product_minecraft' || i.name == 'game_minecraft')) {
+    if (!hasGameRes.ok) {
+      throw new EMLLibError(ErrorType.AUTH_ERROR, `Failed to check game ownership: ${hasGameRes.statusText}`)
+    }
+    const hasGame = await hasGameRes.json()
+
+    if (!hasGame.items.some((i: any) => i.name == 'product_minecraft' || i.name == 'game_minecraft')) {
       throw new EMLLibError(ErrorType.AUTH_ERROR, 'Minecraft not owned')
     }
 
@@ -175,13 +199,18 @@ export default class MicrosoftAuth {
   }
 
   private async getProfile(mcLogin: any) {
-    let profile = await fetch('https://api.minecraftservices.com/minecraft/profile', {
+    const profileRes = await fetch('https://api.minecraftservices.com/minecraft/profile', {
       method: 'GET',
-      headers: {
-        Authorization: `Bearer ${mcLogin.access_token}`
-      }
-    }).then((res: any) => res.json())
-    if (profile.error) throw new EMLLibError(ErrorType.AUTH_ERROR, 'Error while getting the Minecraft profile')
+      headers: { Authorization: `Bearer ${mcLogin.access_token}` }
+    })
+
+    if (!profileRes.ok) {
+      throw new EMLLibError(ErrorType.AUTH_ERROR, `Error while getting the Minecraft profile: ${profileRes.statusText}`)
+    }
+
+    const profile = await profileRes.json()
+
+    if (profile.error) throw new EMLLibError(ErrorType.AUTH_ERROR, `Profile Error: ${profile.errorMessage || 'Unknown'}`)
 
     return {
       uuid: profile.id,
@@ -198,3 +227,4 @@ export default class MicrosoftAuth {
     return result
   }
 }
+

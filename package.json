@@ -1,6 +1,6 @@
 {
   "name": "eml-lib",
-  "version": "2.0.0-beta.10",
+  "version": "2.0.0-beta.11",
   "description": "Create your Electron Minecraft Launcher easily!",
   "author": "GoldFrite",
   "license": "MIT",
@@ -8,7 +8,8 @@
   "types": "index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "ts-node test/test.ts"
+    "test": "ts-node test/test.ts",
+    "test-electron": "npm run build && electron dist/test/test.js"
   },
   "repository": {
     "type": "git",

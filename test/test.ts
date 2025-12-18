@@ -1,7 +1,36 @@
 import EMLLib from '../index'
-
+import { app, BrowserWindow } from 'electron'
 
 async function main() {
+  // make a basic electron app and run ms auth
+
+  app.whenReady().then(async () => {
+    const mainWindow = new BrowserWindow({
+      width: 800,
+      height: 600,
+      webPreferences: {
+        nodeIntegration: true,
+        contextIsolation: false
+      }
+    })
+
+    mainWindow.loadURL('data:text/html,<h1>EMLLib Test</h1><p>Check the console for output.</p>')
+
+    // Run Microsoft Auth
+    const msAuth = new EMLLib.MicrosoftAuth(mainWindow)
+    try {
+      const account = await msAuth.auth()
+      console.log('Authenticated account:', account)
+    } catch (err) {
+      console.error('Authentication error:', err)
+    }
+
+    // Close the app after auth
+    app.quit()
+  })
+}
+
+async function _main() {
   const launcher = new EMLLib.Launcher({
     url: 'http://localhost:8080',
     serverId: 'goldfrite',
