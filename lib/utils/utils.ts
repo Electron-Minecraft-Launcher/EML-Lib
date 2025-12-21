@@ -6,8 +6,9 @@
 import { EMLLibError, ErrorType } from '../../types/errors'
 import path_ from 'node:path'
 import fs from 'node:fs'
-import crypto from 'node:crypto'
 import os from 'node:os'
+import { createHash } from 'node:crypto'
+import { pipeline } from 'node:stream/promises'
 import { ExtraFile } from '../../types/file'
 
 class Utils {
@@ -48,7 +49,7 @@ class Utils {
    * @returns The architecture (`'x64'` or `'x86'`).
    */
   getArch_MCCode() {
-    if (process.arch.includes('x')) return 'x86';
+    if (process.arch.includes('x')) return 'x86'
     return 'x64'
   }
 
@@ -92,10 +93,12 @@ class Utils {
    * @param filePath Path of the file.
    * @returns The hash of the file.
    */
-  getFileHash(filePath: string) {
+  async getFileHash(filePath: string): Promise<string> {
     try {
-      const fileHash = fs.readFileSync(filePath)
-      return crypto.createHash('sha1').update(fileHash).digest('hex')
+      const hash = createHash('sha1')
+      const input = fs.createReadStream(filePath)
+      await pipeline(input, hash)
+      return hash.digest('hex')
     } catch (err) {
       throw new EMLLibError(ErrorType.HASH_ERROR, `Error while getting hash of the file ${filePath}: ${err}`)
     }

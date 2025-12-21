@@ -61,6 +61,7 @@ export interface DownloaderEvents {
 
 export interface CleanerEvents {
   clean_progress: [{ filename: string }]
+  clean_error: [{ filename: string; message: Error | string }]
   clean_end: [{ amount: number }]
 }
 
