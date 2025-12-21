@@ -58,8 +58,10 @@ export default class Cleaner extends EventEmitter<CleanerEvents> {
             })
         )
       }
+
+      // Can't check hash for performance reasons
     }
-    
+
     await Promise.all(deletePromises)
 
     this.emit('clean_end', { amount: i })
