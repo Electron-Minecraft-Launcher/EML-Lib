@@ -73,4 +73,3 @@ jobs:
           draft: false
           prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') }}
           body_path: .github/changelogs/${{ github.ref_name }}.md
-          files: docker/docker-compose.prod.yml
