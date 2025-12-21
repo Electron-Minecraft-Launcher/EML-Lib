@@ -224,7 +224,14 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
       const zip = new AdmZip(path_.join(this.config.root, native.path, native.name))
       const promisesInner = zip.getEntries().map(async (entry) => {
         if (!entry.entryName.startsWith('META-INF')) {
-          const entryPath = path_.resolve(nativesFolder, entry.entryName)
+          const entryName = entry.entryName.replace(/\\/g, '/').replace(/^\/+/, '')
+
+          if (!entryName || entryName.includes('..') || path_.isAbsolute(entryName)) {
+            console.warn(`[Security] Skipped unsafe native extraction: ${entry.entryName}`)
+            return
+          }
+
+          const entryPath = path_.resolve(nativesFolder, entryName)
           const relative = path_.relative(nativesFolder, entryPath)
           const isSafe = relative && !relative.startsWith('..') && !path_.isAbsolute(relative)
 
@@ -244,8 +251,8 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
           }
 
           files.push({
-            name: path_.basename(entry.entryName),
-            path: path_.join('bin', 'natives', path_.dirname(entry.entryName), '/'),
+            name: path_.basename(entryName),
+            path: path_.join('bin', 'natives', path_.dirname(entryName), '/'),
             url: '',
             sha1: '',
             size: entry.header.size,
