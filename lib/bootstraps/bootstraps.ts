@@ -68,8 +68,8 @@ export default class Bootstraps extends EventEmitter<DownloaderEvents> {
 
     try {
       await downloader.download([bootstrap])
-    } catch (error) {
-      throw error
+    } catch (err) {
+      throw err
     }
 
     return downloadPath
@@ -109,7 +109,7 @@ export default class Bootstraps extends EventEmitter<DownloaderEvents> {
     if (bootstraps) {
       try {
         bootstrapPath = await this.download(bootstraps)
-      } catch (error) {
+      } catch (err) {
         return
       }
 

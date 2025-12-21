@@ -105,11 +105,11 @@ export default class Launcher extends EventEmitter<
     const assetsFiles = await filesManager.getAssets()
     const log4jFiles = await filesManager.getLog4j()
 
-    const javaFilesToDownload = downloader.getFilesToDownload(javaFiles.java)
-    const modpackFilesToDownload = downloader.getFilesToDownload(modpackFiles.modpack)
-    const librariesFilesToDownload = downloader.getFilesToDownload(librariesFiles.libraries)
-    const assetsFilesToDownload = downloader.getFilesToDownload(assetsFiles.assets)
-    const log4jFilesToDownload = downloader.getFilesToDownload(log4jFiles.log4j)
+    const javaFilesToDownload = await downloader.getFilesToDownload(javaFiles.java)
+    const modpackFilesToDownload = await downloader.getFilesToDownload(modpackFiles.modpack)
+    const librariesFilesToDownload = await downloader.getFilesToDownload(librariesFiles.libraries)
+    const assetsFilesToDownload = await downloader.getFilesToDownload(assetsFiles.assets)
+    const log4jFilesToDownload = await downloader.getFilesToDownload(log4jFiles.log4j)
     const filesToDownload = [
       ...javaFilesToDownload,
       ...modpackFilesToDownload,
@@ -130,24 +130,24 @@ export default class Launcher extends EventEmitter<
     //* Install loader
     this.emit('launch_install_loader', loader)
 
-    await new Promise((resolve) => setTimeout(resolve, 1000)) // Avoid "Error: ADM-ZIP: Invalid or unsupported zip format. No END header found" error
+    await new Promise((r) => setTimeout(r, 1000)) // Avoid "Error: ADM-ZIP: Invalid or unsupported zip format. No END header found" error
     const loaderFiles = await loaderManager.setupLoader()
     await downloader.download(loaderFiles.libraries)
 
     //* Extract natives
     this.emit('launch_extract_natives')
 
-    const extractedNatives = filesManager.extractNatives([...librariesFiles.libraries, ...loaderFiles.libraries])
+    const extractedNatives = await filesManager.extractNatives([...librariesFiles.libraries, ...loaderFiles.libraries])
 
     //* Copy assets
     this.emit('launch_copy_assets')
 
-    const copiedAssets = filesManager.copyAssets()
+    const copiedAssets = await filesManager.copyAssets()
 
     //* Check Java
     this.emit('launch_check_java')
 
-    const javaInfo = java.check(this.config.java.absolutePath, manifest.javaVersion?.majorVersion || 8)
+    const javaInfo = await java.check(this.config.java.absolutePath, manifest.javaVersion?.majorVersion ?? 8)
 
     //* Path loader
     this.emit('launch_patch_loader')
@@ -168,7 +168,7 @@ export default class Launcher extends EventEmitter<
       ...loaderFiles.files,
       ...patchedFiles.files
     ]
-    cleaner.clean(files, this.config.cleaning.ignored, !this.config.cleaning.clean)
+    await cleaner.clean(files, this.config.cleaning.ignored, !this.config.cleaning.clean)
 
     //* Launch
     this.emit('launch_launch', { version: manifest.id, type: loader.type, loaderVersion: loader.loaderVersion })
@@ -188,4 +188,3 @@ export default class Launcher extends EventEmitter<
     minecraft.on('close', (code) => this.emit('launch_close', code ?? 0))
   }
 }
-

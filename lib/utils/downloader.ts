@@ -4,23 +4,31 @@
  */
 
 import { File } from '../../types/file'
-import fs from 'node:fs'
+import fsSync from 'node:fs'
+import fs from 'node:fs/promises'
 import path_ from 'node:path'
 import fetch from 'node-fetch'
 import EventEmitter from '../utils/events'
 import { DownloaderEvents } from '../../types/events'
 import utils from './utils'
 import { EMLLibError, ErrorType } from '../../types/errors'
-import { chmod } from 'node:fs/promises'
+import http from 'node:http'
+import https from 'node:https'
 
 export default class Downloader extends EventEmitter<DownloaderEvents> {
+  private readonly CONCURRENCY_LIMIT = 5
   private readonly dest: string
-  private size: number = 0
+
+  private httpAgent = new http.Agent({ keepAlive: true, maxSockets: 32 })
+  private httpsAgent = new https.Agent({ keepAlive: true, maxSockets: 32 })
+
+  private size = 0
+  private amount = 0
   private downloaded: { amount: number; size: number } = { amount: 0, size: 0 }
-  private error: boolean = false
-  private speed: number = 0
-  private eta: number = 0
-  private history: { size: number; time: number }[] = []
+
+  private speed = 0
+  private lastTime = 0
+  private lastSize = 0
 
   /**
    * @param dest Destination folder.
@@ -36,29 +44,38 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
    * @param skipCheck [Optional: default is `false`] Skip files that already exist in the
    * destination folder (force to download all files).
    */
-  async download(files: File[], skipCheck: boolean = false): Promise<void> {
-    const filesToDownload: File[] = !skipCheck ? this.getFilesToDownload(files) : files
+  async download(files: File[], skipCheck: boolean = false) {
+    const filesToDownload: File[] = !skipCheck ? await this.getFilesToDownload(files) : files
 
-    this.size = 0
-    this.size = filesToDownload.reduce((acc, curr) => acc + (curr.size || 0), 0)
+    this.size = filesToDownload.reduce((acc, curr) => acc + (curr.size ?? 0), 0)
+    this.amount = filesToDownload.length
     this.downloaded = { amount: 0, size: 0 }
-    this.error = false
     this.speed = 0
-    this.eta = 0
-    this.history = []
-    if (this.size === 0) {
+    this.lastTime = Date.now()
+    this.lastSize = 0
+
+    if (this.size === 0 || filesToDownload.length === 0) {
       this.emit('download_end', { downloaded: this.downloaded })
       return
     }
 
-    const max = Math.min(filesToDownload.length, 5)
+    const queue = [...filesToDownload]
 
-    for (let i = 0; i < max; i++) this.downloadFile(filesToDownload, i)
+    const workers = Array(this.CONCURRENCY_LIMIT)
+      .fill(null)
+      .map(async () => {
+        while (queue.length > 0) {
+          const file = queue.shift()
+          if (file) await this.downloadFileWithRetry(file)
+        }
+      })
 
-    return new Promise((resolve, reject) => {
-      this.on('download_end', () => resolve())
-      this.on('download_error', (err) => reject(err))
-    })
+    try {
+      await Promise.all(workers)
+      this.emit('download_end', { downloaded: this.downloaded })
+    } catch (err) {
+      throw err
+    }
   }
 
   /**
@@ -66,142 +83,142 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
    * @param files List of files to check.
    * @returns List of files to download.
    */
-  getFilesToDownload(files: File[]) {
+  async getFilesToDownload(files: File[]) {
     let filesToDownload: File[] = []
 
-    files.forEach((file) => {
+    const promises = files.map(async (file) => {
       const filePath = path_.join(this.dest, file.path, file.name)
+
       if (file.type === 'FOLDER') {
-        if (!fs.existsSync(filePath)) {
-          fs.mkdirSync(filePath, { recursive: true })
+        try {
+          await fs.access(filePath)
+        } catch {
+          await fs.mkdir(filePath, { recursive: true })
         }
-      } else if ((!fs.existsSync(filePath) || file.sha1 !== utils.getFileHash(filePath)) && file.url) {
+      }
+      let needsDownload = false
+
+      try {
+        await fs.access(filePath)
+        if (file.sha1 && file.sha1 !== (await utils.getFileHash(filePath))) {
+          needsDownload = true
+        }
+      } catch {
+        needsDownload = true
+      }
+
+      if (needsDownload && file.url) {
         filesToDownload.push(file)
       }
     })
 
+    await Promise.all(promises)
+
     return filesToDownload
   }
 
-  private async downloadFile(files: File[], i: number, t = 0) {
-    const file = files[i]
+  private async downloadFileWithRetry(file: File, attempt = 0): Promise<void> {
+    try {
+      await this.downloadFile(file)
+      this.downloaded.amount++
+    } catch (err: any) {
+      if (attempt < 5) {
+        await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)))
+        return this.downloadFileWithRetry(file, attempt + 1)
+      } else {
+        this.emit('download_error', {
+          filename: file.name,
+          type: file.type,
+          message: err.message ?? err
+        })
+        throw new EMLLibError(ErrorType.DOWNLOAD_ERROR, `Failed to download ${file.name} after 5 attempts`)
+      }
+    }
+  }
+
+  private async downloadFile(file: File) {
     const dirPath = path_.join(this.dest, file.path)
     const filePath = path_.join(dirPath, file.name)
+    let bytesDownloadedThisAttempt = 0
 
-    if (this.error) return
+    await fs.mkdir(dirPath, { recursive: true })
 
-    try {
-      if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true })
+    const agent = file.url.startsWith('https') ? this.httpsAgent : this.httpAgent
 
-      const res = await fetch(file.url, { headers: { Accept: 'application/octet-stream' } })
-      const stream = fs.createWriteStream(filePath)
+    const res = await fetch(file.url, {
+      agent: agent,
+      headers: { Accept: 'application/octet-stream' }
+    })
 
-      if (res.status !== 200) {
-        if (t < 5) {
-          setTimeout(() => this.downloadFile(files, i, t + 1), 1000)
-          return
-        }
-        this.emit('download_error', {
-          filename: file.name,
-          type: file.type,
-          message: res.statusText
-        })
-        this.error = true
-        throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching ${file.name}: ${res.statusText}`)
-      }
-      if (!res.body) {
-        if (t < 5) {
-          setTimeout(() => this.downloadFile(files, i, t + 1), 1000)
-          return
-        }
-        this.emit('download_error', {
-          filename: file.name,
-          type: file.type,
-          message: 'No body'
-        })
-        this.error = true
-        throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching ${file.name}: ${res.statusText}`)
-      }
-
-      await new Promise((resolve, reject) => {
-        res.body.on('data', (chunk) => {
-          const now = Date.now()
-          this.history.push({ size: chunk.length, time: now })
-
-          while (this.history.length > 0 && now - this.history[0].time > 6000) {
-            this.history.shift()
-          }
-
-          stream.write(chunk)
-
-          this.downloaded.size += chunk.length
-
-          const totalSize = this.history.reduce((acc, curr) => acc + curr.size, 0)
-          const elapsedTime = (now - this.history[0].time) / 1000
-          this.speed = totalSize / elapsedTime
-          this.eta = (this.size - this.downloaded.size) / this.speed // TODO Fix ETA
-
-          this.emit('download_progress', {
-            total: { amount: files.length, size: this.size },
-            downloaded: this.downloaded,
-            speed: this.speed,
-            eta: Math.floor(this.eta),
-            type: file.type
-          })
-        })
-
-        res.body.on('error', (err) => {
-          stream.destroy()
-          this.emit('download_error', {
-            filename: file.name,
-            type: file.type,
-            message: err
-          })
-          this.error = true
-          reject(new EMLLibError(ErrorType.DOWNLOAD_ERROR, `Error while downloading ${file.name}: ${err}`))
-        })
-
-        res.body.on('end', async (val) => {
-          this.downloaded.amount++
-          if (this.downloaded.amount === files.length) {
-            this.emit('download_end', { downloaded: this.downloaded })
-          } else if (i + 5 < files.length) {
-            this.downloadFile(files, i + 5)
-          }
-          await this.chmodJavaFiles(filePath, file)
-          stream.close()
-          resolve(val)
-        })
-      })
-    } catch (error: any) {
-      if (t < 5) {
-        setTimeout(() => this.downloadFile(files, i, t + 1), 1000)
-        return
-      }
-      this.emit('download_error', {
-        filename: file.name,
-        type: file.type,
-        message: error
-      })
-      this.error = true
-      return
+    if (!res.ok || !res.body) {
+      throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching ${file.name}: ${res.statusText}`)
     }
+
+    const stream = fsSync.createWriteStream(filePath)
+
+    return new Promise<void>((resolve, reject) => {
+      const cleanup = () => {
+        res.body?.removeAllListeners()
+        stream.removeAllListeners()
+        stream.destroy()
+      }
+      res.body!.on('data', (chunk: Buffer) => {
+        stream.write(chunk)
+
+        bytesDownloadedThisAttempt += chunk.length
+        this.downloaded.size += chunk.length
+
+        const now = Date.now()
+        const diffTime = now - this.lastTime
+
+        if (diffTime > 500) {
+          const diffSize = this.downloaded.size - this.lastSize
+          this.speed = diffSize / (diffTime / 1000)
+
+          this.lastTime = now
+          this.lastSize = this.downloaded.size
+        }
+
+        this.emit('download_progress', {
+          total: { amount: this.amount, size: this.size },
+          downloaded: this.downloaded,
+          speed: Math.floor(this.speed),
+          type: file.type
+        })
+      })
+
+      res.body!.on('end', () => {
+        stream.end()
+      })
+
+      res.body!.on('error', (err) => {
+        this.downloaded.size -= bytesDownloadedThisAttempt
+        this.lastSize = Math.min(this.lastSize, this.downloaded.size)
+        cleanup()
+        reject(err)
+      })
+
+      stream.on('finish', async () => {
+        cleanup()
+        try {
+          await this.chmodJavaFiles(filePath, file)
+          resolve()
+        } catch (err) {
+          reject(err)
+        }
+      })
+
+      stream.on('error', (err) => {
+        this.downloaded.size -= bytesDownloadedThisAttempt
+        cleanup()
+        reject(err)
+      })
+    })
   }
 
   private async chmodJavaFiles(filePath: string, file: File) {
-    if (process.platform !== 'win32') {
-      if (file.executable) {
-        try {
-          await chmod(filePath, 0o755)
-        } catch (error: any) {
-          this.emit('download_error', {
-            filename: file.name,
-            type: file.type,
-            message: error
-          })
-        }
-      }
+    if (process.platform !== 'win32' && file.executable) {
+      await fs.chmod(filePath, 0o755)
     }
   }
 }
-

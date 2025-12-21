@@ -8,7 +8,7 @@ import { FullConfig } from '../../../types/config'
 import { ILoader, File } from '../../../types/file'
 import { MinecraftManifest } from '../../../types/manifest'
 import utils from '../../utils/utils'
-import fs from 'node:fs'
+import { existsSync } from 'node:fs'
 import path_ from 'node:path'
 import { spawn } from 'node:child_process'
 import EventEmitter from '../../utils/events'
@@ -49,7 +49,7 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
       )
       const mainClass = this.getJarMain(jarExtractPathName)!
 
-      await new Promise((resolve, reject) => {
+      await new Promise((resolve) => {
         const patch = spawn(
           `"${this.config.java.absolutePath.replace('${X}', this.manifest.javaVersion?.majorVersion + '' || '8')}"`,
           ['-classpath', [`"${jarExtractPathName}"`, ...classpath].join(path_.delimiter), mainClass, ...args],
@@ -98,14 +98,14 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
       const libExtractPath = path_.join(this.config.root, 'libraries', libPath)
 
       files.push({ name: libName, path: path_.join('libraries', libPath), url: '', type: 'LIBRARY' })
-      if (!fs.existsSync(path_.join(libExtractPath, libName))) patched = false
+      if (!existsSync(path_.join(libExtractPath, libName))) patched = false
     }
 
     return { patched, files }
   }
 
   private getJarMain(jarPath: string) {
-    if (!fs.existsSync(jarPath)) return null
+    if (!existsSync(jarPath)) return null
     const manifest = new AdmZip(jarPath).getEntry('META-INF/MANIFEST.MF')?.getData()
     if (!manifest) return null
     return manifest.toString('utf8').split('Main-Class: ')[1].split('\r\n')[0]

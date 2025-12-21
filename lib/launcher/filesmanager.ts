@@ -10,7 +10,8 @@ import { ExtraFile, File, ILoader } from '../../types/file'
 import { Artifact, MinecraftManifest, Assets } from '../../types/manifest'
 import utils from '../utils/utils'
 import path_ from 'node:path'
-import fs from 'node:fs'
+import fs from 'node:fs/promises'
+import { existsSync } from 'node:fs'
 import AdmZip from 'adm-zip'
 import EventEmitter from '../utils/events'
 import { FilesManagerEvents } from '../../types/events'
@@ -69,12 +70,12 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
     let files: File[] = []
     let libraries: ExtraFile[] = []
 
-    if (!fs.existsSync(path_.join(this.config.root, 'versions', this.manifest.id))) {
-      fs.mkdirSync(path_.join(this.config.root, 'versions', this.manifest.id), { recursive: true })
+    if (!existsSync(path_.join(this.config.root, 'versions', this.manifest.id))) {
+      await fs.mkdir(path_.join(this.config.root, 'versions', this.manifest.id), { recursive: true })
     }
 
     files.push({ name: `${this.manifest.id}.json`, path: path_.join('versions', this.manifest.id, '/'), url: '', type: 'OTHER' })
-    fs.writeFileSync(path_.join(this.config.root, 'versions', this.manifest.id, `${this.manifest.id}.json`), JSON.stringify(this.manifest, null, 2))
+    await fs.writeFile(path_.join(this.config.root, 'versions', this.manifest.id, `${this.manifest.id}.json`), JSON.stringify(this.manifest, null, 2))
 
     this.manifest.libraries.forEach((lib) => {
       let type: 'LIBRARY' | 'NATIVE'
@@ -150,12 +151,12 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
         throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch assets: ${err}`)
       })
 
-    if (!fs.existsSync(path_.join(this.config.root, 'assets', 'indexes'))) {
-      fs.mkdirSync(path_.join(this.config.root, 'assets', 'indexes'), { recursive: true })
+    if (!existsSync(path_.join(this.config.root, 'assets', 'indexes'))) {
+      await fs.mkdir(path_.join(this.config.root, 'assets', 'indexes'), { recursive: true })
     }
 
     files.push({ name: `${this.manifest.assets}.json`, path: path_.join('assets', 'indexes', '/'), url: '', type: 'OTHER' })
-    fs.writeFileSync(path_.join(this.config.root, 'assets', 'indexes', `${this.manifest.assets}.json`), JSON.stringify(res, null, 2))
+    await fs.writeFile(path_.join(this.config.root, 'assets', 'indexes', `${this.manifest.assets}.json`), JSON.stringify(res, null, 2))
 
     Object.values(res.objects).forEach((asset) => {
       assets.push({
@@ -208,29 +209,50 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
    * @param libraries Libraries to extract natives from.
    * @returns `files`: all files created by this method.
    */
-  extractNatives(libraries: File[]) {
+  async extractNatives(libraries: File[]) {
     const natives = libraries.filter((lib) => lib.type === 'NATIVE')
-    const nativesFolder = path_.join(this.config.root, 'bin', 'natives')
+    const nativesFolder = path_.resolve(this.config.root, 'bin', 'natives')
     let files: File[] = []
 
-    if (!fs.existsSync(nativesFolder)) {
-      fs.mkdirSync(nativesFolder, { recursive: true })
+    if (!existsSync(nativesFolder)) {
+      await fs.mkdir(nativesFolder, { recursive: true })
     }
 
-    natives.forEach((native) => {
-      if (!fs.existsSync(path_.join(this.config.root, native.path, native.name))) return
+    const promises = natives.map(async (native) => {
+      if (!existsSync(path_.join(this.config.root, native.path, native.name))) return
+
       const zip = new AdmZip(path_.join(this.config.root, native.path, native.name))
-      zip.getEntries().forEach((entry) => {
+      const promisesInner = zip.getEntries().map(async (entry) => {
         if (!entry.entryName.startsWith('META-INF')) {
-          if (entry.isDirectory) {
-            fs.mkdirSync(path_.join(nativesFolder, entry.entryName), { recursive: true })
+          const entryName = entry.entryName.replace(/\\/g, '/').replace(/^\/+/, '')
+
+          if (!entryName || entryName.includes('..') || path_.isAbsolute(entryName)) {
+            console.warn(`[Security] Skipped unsafe native extraction: ${entry.entryName}`)
+            return
+          }
+
+          const entryPath = path_.resolve(nativesFolder, entryName)
+          const relative = path_.relative(nativesFolder, entryPath)
+          const isSafe = relative && !relative.startsWith('..') && !path_.isAbsolute(relative)
+
+          if (!isSafe) {
+            console.warn(`[Security] Skipped unsafe native extraction: ${entry.entryName}`)
+            return
+          }
+
+          if (entry.isDirectory && !existsSync(entryPath)) {
+            await fs.mkdir(entryPath, { recursive: true })
           } else {
-            fs.writeFileSync(path_.join(nativesFolder, entry.entryName), zip.readFile(entry)!)
+            const parentDir = path_.dirname(entryPath)
+            if (!existsSync(parentDir)) await fs.mkdir(parentDir, { recursive: true })
+
+            const data = zip.readFile(entry)
+            if (data) await fs.writeFile(entryPath, data)
           }
 
           files.push({
-            name: path_.basename(entry.entryName),
-            path: path_.join('bin', 'natives', path_.dirname(entry.entryName), '/'),
+            name: path_.basename(entryName),
+            path: path_.join('bin', 'natives', path_.dirname(entryName), '/'),
             url: '',
             sha1: '',
             size: entry.header.size,
@@ -239,8 +261,12 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
         }
       })
 
+      await Promise.all(promisesInner)
+
       this.emit('extract_progress', { filename: native.name })
     })
+
+    await Promise.all(promises)
 
     this.emit('extract_end', { amount: files.length })
 
@@ -251,26 +277,27 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
    * Copy assets from the assets folder to the resources folder.
    * @returns `files`: all files created by this method.
    */
-  copyAssets() {
+  async copyAssets() {
     let files: File[] = []
 
     if (this.manifest.assets === 'legacy' || this.manifest.assets === 'pre-1.6') {
-      if (fs.existsSync(path_.join(this.config.root, 'assets', 'legacy'))) {
+      if (existsSync(path_.join(this.config.root, 'assets', 'legacy'))) {
         this.emit('copy_debug', "The 'assets/legacy' directory is no longer used. You can safely remove it from your server's root directory.")
       }
 
-      const assets = JSON.parse(fs.readFileSync(path_.join(this.config.root, 'assets', 'indexes', `${this.manifest.assets}.json`), 'utf-8')) as Assets
+      const assetsContent = await fs.readFile(path_.join(this.config.root, 'assets', 'indexes', `${this.manifest.assets}.json`), 'utf-8')
+      const assets = JSON.parse(assetsContent) as Assets
 
-      Object.entries(assets.objects).forEach(([path, { hash, size }]) => {
+      const promises = Object.entries(assets.objects).map(async ([path, { hash, size }]) => {
         const assetLegacyPath = path_.join('resources', path_.dirname(path))
         const assetLegacyName = path_.basename(path)
 
-        if (!fs.existsSync(path_.join(this.config.root, assetLegacyPath))) {
-          fs.mkdirSync(path_.join(this.config.root, assetLegacyPath), { recursive: true })
+        if (!existsSync(path_.join(this.config.root, assetLegacyPath))) {
+          await fs.mkdir(path_.join(this.config.root, assetLegacyPath), { recursive: true })
         }
 
-        if (!fs.existsSync(path_.join(assetLegacyPath, assetLegacyName))) {
-          fs.copyFileSync(
+        if (!existsSync(path_.join(assetLegacyPath, assetLegacyName))) {
+          await fs.copyFile(
             path_.join(this.config.root, 'assets', 'objects', hash.substring(0, 2), hash),
             path_.join(this.config.root, assetLegacyPath, assetLegacyName)
           )
@@ -287,6 +314,8 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
 
         this.emit('copy_progress', { filename: hash, dest: path_.join(assetLegacyPath, assetLegacyName) })
       })
+
+      await Promise.all(promises)
     }
 
     this.emit('copy_end', { amount: files.length })

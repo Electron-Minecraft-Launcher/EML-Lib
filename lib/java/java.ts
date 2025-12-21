@@ -10,7 +10,7 @@ import { File } from '../../types/file'
 import path_ from 'node:path'
 import Downloader from '../utils/downloader'
 import utils from '../utils/utils'
-import { spawnSync } from 'node:child_process'
+import { spawn } from 'node:child_process'
 import { EMLLibError, ErrorType } from '../../types/errors'
 import { MinecraftManifest } from '../../types/manifest'
 
@@ -112,31 +112,42 @@ export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
    * @param majorVersion [Optional: default is `8`] Major version of Java to check.
    * @returns The version and architecture of Java.
    */
-  check(
+  async check(
     absolutePath: string = path_.join(utils.getServerFolder(this.serverId), 'runtime', 'jre-${X}', 'bin', 'java'),
     majorVersion: number = 8
-  ): {
-    version: string
-    arch: '64-bit' | '32-bit'
-  } {
-    const check = spawnSync(`"${absolutePath.replace('${X}', majorVersion + '')}"`, ['-version'], { shell: true })
-    if (check.error) throw new EMLLibError(ErrorType.JAVA_ERROR, `Java is not correctly installed: ${check.error.message}`)
-    const res = {
-      version:
-        check.output
-          .map((o) => o?.toString('utf8'))
-          .join(' ')
-          .match(/"(.*?)"/)
-          ?.pop() ?? majorVersion + '',
-      arch: check.output
-        .map((o) => o?.toString('utf8'))
-        .join(' ')
-        .includes('64-Bit')
-        ? '64-bit'
-        : ('32-bit' as '64-bit' | '32-bit')
-    }
-    this.emit('java_info', res)
-    return res
+  ) {
+    return new Promise((resolve, reject) => {
+      const javaExec = absolutePath.replace('${X}', majorVersion + '')
+      const process = spawn(javaExec, ['-version'])
+      let output = ''
+
+      process.stdout.on('data', (data) => {
+        output += data.toString()
+      })
+      process.stderr.on('data', (data) => {
+        output += data.toString()
+      })
+      process.on('error', (err) => {
+        reject(new EMLLibError(ErrorType.JAVA_ERROR, `Java is not correctly installed: ${err.message}`))
+      })
+      process.on('close', (code) => {
+        if (code !== 0 && output.length === 0) {
+          reject(new EMLLibError(ErrorType.JAVA_ERROR, `Java exited with code ${code}`))
+          return
+        }
+
+        const versionMatch = output.match(/"(.*?)"/)
+        const version = versionMatch ? versionMatch.pop() : majorVersion + ''
+        const arch = output.includes('64-Bit') ? '64-bit' : '32-bit'
+        const res = { version: version!, arch: arch as '64-bit' | '32-bit' }
+
+        this.emit('java_info', res)
+        resolve(res)
+      })
+    }) as Promise<{
+      version: string
+      arch: '64-bit' | '32-bit'
+    }>
   }
 
   private normalizeJavaPath(filePath: string, jreV: string) {
@@ -152,4 +163,3 @@ export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
     return path_.join('runtime', `jre-${jreV}`, path_.dirname(filePath), '/')
   }
 }
-
