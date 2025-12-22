@@ -40,7 +40,7 @@ export default class BufferReader {
 
   readStringUTF16BE() {
     const length = this.readVarInt() * 2
-    const val = this.buffer.subarray(this.offset + 1, this.offset + length)
+    const val = Buffer.from(this.buffer.subarray(this.offset + 1, this.offset + length))
 
     for (let i = 0; i < val.length; i += 2) {
       const temp = val[i]

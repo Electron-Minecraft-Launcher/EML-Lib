@@ -21,7 +21,7 @@ export default class ServerStatus {
   private readonly timeout: number
 
   /**
-   * **Attention!** This class may not work for some Minecraft servers (Minecraft 1.4 and below, or 
+   * **Attention!** This class may not work for some Minecraft servers (Minecraft 1.4 and below, or
    * servers with a specific configuration). If you encounter any problems, please [open an
    * issue](https://github.com/Electron-Minecraft-Launcher/EML-Lib-v2/issues).
    * @param ip Your Minecraft Server's IP or Host (eg. `'172.65.236.36'` or `'mc.hypixel.net'`).
@@ -31,10 +31,10 @@ export default class ServerStatus {
    * 12w32a/1.4 to 1.5.2).
    * @param pvn [Optional: default is `-1`] The Minecraft protocol version (eg. `754` for 1.16.4).
    * This parameter is optional, but it is recommended to use it for better compatibility. You can
-   * find the protocol version of your Minecraft version [here](https://wiki.vg/Protocol_version_numbers).
+   * find the protocol version of your Minecraft version [here](https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol_version_numbers).
    * @param timeout [Optional: default is `5`] The timeout in seconds.
    */
-  constructor(ip: string, port: number = 25565, protocol: 'modern' | '1.6' | '1.4-1.5', pvn: number, timeout: number = 5) {
+  constructor(ip: string, port: number = 25565, protocol: 'modern' | '1.6' | '1.4-1.5' = 'modern', pvn: number = -1, timeout: number = 5) {
     this.ip = ip
     this.port = port
     this.protocol = protocol
@@ -54,7 +54,7 @@ export default class ServerStatus {
       socket.setNoDelay(true)
 
       const timeout = setTimeout(() => {
-        throw new EMLLibError(ErrorType.NET_ERROR, 'Connection timed out')
+        reject(new EMLLibError(ErrorType.NET_ERROR, 'Connection timed out'))
       }, this.timeout * 1000)
 
       socket.on('connect', () => {
@@ -169,4 +169,3 @@ export default class ServerStatus {
     })
   }
 }
-
