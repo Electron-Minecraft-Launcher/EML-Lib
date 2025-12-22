@@ -139,8 +139,8 @@ export default class ForgeLoader extends EventEmitter<FilesManagerEvents> {
 
     if (installProfile.processors && installProfile.processors.length > 0) {
       const universalMaven = installProfile.libraries.find((lib: any) => (lib.name + '').startsWith('net.minecraftforge:forge:'))
-      const clientDataName = utils.getLibraryName(installProfile.path || universalMaven.name).replace('.jar', '-clientdata.lzma')
-      const clientDataPath = utils.getLibraryPath(installProfile.path || universalMaven.name)
+      const clientDataName = utils.getLibraryName(installProfile.path ?? universalMaven.name).replace('.jar', '-clientdata.lzma')
+      const clientDataPath = utils.getLibraryPath(installProfile.path ?? universalMaven.name)
       const clientDataExtractPath = path_.join(this.config.root, 'libraries', clientDataPath)
       const clientData = zip.getEntry('data/client.lzma')!.getData()
 
@@ -161,9 +161,11 @@ export default class ForgeLoader extends EventEmitter<FilesManagerEvents> {
 
     libraries.push(...libsLoader)
     libraries.push(...libsInstall)
+    files.push(...libraries)
 
     this.emit('extract_end', { amount: i })
 
+    console.log(libraries, files)
     return { loaderManifest: forgeManifest, installProfile: installProfile, libraries: libraries, files: files }
   }
 
