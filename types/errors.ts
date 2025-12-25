@@ -17,6 +17,7 @@ export class EMLLibError extends Error {
 }
 
 export enum ErrorType {
+  MODULE_NOT_FOUND,
   UNKNOWN_ERROR,
   TWOFA_CODE_REQUIRED,
   AUTH_ERROR,
@@ -33,6 +34,7 @@ export enum ErrorType {
 }
 
 export type ErrorCode =
+  | typeof ErrorType.MODULE_NOT_FOUND
   | typeof ErrorType.UNKNOWN_ERROR
   | typeof ErrorType.TWOFA_CODE_REQUIRED
   | typeof ErrorType.AUTH_ERROR

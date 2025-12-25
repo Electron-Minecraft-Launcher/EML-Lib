@@ -165,7 +165,6 @@ export default class ForgeLoader extends EventEmitter<FilesManagerEvents> {
 
     this.emit('extract_end', { amount: i })
 
-    console.log(libraries, files)
     return { loaderManifest: forgeManifest, installProfile: installProfile, libraries: libraries, files: files }
   }
 

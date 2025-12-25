@@ -42,6 +42,23 @@ export interface JavaEvents {
   java_info: [{ version: string; arch: '32-bit' | '64-bit' }]
 }
 
+export interface CleanerEvents {
+  clean_progress: [{ filename: string }]
+  clean_error: [{ filename: string; message: Error | string }]
+  clean_end: [{ amount: number }]
+}
+
+export interface PatcherEvents {
+  patch_progress: [{ filename: string }]
+  patch_error: [{ filename: string; message: Error | string }]
+  patch_end: [{ amount: number }]
+  patch_debug: [string]
+}
+
+export interface BootstrapsEvents {
+  bootstraps_error: [{ message: string | Error }]
+}
+
 export interface DownloaderEvents {
   download_progress: [
     {
@@ -57,18 +74,4 @@ export interface DownloaderEvents {
   download_error: [{ filename: string; type: string; message: Error | string }]
   download_end: [{ downloaded: { amount: number; size: number } }]
 }
-
-export interface CleanerEvents {
-  clean_progress: [{ filename: string }]
-  clean_error: [{ filename: string; message: Error | string }]
-  clean_end: [{ amount: number }]
-}
-
-export interface PatcherEvents {
-  patch_progress: [{ filename: string }]
-  patch_error: [{ filename: string; message: Error | string }]
-  patch_end: [{ amount: number }]
-  patch_debug: [string]
-}
-
 

@@ -1,16 +1,16 @@
 export interface INews {
-  id?: number
+  id?: string
   title: string
   content: string
-  author: number
-  date: Date
-  edition_date?: Date | null
-  categories?: number[] | string
-  tags?: number[] | string
+  author: { id: string; username: string }
+  createdAt: Date
+  updatedAt?: Date | null
+  categories?: INewsCategory[]
+  tags?: INewsTag[]
 }
 
 export interface INewsCategory {
-  id?: number
+  id?: string
   title: string
   date: string
 }
@@ -20,7 +20,7 @@ export interface NewsCategoryRes extends INewsCategory {
 }
 
 export interface INewsTag {
-  id?: number
+  id?: string
   title: string
   color: string
 }

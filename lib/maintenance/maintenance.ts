@@ -25,14 +25,14 @@ export default class Maintenance {
    * Get the current Maintenance status from the EML AdminTool.
    * @returns `null` if there is no maintenance, otherwise it will return the maintenance status.
    */
-  async getMaintenance(): Promise<IMaintenance | null> {
+  async getMaintenance() {
     let res = await fetch(`${this.url}/maintenance`, { method: 'GET' })
       .then((res) => res.json())
       .catch((err) => {
         throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching Maintenance from the EML AdminTool: ${err}`)
       })
 
-    if (res.data.startTime) return res
+    if (res.startTime) return res as IMaintenance
     else return null
   }
 }

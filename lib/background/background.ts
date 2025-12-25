@@ -25,13 +25,14 @@ export default class Background {
    * Get the current background from the EML AdminTool.
    * @returns The current Background object, or `null` if no background is set.
    */
-  async getBackground(): Promise<IBackground | null> {
+  async getBackground() {
     const res = await fetch(`${this.url}/background`)
-      .then((res) => res.json() as Promise<{ background: IBackground }>)
+      .then((res) => res.json() as Promise<IBackground>)
       .catch((err) => {
         throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching backgrounds: ${err}`)
       })
 
-    return res.background ?? null
+    return res ?? null
   }
 }
+

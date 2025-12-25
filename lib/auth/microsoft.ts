@@ -3,7 +3,7 @@
  * @copyright Copyright (c) 2025, GoldFrite
  */
 
-import { BrowserWindow } from 'electron'
+import type { BrowserWindow } from 'electron'
 import MicrosoftAuthGui from './microsoftgui'
 import { Account } from '../../types/account'
 import { EMLLibError, ErrorType } from '../../types/errors'
@@ -23,7 +23,7 @@ export default class MicrosoftAuth {
    */
   constructor(mainWindow: BrowserWindow, clientId?: string) {
     this.mainWindow = mainWindow
-    this.clientId = clientId || '00000000402b5328'
+    this.clientId = clientId ?? '00000000402b5328'
   }
 
   /**

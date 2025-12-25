@@ -25,28 +25,28 @@ export default class News {
    * Get all the news from the EML AdminTool.
    * @returns The list of News.
    */
-  async getNews(): Promise<INews[]> {
+  async getNews() {
     let res = await fetch(`${this.url}/news`, { method: 'GET' })
       .then((res) => res.json())
       .catch((err) => {
         throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching News from the EML AdminTool: ${err}`)
       })
 
-    return res.news
+    return res.news as INews[]
   }
 
   /**
    * Get all the News categories from the EML AdminTool.
    * @returns The list of News categories.
    */
-  async getCategories(): Promise<INewsCategory[]> {
+  async getCategories() {
     let res = await fetch(`${this.url}/news/categories`, { method: 'GET' })
       .then((res) => res.json())
       .catch((err) => {
         throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching News Categories from the EML AdminTool: ${err}`)
       })
 
-    return res.data
+    return res as INewsCategory[]
   }
 
   /**
@@ -55,8 +55,8 @@ export default class News {
    * @returns The News if the category.
    * @deprecated Returns an empty array — Currently not used in the EML AdminTool, but may be used in the future. Please use `News.getNews().filter(...)` instead.
    */
-  async getNewsByCategory(categoryId: number): Promise<INews[]> {
-    return [] // Currently not used in the EML AdminTool, but may be used in the future.
+  async getNewsByCategory(categoryId: number) {
+    return [] as INews[] // Currently not used in the EML AdminTool, but may be used in the future.
     let res = await fetch(`${this.url}/news/categories/${categoryId}`, { method: 'GET' })
       .then((res) => res.json())
       .catch((err) => {

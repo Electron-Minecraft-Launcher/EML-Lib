@@ -6,7 +6,7 @@
 import MicrosoftAuth from './lib/auth/microsoft'
 import AzAuth from './lib/auth/azuriom'
 import CrackAuth from './lib/auth/crack'
-import Bootstraps from './lib/bootstraps/bootstraps'
+import Bootstraps from './lib/bootstraps/bootstraps_old'
 import Maintenance from './lib/maintenance/maintenance'
 import News from './lib/news/news'
 import Background from './lib/background/background'
@@ -118,7 +118,7 @@ export { Launcher }
  *
  * ---
  *
- * @version 2.0.0-beta.15
+ * @version 2.0.0-beta.16
  * @license MIT — See the `LICENSE` file for more information
  * @copyright Copyright (c) 2025, GoldFrite
  */

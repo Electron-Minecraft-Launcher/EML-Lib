@@ -3,117 +3,126 @@
  * @copyright Copyright (c) 2025, GoldFrite
  */
 
-import Downloader from '../utils/downloader'
-import utils from '../utils/utils'
 import EventEmitter from '../utils/events'
-import path_ from 'node:path'
-import { spawnSync } from 'node:child_process'
 import { EMLLibError, ErrorType } from '../../types/errors'
+import { BootstrapsEvents, DownloaderEvents } from '../../types/events'
+import type { AppUpdater } from 'electron-updater'
 import { IBootstraps } from '../../types/bootstraps'
-import { File } from '../../types/file'
-import { DownloaderEvents } from '../../types/events'
+import utils from '../utils/utils'
 
 /**
  * Update your Launcher.
  *
  * **Attention!** This class only works with the EML AdminTool. Please do not use it without the AdminTool.
- * @workInProgress
+ *
+ * **Attention!** Using this class requires Electron Updater. Use `npm i electron-updater` to install it.
  */
-export default class Bootstraps extends EventEmitter<DownloaderEvents> {
+export default class Bootstraps extends EventEmitter<DownloaderEvents & BootstrapsEvents> {
   private readonly url: string
+  private autoUpdater: AppUpdater | undefined
 
   /**
    * @param url The URL of your EML AdminTool website
    */
   constructor(url: string) {
     super()
-    this.url = `${url}/api`
+    this.url = `${url}/files/bootstraps/${utils.getOS()}`
   }
 
   /**
-   * Check for updates of your Launcher. This method will return the version of the latest Bootstrap, but it will not download it.
-   * @param currentVersion The current version of your Launcher. You can get it with `app.getVersion()`.
-   * @returns If an update is available, it will return the Bootstraps object. If not, it will return `null`.
+   * Check for updates.
+   * @returns The update result object if an update is available, null otherwise.
    */
-  async checkForUpdate(currentVersion: string): Promise<IBootstraps | null> {
-    let res = await fetch(`${this.url}/bootstraps`, { method: 'GET' })
-      .then((res) => res.json())
-      .catch((err) => {
-        throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching Bootstrap from the EML AdminTool: ${err}`)
-      })
+  async checkForUpdate() {
+    try {
+      const updater = await this.getUpdater()
+      const result = await updater.checkForUpdates()
 
-    if (res.version === currentVersion || res.version == null || res.version == '' || res[`${utils.getOS()}File`] == null) return null
-    else return res as IBootstraps
-  }
-
-  /**
-   * Download the latest Bootstrap from the EML AdminTool.
-   * The downloaded Bootstrap will be saved in the temp folder. The function will return the path to the downloaded Bootstrap.
-   * This method does not check for update or runs the update, it will always download the latest version.
-   * @param bootstraps The `Bootstraps` object returned by `Bootstraps.checkForUpdate()`.
-   * @returns The path to the downloaded Bootstrap.
-   */
-  async download(bootstraps: IBootstraps): Promise<string> {
-    const os = utils.getOS()
-    const bootstrap = bootstraps[`${os}File`] as File | undefined
-
-    if (!bootstrap) {
-      throw new EMLLibError(ErrorType.FILE_ERROR, 'Not available for this operating system')
+      if (result && result.updateInfo.version !== updater.currentVersion.version) {
+        const update = {
+          updateAvailable: true,
+          currentVersion: updater.currentVersion,
+          latestVersion: result.updateInfo.version,
+          updateInfo: {
+            releaseName: result.updateInfo.releaseName ?? null,
+            releaseNotes: result.updateInfo.releaseNotes ?? null,
+            releaseDate: new Date(result.updateInfo.releaseDate)
+          }
+        } as IBootstraps
+        return update
+      }
+      return {
+        updateAvailable: false,
+        currentVersion: updater.currentVersion.version,
+        latestVersion: updater.currentVersion.version
+      } as IBootstraps
+    } catch (err: any) {
+      if (err instanceof EMLLibError) throw err
+      throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while checking for updates: ${err.message ?? err}`)
     }
+  }
 
-    const downloadPath = path_.join(utils.getTempFolder(), bootstrap.path, bootstrap.name)
-    const downloader = new Downloader(utils.getTempFolder())
+  /**
+   * Download the update found by checkForUpdate.
+   * @returns The path to the downloaded update.
+   */
+  async download() {
+    try {
+      const updater = await this.getUpdater()
+      const downloadedFiles = await updater.downloadUpdate()
 
-    downloader.forwardEvents(this)
+      return downloadedFiles[0] ?? ''
+    } catch (err: any) {
+      if (err instanceof EMLLibError) throw err
+      throw new EMLLibError(ErrorType.DOWNLOAD_ERROR, `Error while downloading update: ${err.message ?? err}`)
+    }
+  }
+
+  /**
+   * Quit the application and install the update.
+   * @param silent [Optional: default if `false`] (Windows-only) Runs the installer in silent mode.
+   */
+  async runUpdate(silent = false) {
+    try {
+      const updater = await this.getUpdater()
+      updater.quitAndInstall(silent, true)
+    } catch (err: any) {
+      if (err instanceof EMLLibError) throw err
+      throw new EMLLibError(ErrorType.EXEC_ERROR, `Error while running the installer: ${err.message ?? err}`)
+    }
+  }
+
+  private async getUpdater() {
+    if (this.autoUpdater) return this.autoUpdater
 
     try {
-      await downloader.download([bootstrap])
-    } catch (err) {
-      throw err
+      const module = await import('electron-updater')
+      this.autoUpdater = module.autoUpdater
+    } catch {
+      throw new EMLLibError(
+        ErrorType.MODULE_NOT_FOUND,
+        '`electron-updater` module is not installed. Please install it with `npm i electron-updater` to use the Bootstraps feature.'
+      )
     }
 
-    return downloadPath
-  }
+    this.autoUpdater.autoDownload = false
+    this.autoUpdater.autoInstallOnAppQuit = true
+    this.autoUpdater.setFeedURL({ provider: 'generic', url: this.url })
 
-  /**
-   * Run the downloaded Bootstrap. This method will execute the downloaded Bootstrap.
-   * This method does not check for update or download the Bootstrap, it will always run the file at the given path.
-   * If the file does not exist or is not executable, an error will be thrown.
-   * This method automatically close the Launcher after the Bootstrap is executed.
-   * @workInProgress **This method is not tested yet.**
-   * @param bootstrapPath The path to the downloaded Bootstrap (returned by `Bootstraps.download()`)
-   */
-  runUpdate(bootstrapPath: string) {
-    const os = utils.getOS()
-    const cmd = os === 'win' ? `start ${bootstrapPath}` : os === 'mac' ? `open ${bootstrapPath}` : `chmod +x ${bootstrapPath} && ./${bootstrapPath}`
-    const run = spawnSync(cmd)
-    if (run.error) throw new EMLLibError(ErrorType.EXEC_ERROR, `Error while executing the Bootstrap: ${run.error}`)
-    process.exit()
-  }
+    this.autoUpdater.on('error', (err) => {
+      this.emit('bootstraps_error', { message: err.message ?? err })
+    })
 
-  /**
-   * Check for updates, download and run the Bootstrap if an update is available. This method is a
-   * combination of `Bootstraps.checkForUpdate()`, `Bootstraps.download()` and `Bootstraps.runUpdate()`.
-   *
-   * It allows you to check for updates, download and run the Bootstrap with a single function call, without having
-   * to call each function separately. However, this method will not return any value and give you no control
-   * over the process. If you need more control, you should use the other methods.
-   * @param currentVersion The current version of your Launcher. You can get it with `app.getVersion()`.
-   * @workInProgress **This method is not tested yet.**
-   */
-  async checkDownloadAndRun(currentVersion: string) {
-    const bootstraps = await this.checkForUpdate(currentVersion)
+    this.autoUpdater.on('download-progress', (progressObj) => {
+      this.emit('download_progress', {
+        downloaded: { amount: 0, size: progressObj.transferred },
+        total: { amount: 1, size: progressObj.total },
+        speed: progressObj.bytesPerSecond,
+        type: 'BOOTSTRAP'
+      })
+    })
 
-    let bootstrapPath: string
-
-    if (bootstraps) {
-      try {
-        bootstrapPath = await this.download(bootstraps)
-      } catch (err) {
-        return
-      }
-
-      this.runUpdate(bootstrapPath)
-    }
+    return this.autoUpdater
   }
 }
+

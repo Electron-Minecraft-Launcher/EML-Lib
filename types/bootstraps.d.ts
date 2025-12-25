@@ -1,8 +1,13 @@
-import { File } from "./file"
+import { File } from './file'
 
 export interface IBootstraps {
-  winFile: File | null
-  macFile: File | null
-  linFile: File | null
-  version: string
+  updateAvailable: boolean
+  currentVersion: string
+  latestVersion: string
+  updateInfo?: {
+    releaseName?: string | null
+    releaseNotes?: string | Array<{ version: string; note: string }> | null
+    releaseDate: Date
+  }
 }
+
