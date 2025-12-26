@@ -122,6 +122,10 @@ export default class Bootstraps extends EventEmitter<DownloaderEvents & Bootstra
       })
     })
 
+    this.autoUpdater.on('update-downloaded', () => {
+      this.emit('download_end', { downloaded: { amount: 1, size: -1 } })
+    })
+
     return this.autoUpdater
   }
 }
