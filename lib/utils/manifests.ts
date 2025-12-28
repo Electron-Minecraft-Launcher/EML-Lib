@@ -1,6 +1,6 @@
 /**
  * @license MIT
- * @copyright Copyright (c) 2025, GoldFrite
+ * @copyright Copyright (c) 2026, GoldFrite
  */
 
 import { MinecraftManifest } from './../../types/manifest.d'
