@@ -42,7 +42,7 @@ export interface File {
 
 export interface ILoader {
   id?: number
-  type: 'VANILLA' | 'FORGE'
+  type: 'VANILLA' | 'FORGE' | 'FABRIC'
   minecraftVersion: string
   loaderVersion: string | null
   format: 'INSTALLER' | 'UNIVERSAL' | 'CLIENT'
