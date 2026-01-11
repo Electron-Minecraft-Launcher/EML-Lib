@@ -175,14 +175,13 @@ export default class ForgeLoader extends EventEmitter<FilesManagerEvents> {
       const url = `${mirror}${utils.getLibraryPath(lib.name!).replaceAll('\\', '/')}${utils.getLibraryName(lib.name!)}`
 
       try {
-        const res = await fetch(url, { method: 'HEAD' })
-        if (!res.ok) continue
+        const sizeReq = await fetch(url, { method: 'HEAD' })
+        if (!sizeReq.ok) continue
+        const size = parseInt(sizeReq.headers.get('Content-Length') ?? '0', 10)
 
-        const size = parseInt(res.headers.get('Content-Length') || '0', 10)
-
-        const sha1Res = await fetch(`${url}.sha1`)
-        if (!sha1Res.ok) continue
-        const sha1 = await sha1Res.text()
+        const sha1Req = await fetch(`${url}.sha1`)
+        if (!sha1Req.ok) continue
+        const sha1 = await sha1Req.text()
 
         return { url: url, size: size, sha1: sha1 }
       } catch {

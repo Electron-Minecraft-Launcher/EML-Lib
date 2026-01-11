@@ -8,6 +8,14 @@ import { EMLLibError, ErrorType } from '../../types/errors'
 import { JAVA_RUNTIME_URL, MINECRAFT_MANIFEST_URL } from './consts'
 import { ILoader } from '../../types/file'
 
+type JavaVersion =
+  | 'java-runtime-alpha'
+  | 'java-runtime-beta'
+  | 'java-runtime-delta'
+  | 'java-runtime-gamma'
+  | 'java-runtime-gamma-snapshot'
+  | 'jre-legacy'
+
 class Manifests {
   /**
    * Get the loader info from the EML AdminTool.
@@ -21,13 +29,20 @@ class Manifests {
     if (!minecraftVersion && !url) return { type: 'VANILLA', minecraftVersion: 'latest_release', loaderVersion: 'latest_release' } as ILoader
     if (minecraftVersion) return { type: 'VANILLA', minecraftVersion, loaderVersion: minecraftVersion } as ILoader
 
-    const res = await fetch(`${url}/api/loader`)
-      .then((res) => res.json())
-      .catch((err) => {
-        throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch loader info: ${err.message}`)
-      })
+    try {
+      const req = await fetch(`${url}/api/loader`)
 
-    return res as ILoader
+      if (!req.ok) {
+        const errorText = await req.text()
+        throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch loader info: HTTP ${req.status} ${errorText}`)
+      }
+      const data: ILoader = await req.json()
+
+      return data
+    } catch (err: unknown) {
+      if (err instanceof EMLLibError) throw err
+      throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch loader info: ${err instanceof Error ? err.message : err}`)
+    }
   }
 
   /**
@@ -40,19 +55,25 @@ class Manifests {
    * @returns The manifest of the Minecraft version.
    */
   async getMinecraftManifest(minecraftVersion: string | null = 'latest_release', url?: string) {
-    if (!minecraftVersion && url) {
-      minecraftVersion = (await this.getLoaderInfo(null, url)).minecraftVersion
+    try {
+      if (!minecraftVersion && url) {
+        minecraftVersion = (await this.getLoaderInfo(null, url)).minecraftVersion
+      }
+
+      const manifestUrl = await this.getMinecraftManifestUrl(minecraftVersion)
+      const req = await fetch(manifestUrl)
+
+      if (!req.ok) {
+        const errorText = await req.text()
+        throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch Minecraft manifest: HTTP ${req.status} ${errorText}`)
+      }
+      const data: MinecraftManifest = await req.json()
+
+      return data
+    } catch (err: unknown) {
+      if (err instanceof EMLLibError) throw err
+      throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch Minecraft manifest: ${err instanceof Error ? err.message : err}`)
     }
-
-    const manifestUrl = await this.getMinecraftManifestUrl(minecraftVersion)
-
-    const res = await fetch(manifestUrl)
-      .then((res) => res.json())
-      .catch((err) => {
-        throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch Minecraft manifest: ${err.message}`)
-      })
-
-    return res as MinecraftManifest
   }
 
   /**
@@ -61,45 +82,50 @@ class Manifests {
    * @returns The manifest URL of the Minecraft version.
    */
   async getMinecraftManifestUrl(minecraftVersion: string | null = null) {
-    const res = await fetch(MINECRAFT_MANIFEST_URL)
-      .then((res) => res.json())
-      .catch((err) => {
-        throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch Minecraft version manifest: ${err.message}`)
-      })
+    try {
+      const req = await fetch(MINECRAFT_MANIFEST_URL)
 
-    minecraftVersion =
-      minecraftVersion === 'latest_release'
-        ? res.latest.release
-        : minecraftVersion === 'latest_snapshot'
-          ? res.latest.snapshot
-          : minecraftVersion || 'latest_release'
+      if (!req.ok) {
+        const errorText = await req.text()
+        throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch Minecraft version manifest: HTTP ${req.status} ${errorText}`)
+      }
+      const data = await req.json()
 
-    if (!res.versions.find((version: any) => version.id === minecraftVersion)) {
-      throw new EMLLibError(ErrorType.MINECRAFT_ERROR, `Minecraft version ${minecraftVersion} not found in manifest`)
+      minecraftVersion =
+        minecraftVersion === 'latest_release'
+          ? data.latest.release
+          : minecraftVersion === 'latest_snapshot'
+            ? data.latest.snapshot
+            : minecraftVersion || 'latest_release'
+
+      if (!data.versions.find((version: any) => version.id === minecraftVersion)) {
+        throw new EMLLibError(ErrorType.MINECRAFT_ERROR, `Minecraft version ${minecraftVersion} not found in manifest`)
+      }
+
+      return data.versions.find((version: any) => version.id === minecraftVersion).url as string
+    } catch (err: unknown) {
+      if (err instanceof EMLLibError) throw err
+      throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch Minecraft version manifest: ${err instanceof Error ? err.message : err}`)
     }
-
-    return res.versions.find((version: any) => version.id === minecraftVersion).url as string
   }
 
-  async getJavaManifest(
-    javaVersion:
-      | 'java-runtime-alpha'
-      | 'java-runtime-beta'
-      | 'java-runtime-delta'
-      | 'java-runtime-gamma'
-      | 'java-runtime-gamma-snapshot'
-      | 'jre-legacy',
-    jreV: string
-  ): Promise<{ files: any }> {
-    const url = await this.getJavaManifestUrl(javaVersion, jreV)
+  async getJavaManifest(javaVersion: JavaVersion, jreV: string) {
+    try {
+      const url = await this.getJavaManifestUrl(javaVersion, jreV)
 
-    const res = await fetch(url)
-      .then((res) => res.json())
-      .catch((err) => {
-        throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch Java manifest: ${err.message}`)
-      })
+      const req = await fetch(url)
 
-    return res
+      if (!req.ok) {
+        const errorText = await req.text()
+        throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch Java manifest: HTTP ${req.status} ${errorText}`)
+      }
+      const data: { files: any } = await req.json()
+
+      return data
+    } catch (err: unknown) {
+      if (err instanceof EMLLibError) throw err
+      throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch Java manifest: ${err instanceof Error ? err.message : err}`)
+    }
   }
 
   /**
@@ -108,16 +134,7 @@ class Manifests {
    * @param jreV The major version of Java Runtime Environment (JRE) you want to get the manifest for (fallback if `javaVersion` is not found).
    * @returns The manifest URL of the Java version.
    */
-  async getJavaManifestUrl(
-    javaVersion:
-      | 'java-runtime-alpha'
-      | 'java-runtime-beta'
-      | 'java-runtime-delta'
-      | 'java-runtime-gamma'
-      | 'java-runtime-gamma-snapshot'
-      | 'jre-legacy',
-    jreV: string
-  ) {
+  async getJavaManifestUrl(javaVersion: JavaVersion, jreV: string) {
     const archMapping = {
       win32: { x64: 'windows-x64', ia32: 'windows-x86', arm64: 'windows-arm64' },
       darwin: { x64: 'mac-os', arm64: 'mac-os-arm64' },
@@ -138,27 +155,33 @@ class Manifests {
       throw new EMLLibError(ErrorType.UNKNOWN_OS, `Unsupported architecture: ${arch}`)
     }
 
-    const res = await fetch(JAVA_RUNTIME_URL)
-      .then((res) => res.json())
-      .catch((err) => {
-        throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch Java manifest: ${err.message}`)
-      })
+    try {
+      const req = await fetch(JAVA_RUNTIME_URL)
 
-    if (res[archMapping[platform][arch]][javaVersion][0]?.manifest) {
-      return res[archMapping[platform][arch]][javaVersion][0].manifest.url as string
+      if (!req.ok) {
+        const errorText = await req.text()
+        throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch Java manifest: HTTP ${req.status} ${errorText}`)
+      }
+      const data = await req.json()
+
+      if (data[archMapping[platform][arch]][javaVersion][0]?.manifest) {
+        return data[archMapping[platform][arch]][javaVersion][0].manifest.url as string
+      }
+
+      const fallbackJavaVersion = Object.keys(data[archMapping[platform][arch]]).find(
+        (version) => data[archMapping[platform][arch]][version][0]?.version.name.split('.')[0] === jreV
+      )
+
+      if (fallbackJavaVersion) {
+        return data[archMapping[platform][arch]][fallbackJavaVersion][0].manifest.url as string
+      }
+
+      throw new EMLLibError(ErrorType.JAVA_ERROR, `Java version ${javaVersion} not found in manifest`)
+    } catch (err: unknown) {
+      if (err instanceof EMLLibError) throw err
+      throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch Java manifest: ${err instanceof Error ? err.message : err}`)
     }
-
-    const fallbackJavaVersion = Object.keys(res[archMapping[platform][arch]]).find(
-      (version) => res[archMapping[platform][arch]][version][0]?.version.name.split('.')[0] === jreV
-    )
-
-    if (fallbackJavaVersion) {
-      return res[archMapping[platform][arch]][fallbackJavaVersion][0].manifest.url as string
-    }
-
-    throw new EMLLibError(ErrorType.JAVA_ERROR, `Java version ${javaVersion} not found in manifest`)
   }
 }
 
 export default new Manifests()
-

@@ -118,7 +118,7 @@ export { Launcher }
  *
  * ---
  *
- * @version 2.0.0-beta.18
+ * @version 2.0.0-beta.19
  * @license MIT — See the `LICENSE` file for more information
  * @copyright Copyright (c) 2026, GoldFrite
  */

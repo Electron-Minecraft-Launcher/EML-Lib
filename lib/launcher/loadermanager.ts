@@ -9,6 +9,7 @@ import { ExtraFile, File, ILoader } from '../../types/file'
 import { MinecraftManifest } from '../../types/manifest'
 import EventEmitter from '../utils/events'
 import ForgeLoader from './loaders/forgeloader'
+import FabricLoader from './loaders/fabricloader'
 import Patcher from './loaders/patcher'
 
 export default class LoaderManager extends EventEmitter<FilesManagerEvents & PatcherEvents> {
@@ -35,6 +36,10 @@ export default class LoaderManager extends EventEmitter<FilesManagerEvents & Pat
       const forgeLoader = new ForgeLoader(this.config, this.manifest, this.loader)
       forgeLoader.forwardEvents(this)
       setup = await forgeLoader.setup()
+    } else if (this.loader.type === 'FABRIC') {
+      const fabricLoader = new FabricLoader(this.config, this.manifest, this.loader)
+      fabricLoader.forwardEvents(this)
+      setup = await fabricLoader.setup()
     }
 
     return setup

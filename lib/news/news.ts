@@ -8,7 +8,7 @@ import { INews, INewsCategory } from '../../types/news'
 
 /**
  * Manage the News of the Launcher.
- * 
+ *
  * **Attention!** This class only works with the EML AdminTool. Please do not use it without the AdminTool.
  */
 export default class News {
@@ -26,13 +26,20 @@ export default class News {
    * @returns The list of News.
    */
   async getNews() {
-    let res = await fetch(`${this.url}/news`, { method: 'GET' })
-      .then((res) => res.json())
-      .catch((err) => {
-        throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching News from the EML AdminTool: ${err}`)
-      })
+    try {
+      const req = await fetch(`${this.url}/news`)
 
-    return res.news as INews[]
+      if (!req.ok) {
+        const errorText = await req.text()
+        throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching News from the EML AdminTool: HTTP ${req.status} ${errorText}`)
+      }
+      const data: { news: INews[] } = await req.json()
+
+      return data.news
+    } catch (err: unknown) {
+      if (err instanceof EMLLibError) throw err
+      throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching News from the EML AdminTool: ${err instanceof Error ? err.message : err}`)
+    }
   }
 
   /**
@@ -40,13 +47,23 @@ export default class News {
    * @returns The list of News categories.
    */
   async getCategories() {
-    let res = await fetch(`${this.url}/news/categories`, { method: 'GET' })
-      .then((res) => res.json())
-      .catch((err) => {
-        throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching News Categories from the EML AdminTool: ${err}`)
-      })
+    try {
+      const req = await fetch(`${this.url}/news/categories`)
 
-    return res as INewsCategory[]
+      if (!req.ok) {
+        const errorText = await req.text()
+        throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching News Categories from the EML AdminTool: HTTP ${req.status} ${errorText}`)
+      }
+      const data: { categories: INewsCategory[] } = await req.json()
+
+      return data.categories
+    } catch (err: unknown) {
+      if (err instanceof EMLLibError) throw err
+      throw new EMLLibError(
+        ErrorType.FETCH_ERROR,
+        `Error while fetching News Categories from the EML AdminTool: ${err instanceof Error ? err.message : err}`
+      )
+    }
   }
 
   /**
@@ -57,14 +74,14 @@ export default class News {
    */
   async getNewsByCategory(categoryId: number) {
     return [] as INews[] // Currently not used in the EML AdminTool, but may be used in the future.
-    let res = await fetch(`${this.url}/news/categories/${categoryId}`, { method: 'GET' })
-      .then((res) => res.json())
-      .catch((err) => {
-        throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching News Categories from the EML AdminTool: ${err}`)
-      })
+    // let res = await fetch(`${this.url}/news/categories/${categoryId}`)
+    //   .then((res) => res.json())
+    //   .catch((err) => {
+    //     throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching News Categories from the EML AdminTool: ${err}`)
+    //   })
 
-    if (res.status === 404) res.data = []
+    // if (res.status === 404) res.data = []
 
-    return res.data as INews[]
+    // return res.data as INews[]
   }
 }

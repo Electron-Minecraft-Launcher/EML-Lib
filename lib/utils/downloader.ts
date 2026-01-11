@@ -145,24 +145,24 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
 
     const agent = file.url.startsWith('https') ? this.httpsAgent : this.httpAgent
 
-    const res = await fetch(file.url, {
+    const req = await fetch(file.url, {
       agent: agent,
       headers: { Accept: 'application/octet-stream' }
     })
 
-    if (!res.ok || !res.body) {
-      throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching ${file.name}: ${res.statusText}`)
+    if (!req.ok || !req.body) {
+      const errorText = await req.text()
+      throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching ${file.name}: HTTP ${req.status} ${errorText}`)
     }
-
     const stream = fsSync.createWriteStream(filePath)
 
     return new Promise<void>((resolve, reject) => {
       const cleanup = () => {
-        res.body?.removeAllListeners()
+        req.body?.removeAllListeners()
         stream.removeAllListeners()
         stream.destroy()
       }
-      res.body!.on('data', (chunk: Buffer) => {
+      req.body!.on('data', (chunk: Buffer) => {
         stream.write(chunk)
 
         bytesDownloadedThisAttempt += chunk.length
@@ -187,11 +187,11 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
         })
       })
 
-      res.body!.on('end', () => {
+      req.body!.on('end', () => {
         stream.end()
       })
 
-      res.body!.on('error', (err) => {
+      req.body!.on('error', (err) => {
         this.downloaded.size -= bytesDownloadedThisAttempt
         this.lastSize = Math.min(this.lastSize, this.downloaded.size)
         cleanup()

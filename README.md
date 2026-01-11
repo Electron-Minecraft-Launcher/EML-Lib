@@ -6,12 +6,18 @@
 [<img src="https://img.shields.io/badge/platforms-Windows%2C%20macOS%2C%20Linux-0077DA?style=for-the-badge&color=0077DA">](#platforms)
 [<img src="https://img.shields.io/badge/version-2.0.0--beta.10-orangered?style=for-the-badge&color=orangered">](package.json)
 
+<p>
+<center>
+  <img src="./.github/assets/gg.png" alt="EML AdminTool Logo" width="300"/>
+</center>
+</p>
+
 ---
 
 ## Features
 
 - **Authentication**: Authenticate users with Microsoft, Azuriom or Crack.
-- **Minecraft**: Automatically download and launch Minecraft (Vanilla and Forge [^1]; Fabric, NeoForge, Quilt and MCP are coming soon), and remove unwanted files (such as unwanted mods).
+- **Minecraft**: Automatically download and launch Minecraft (Vanilla, Forge [^1] and Fabric [^1], NeoForge, Quilt and MCP are coming soon), and remove unwanted files (such as unwanted mods).
 - **Java**: Automatically download and install Java.
 - **Bootstraps [^1]**: Auto-update your launcher.
 - **Maintenance [^1]**: Block the launcher during maintenance.
@@ -23,8 +29,8 @@
 
 ### Software requirements
 
-- Node.js 15.14.0 or higher: see [Node.js](https://nodejs.org/);
-- Electron 15.0.0 or higher: please install it with `npm i electron` _if you use Microsoft Authentication_.
+- Node.js 20 or higher: see [Node.js](https://nodejs.org/);
+- Electron 23 or higher: please install it with `npm i electron` _if you use Microsoft Authentication_.
 
 To get all the capacities of this Node.js library, you must set up your [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool-v2) website! Without it, you can only use Minecraft Vanilla, and many features will be disabled (such as News, Bootstrap, etc.).
 
@@ -57,7 +63,7 @@ const launcher = new EMLLib.Launcher({
 launcher.launch()
 ```
 
-Please refer to the [wiki](https://github.com/Electron-Minecraft-Launcher/EML-Lib-v2/wiki) for more information.
+Please refer to the [docs](https://emlproject.pages.dev/docs/set-up-environment) for more information.
 
 ## Platform compatibility
 
@@ -74,119 +80,17 @@ Please refer to the [wiki](https://github.com/Electron-Minecraft-Launcher/EML-Li
 > [!WARNING]
 > No support will be provided for older versions of Windows, macOS and Linux, or for other operating systems.
 
-
-
 ## Tests
 
 The library has been tested on:
 
-<table>
-  <tr>
-    <th>Minecraft version</th>
-    <th>OS</th>
-    <th>Loader</th>
-    <th>Result</th>
-  </tr>
-  <tr>
-    <td rowspan="2">1.21.10</td>
-    <td rowspan="2">macOS Tahoe 26.1 (M3)</td>
-    <td>Vanilla</td>
-    <td>OK</td>
-  </tr>
-  <tr>
-    <td>Forge (60.0.12)</td>
-    <td>OK</td>
-  </tr>
-  <tr>
-    <td rowspan="2">1.21.1</td>
-    <td rowspan="2">Windows 11 (26120.1252)</td>
-    <td>Vanilla</td>
-    <td>OK</td>
-  </tr>
-  <tr>
-    <td>Forge (52.0.3)</td>
-    <td>OK</td>
-  </tr>
-  <tr>
-    <td rowspan="2">1.19.4</td>
-    <td rowspan="2">Windows 11 (26120.1252)</td>
-    <td>Vanilla</td>
-    <td>OK</td>
-  </tr>
-  <tr>
-    <td>Forge (45.3.0)</td>
-    <td>OK</td>
-  </tr>
-  <tr>
-    <td>1.19</td>
-    <td>macOS Tahoe 26.1 (M3)</td>
-    <td>Forge (41.1.0)</td>
-    <td>OK</td>
-  </tr>
-  <tr>
-    <td>1.18.2</td>
-    <td>Windows 11 (26120.961)</td>
-    <td>Forge (40.2.0)</td>
-    <td>OK</td>
-  <tr>
-    <td rowspan="2">1.17.1</td>
-    <td rowspan="2">Windows 11 (26120.1252)</td>
-    <td>Vanilla</td>
-    <td>OK</td>
-  </tr>
-  <tr>
-    <td>Forge (37.1.1)</td>
-    <td>OK</td>
-  </tr>
-  <tr>
-    <td rowspan="2">1.16.5</td>
-    <td rowspan="2">Windows 11 (26120.1252)</td>
-    <td>Vanilla</td>
-    <td rowspan="2">Warn: Multiplayer not available.</td>
-  </tr>
-  <tr>
-    <td>Forge (36.2.34)</td>
-  </tr>
-  <tr>
-    <td>1.14.4</td>
-    <td>Windows 11 (26120.961)</td>
-    <td>Forge (28.2.26)</td>
-    <td>OK</td>
-  </tr>
-  <tr>
-    <td rowspan="2">1.12.2</td>
-    <td rowspan="2">Windows 11 (26120.1252)</td>
-    <td>Vanilla</td>
-    <td>OK</td>
-  </tr>
-  <tr>
-    <td>Forge (14.23.5.2859)</td>
-    <td>Non-breaking error: Minecraft is unable to read forge.jar from libraries.</td>
-  <tr>
-    <td rowspan="2">1.7.10</td>
-    <td rowspan="2">Windows 11 (26120.1252)</td>
-    <td>Vanilla</td>
-    <td>OK</td>
-  </tr>
-  <tr>
-    <td>Forge (10.13.4.1614)</td>
-    <td>Non-breaking error: SSL certificate error.</td>
-  </tr>
-  <tr>
-    <td>1.4.7</td>
-    <td>Windows 11 (26120.1252)</td>
-    <td>Vanilla</td>
-    <td>Non-breaking error: Minecraft tries to fetch non-existing HTTP data.</td>
-  </tr>
-  <tr>
-    <td>1.0.0</td>
-    <td>Windows 11 (26120.1252)</td>
-    <td>Vanilla</td>
-    <td>OK</td>
-</table>
+![Tested OS](.github/assets/tested-os.png)
 
 > [!WARNING]
-> Forge is currently not working on Minecraft 1.5.2 and below.
+> Minecraft versions below 1.19 are not supported on macOS with Apple Silicon (M1, M2, etc.).
+
+> [!WARNING]
+> Forge is not working on Minecraft 1.5.2 and below.
 
 ## Contributing
 
@@ -219,4 +123,3 @@ Please indicate the following information in your issue:
 <br>
 
 [^1]: Requires [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool-v2).
-

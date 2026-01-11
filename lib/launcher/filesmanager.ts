@@ -51,14 +51,22 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
   async getModpack() {
     if (!this.config.url) return { modpack: [], files: [] }
 
-    const modpack = await fetch(`${this.config.url}/api/files-updater`)
-      .then((res) => res.json())
-      .then((res) => res.files as File[])
-      .catch((err) => {
-        throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch modpack files: ${err}`)
-      })
+    try {
+      const req = await fetch(`${this.config.url}/api/files-updater`)
 
-    return { modpack: modpack, files: modpack }
+      if (!req.ok) {
+        const errorText = await req.text()
+        throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch modpack files: HTTP ${req.status} ${errorText}`)
+      }
+      const data = await req.json()
+
+      const modpack = data.files as File[]
+
+      return { modpack: modpack, files: modpack }
+    } catch (err: unknown) {
+      if (err instanceof EMLLibError) throw err
+      throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch modpack files: ${err instanceof Error ? err.message : err}`)
+    }
   }
 
   /**
@@ -142,36 +150,44 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
    * created (including `assets`).
    */
   async getAssets() {
-    let files: File[] = []
-    let assets: File[] = []
+    try {
+      let files: File[] = []
+      let assets: File[] = []
 
-    const res = await fetch(this.manifest.assetIndex.url)
-      .then((res) => res.json() as Promise<Assets>)
-      .catch((err) => {
-        throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch assets: ${err}`)
+      const req = await fetch(this.manifest.assetIndex.url)
+
+      if (!req.ok) {
+        const errorText = await req.text()
+        throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch assets index: HTTP ${req.status} ${errorText}`)
+      }
+
+      const data = (await req.json()) as Assets
+
+      if (!existsSync(path_.join(this.config.root, 'assets', 'indexes'))) {
+        await fs.mkdir(path_.join(this.config.root, 'assets', 'indexes'), { recursive: true })
+      }
+
+      files.push({ name: `${this.manifest.assets}.json`, path: path_.join('assets', 'indexes', '/'), url: '', type: 'OTHER' })
+      await fs.writeFile(path_.join(this.config.root, 'assets', 'indexes', `${this.manifest.assets}.json`), JSON.stringify(data, null, 2))
+
+      Object.values(data.objects).forEach((asset) => {
+        assets.push({
+          name: asset.hash,
+          path: path_.join('assets', 'objects', asset.hash.substring(0, 2), '/'),
+          url: `https://resources.download.minecraft.net/${asset.hash.substring(0, 2)}/${asset.hash}`,
+          sha1: asset.hash,
+          size: asset.size,
+          type: 'ASSET'
+        })
       })
 
-    if (!existsSync(path_.join(this.config.root, 'assets', 'indexes'))) {
-      await fs.mkdir(path_.join(this.config.root, 'assets', 'indexes'), { recursive: true })
+      files.push(...assets)
+
+      return { assets, files }
+    } catch (err: unknown) {
+      if (err instanceof EMLLibError) throw err
+      throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch assets index: ${err instanceof Error ? err.message : err}`)
     }
-
-    files.push({ name: `${this.manifest.assets}.json`, path: path_.join('assets', 'indexes', '/'), url: '', type: 'OTHER' })
-    await fs.writeFile(path_.join(this.config.root, 'assets', 'indexes', `${this.manifest.assets}.json`), JSON.stringify(res, null, 2))
-
-    Object.values(res.objects).forEach((asset) => {
-      assets.push({
-        name: asset.hash,
-        path: path_.join('assets', 'objects', asset.hash.substring(0, 2), '/'),
-        url: `https://resources.download.minecraft.net/${asset.hash.substring(0, 2)}/${asset.hash}`,
-        sha1: asset.hash,
-        size: asset.size,
-        type: 'ASSET'
-      })
-    })
-
-    files.push(...assets)
-
-    return { assets, files }
   }
 
   /**
@@ -201,6 +217,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
         type: 'CONFIG'
       })
     }
+    
     return { log4j: log4j, files: log4j }
   }
 

@@ -28,7 +28,7 @@ async function main() {
 
 async function _main() {
   const launcher = new EMLLib.Launcher({
-    url: 'http://localhost:8080',
+    url: 'http://localhost:5173',
     serverId: 'goldfrite',
     account: new EMLLib.CrackAuth().auth('GoldFrite'),
     cleaning: {
@@ -40,7 +40,7 @@ async function _main() {
     launcher.on('launch_compute_download', () => console.log('\nComputing download...'))
 
     launcher.on('launch_download', (download) => console.log(`\nDownloading ${download.total.amount} files (${download.total.size} B).`))
-    launcher.on('download_progress', (progress) => console.log(progress.type, `=> Downloaded ${progress.downloaded.size} / ${progress.total.size} B`))
+    // launcher.on('download_progress', (progress) => console.log(progress.type, `=> Downloaded ${progress.downloaded.size} / ${progress.total.size} B`))
     launcher.on('download_error', (error) => console.error(error.type, `=> Error downloading ${error.filename}: ${error.message}`))
     launcher.on('download_end', (info) => console.log(`Downloaded ${info.downloaded.amount} files.`))
 
@@ -72,8 +72,8 @@ async function _main() {
     launcher.on('launch_data', (message) => console.log(message))
     launcher.on('launch_close', (code) => console.log(`Closed with code ${code}.`))
 
-    launcher.on('launch_debug', (message) => console.log(`Debug: ${message}\n`))
-    launcher.on('patch_debug', (message) => console.log(`Debug: ${message}`))
+    // launcher.on('launch_debug', (message) => console.log(`Debug: ${message}\n`))
+    // launcher.on('patch_debug', (message) => console.log(`Debug: ${message}`))
 
     await launcher.launch()
   } catch (error) {

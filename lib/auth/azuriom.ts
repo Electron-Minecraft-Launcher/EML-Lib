@@ -28,37 +28,48 @@ export default class AzAuth {
    * @returns The account information.
    */
   async auth(username: string, password: string, twoFACode?: string) {
-    const res = await fetch(`${this.url}/authenticate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        email: username,
-        password: password,
-        code: twoFACode
+    try {
+      const req = await fetch(`${this.url}/authenticate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: username,
+          password: password,
+          code: twoFACode
+        })
       })
-    }).then((res: any) => res.json())
 
-    if (res.status == 'pending' && res.reason == '2fa') {
-      throw new EMLLibError(ErrorType.TWOFA_CODE_REQUIRED, '2FA code required')
-    }
-
-    if (res.status == 'error') {
-      throw new EMLLibError(ErrorType.AUTH_ERROR, `AzAuth authentication failed: ${res.reason}`)
-    }
-
-    return {
-      name: res.username,
-      uuid: res.uuid,
-      clientToken: res.uuid,
-      accessToken: res.access_token,
-      userProperties: {},
-      meta: {
-        online: false,
-        type: 'azuriom'
+      if (!req.ok) {
+        const errorText = await req.text()
+        throw new EMLLibError(ErrorType.AUTH_ERROR, `AzAuth authentication failed: HTTP ${req.status} ${errorText}`)
       }
-    } as Account
+      const data = await req.json()
+
+      if (data.status == 'pending' && data.reason == '2fa') {
+        throw new EMLLibError(ErrorType.TWOFA_CODE_REQUIRED, '2FA code required')
+      }
+
+      if (data.status == 'error') {
+        throw new EMLLibError(ErrorType.AUTH_ERROR, `AzAuth authentication failed: ${data.reason}`)
+      }
+
+      return {
+        name: data.username,
+        uuid: data.uuid,
+        clientToken: data.uuid,
+        accessToken: data.access_token,
+        userProperties: {},
+        meta: {
+          online: false,
+          type: 'azuriom'
+        }
+      } as Account
+    } catch (err: unknown) {
+      if (err instanceof EMLLibError) throw err
+      throw new EMLLibError(ErrorType.AUTH_ERROR, `AzAuth authentication failed: ${err instanceof Error ? err.message : err}`)
+    }
   }
 
   /**
@@ -67,31 +78,42 @@ export default class AzAuth {
    * @returns The renewed account information.
    */
   async verify(user: Account) {
-    const res = await fetch(`${this.url}/verify`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        access_token: user.accessToken
+    try {
+      const req = await fetch(`${this.url}/verify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          access_token: user.accessToken
+        })
       })
-    }).then((res: any) => res.json())
 
-    if (res.status == 'error') {
-      throw new EMLLibError(ErrorType.AUTH_ERROR, `AzAuth verify failed: ${res.reason}`)
-    }
-
-    return {
-      name: res.username,
-      uuid: res.uuid,
-      accessToken: res.accessToken,
-      clientToken: res.clientToken,
-      userProperties: {},
-      meta: {
-        online: false,
-        type: 'azuriom'
+      if (!req.ok) {
+        const errorText = await req.text()
+        throw new EMLLibError(ErrorType.AUTH_ERROR, `AzAuth verify failed: HTTP ${req.status} ${errorText}`)
       }
-    } as Account
+      const data = await req.json()
+
+      if (data.status == 'error') {
+        throw new EMLLibError(ErrorType.AUTH_ERROR, `AzAuth verify failed: ${data.reason}`)
+      }
+
+      return {
+        name: data.username,
+        uuid: data.uuid,
+        accessToken: data.accessToken,
+        clientToken: data.clientToken,
+        userProperties: {},
+        meta: {
+          online: false,
+          type: 'azuriom'
+        }
+      } as Account
+    } catch (err: unknown) {
+      if (err instanceof EMLLibError) throw err
+      throw new EMLLibError(ErrorType.AUTH_ERROR, `AzAuth verify failed: ${err instanceof Error ? err.message : err}`)
+    }
   }
 
   /**
@@ -99,14 +121,24 @@ export default class AzAuth {
    * @param user The user account to logout.
    */
   async logout(user: Account) {
-    await fetch(`${this.url}/logout`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        access_token: user.accessToken
+    try {
+      const req = await fetch(`${this.url}/logout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          access_token: user.accessToken
+        })
       })
-    })
+
+      if (!req.ok) {
+        const errorText = await req.text()
+        throw new EMLLibError(ErrorType.AUTH_ERROR, `AzAuth logout failed: HTTP ${req.status} ${errorText}`)
+      }
+    } catch (err: unknown) {
+      if (err instanceof EMLLibError) throw err
+      throw new EMLLibError(ErrorType.AUTH_ERROR, `AzAuth logout failed: ${err instanceof Error ? err.message : err}`)
+    }
   }
 }
