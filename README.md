@@ -8,7 +8,9 @@
 
 <p>
 <center>
+<a href="https://discord.gg/YVB4k6HzAY">
   <img src="./.github/assets/gg.png" alt="EML AdminTool Logo" width="300"/>
+</a>
 </center>
 </p>
 
@@ -123,3 +125,4 @@ Please indicate the following information in your issue:
 <br>
 
 [^1]: Requires [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool-v2).
+
