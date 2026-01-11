@@ -57,7 +57,7 @@ const launcher = new EMLLib.Launcher({
 launcher.launch()
 ```
 
-Please refer to the [wiki](https://github.com/Electron-Minecraft-Launcher/EML-Lib-v2/wiki) for more information.
+Please refer to the [docs](https://emlproject.pages.dev/docs/set-up-environment) for more information.
 
 ## Platform compatibility
 

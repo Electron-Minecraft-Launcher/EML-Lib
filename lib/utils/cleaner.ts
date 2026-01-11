@@ -39,12 +39,12 @@ export default class Cleaner extends EventEmitter<CleanerEvents> {
     let i = 0
     this.browsed = []
     await this.browse(this.dest)
-
+    
     for (const file of this.browsed) {
       const fullPath = path_.normalize(path_.join(file.path, file.name))
       const isFileValid = validFilesSet.has(fullPath)
       const isIgnored = ignoredPaths.some((ig) => fullPath.startsWith(ig))
-
+      
       if (!isFileValid && !isIgnored) {
         deletePromises.push(
           fs

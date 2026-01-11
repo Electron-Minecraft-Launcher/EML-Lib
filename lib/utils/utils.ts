@@ -179,46 +179,75 @@ class Utils {
   }
 
   /**
-   * Check if a version is newer than another.
+   * Check if a version is newer than another one.
    * @param refVersion Reference version.
    * @param checkVersion Version to check.
    * @returns `true` if `checkVersion` is newer than `refVersion`, `false` if `checkVersion` is older than
    * `refVersion`, `null` if the versions are the same.
    */
   isNewer(ref: ExtraFile, check: ExtraFile) {
-    if (ref.sha1 === check.sha1) return null // Same file, so same version
+    if (ref.sha1 === check.sha1) return null // Identiques
 
-    if (ref.name.split('-').pop() !== check.name.split('-').pop()) return false // Different libraries, so keep both of them (always return false)
+    const normalize = (p: string) => p.replace(/\\/g, '/').replace(/\/$/, '')
+    const refArtifact = path_.dirname(normalize(ref.path))
+    const checkArtifact = path_.dirname(normalize(check.path))
 
-    // Parse version from path
-    const vRef = path_
-      .join(ref.path, '/')
-      .replaceAll('/', '\\')
-      .replace(/\\$/, '')
-      .split('\\')
-      .slice(0, -1)
-      .pop()!
-      .split('.')
-      .map((v) => +v.split('-').shift()!)
-    const vCheck = path_
-      .join(check.path, '/')
-      .replaceAll('/', '\\')
-      .replace(/\\$/, '')
-      .split('\\')
-      .slice(0, -1)
-      .pop()!
-      .split('.')
-      .map((v) => +v.split('-').shift()!)
+    if (refArtifact !== checkArtifact) return false
 
-    for (let i = 0; i < vRef.length; i++) {
-      if (!vCheck[i] + '' && vRef[i]) vCheck.push(0)
-      if (vCheck[i] + '' && !vRef[i]) vRef.push(0)
-      if (vCheck[i] > vRef[i]) return true
-      if (vCheck[i] < vRef[i]) return false
+    const vRef = this.parseVersion(path_.basename(normalize(ref.path)))
+    const vCheck = this.parseVersion(path_.basename(normalize(check.path)))
+
+    for (let i = 0; i < Math.max(vRef.length, vCheck.length); i++) {
+      const r = vRef[i] ?? 0
+      const c = vCheck[i] ?? 0
+      if (c > r) return true
+      if (c < r) return false
     }
 
     return false
   }
+
+  private parseVersion(v: string) {
+    return v
+      .split('-')[0]
+      .split('+')[0]
+      .split('.')
+      .map((n) => parseInt(n) || 0)
+  }
+  // isNewer(ref: ExtraFile, check: ExtraFile) {
+  //   if (ref.sha1 === check.sha1) return null // Same file, so same version
+
+  //   if (ref.name.split('-').pop() !== check.name.split('-').pop()) return false // Different libraries, so keep both of them (always return false)
+
+  //   // Parse version from path
+  //   const vRef = path_
+  //     .join(ref.path, '/')
+  //     .replaceAll('/', '\\')
+  //     .replace(/\\$/, '')
+  //     .split('\\')
+  //     .slice(0, -1)
+  //     .pop()!
+  //     .split('.')
+  //     .map((v) => +v.split('-').shift()!)
+  //   const vCheck = path_
+  //     .join(check.path, '/')
+  //     .replaceAll('/', '\\')
+  //     .replace(/\\$/, '')
+  //     .split('\\')
+  //     .slice(0, -1)
+  //     .pop()!
+  //     .split('.')
+  //     .map((v) => +v.split('-').shift()!)
+
+  //   for (let i = 0; i < vRef.length; i++) {
+  //     if (!vCheck[i] + '' && vRef[i]) vCheck.push(0)
+  //     if (vCheck[i] + '' && !vRef[i]) vRef.push(0)
+  //     if (vCheck[i] > vRef[i]) return true
+  //     if (vCheck[i] < vRef[i]) return false
+  //   }
+
+  //   return false
+  // }
 }
 
 export default new Utils()

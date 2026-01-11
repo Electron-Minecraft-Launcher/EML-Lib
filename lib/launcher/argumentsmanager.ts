@@ -167,30 +167,94 @@ export default class ArgumentsManager {
     )
   }
 
+  // private getClasspath(libraries: ExtraFile[]) {
+  //   let classpath: string[] = []
+
+  //   libraries = [...new Set(libraries)]
+
+  //   for (let i = 0; i < libraries.length; i++) {
+  //     const lib = libraries[i]
+  //     if (lib.extra === 'INSTALL') continue
+  //     if (lib.type === 'LIBRARY') {
+  //       const path = path_.join(this.config.root, lib.path, lib.name).replaceAll('\\', '/')
+  //       const check = libraries.find(
+  //         (l, j) =>
+  //           l.path.replaceAll('/', '\\').split('\\').slice(0, -2).join('/') === lib.path.replaceAll('/', '\\').split('\\').slice(0, -2).join('/') &&
+  //           !l.path.startsWith('versions') &&
+  //           i !== j &&
+  //           l.extra !== 'INSTALL'
+  //       )
+  //       if (check && utils.isNewer(lib, check)) continue
+  //       classpath.push(path)
+  //     }
+  //   }
+
+  //   return [...new Set([...classpath])].join(path_.delimiter)
+  // }
+
   private getClasspath(libraries: ExtraFile[]) {
-    let classpath: string[] = []
+    const classpath: string[] = []
 
     libraries = [...new Set(libraries)]
 
     for (let i = 0; i < libraries.length; i++) {
       const lib = libraries[i]
       if (lib.extra === 'INSTALL') continue
-      if (lib.type === 'LIBRARY') {
-        const path = path_.join(this.config.root, lib.path, lib.name).replaceAll('\\', '/')
-        const check = libraries.find(
-          (l, j) =>
-            l.path.replaceAll('/', '\\').split('\\').slice(0, -2).join('/') === lib.path.replaceAll('/', '\\').split('\\').slice(0, -2).join('/') &&
-            !l.path.startsWith('versions') &&
-            i !== j &&
-            l.extra !== 'INSTALL'
-        )
-        if (check && utils.isNewer(lib, check)) continue
-        classpath.push(path)
-      }
+      if (lib.type !== 'LIBRARY') continue
+
+      const betterVersionExists = libraries.find((otherLib, otherIndex) => {
+        if (i === otherIndex) return false
+        if (otherLib.extra === 'INSTALL') return false
+
+        return utils.isNewer(lib, otherLib) === true
+      })
+
+      if (betterVersionExists) continue
+
+      const path = path_.join(this.config.root, lib.path, lib.name).replaceAll('\\', '/')
+      classpath.push(path)
     }
 
-    return [...new Set([...classpath])].join(path_.delimiter)
+    return [...new Set(classpath)].join(path_.delimiter)
   }
+
+  // private getClasspath(libraries: ExtraFile[]) {
+  //   // Clé : L'identifiant unique de la lib (Groupe + Nom) sans la version
+  //   // Valeur : Le fichier de la librairie (le plus récent trouvé)
+  //   const bestVersions = new Map<string, ExtraFile>()
+
+  //   for (const lib of libraries) {
+  //     if (lib.extra === 'INSTALL') continue
+  //     if (lib.type !== 'LIBRARY') continue
+
+  //     // 1. On détermine l'identifiant de l'artefact (le dossier parent de la version)
+  //     // Ex: "libraries/org/ow2/asm/asm/9.9/" devient "libraries/org/ow2/asm/asm"
+  //     // On normalise les slashs et on retire le slash de fin pour que dirname fonctionne bien
+  //     const cleanPath = lib.path.replace(/\\/g, '/').replace(/\/$/, '')
+  //     const artifactId = path_.dirname(cleanPath)
+
+  //     // 2. Logique de "Roi de la colline"
+  //     if (!bestVersions.has(artifactId)) {
+  //       // C'est la première fois qu'on voit cette lib, on l'ajoute
+  //       bestVersions.set(artifactId, lib)
+  //     } else {
+  //       // On a déjà une version stockée. Est-ce que la nouvelle (lib) est plus récente ?
+  //       const currentBest = bestVersions.get(artifactId)!
+
+  //       // Si 'lib' est plus récent que 'currentBest', il prend sa place
+  //       if (utils.isNewer(currentBest, lib)) {
+  //         bestVersions.set(artifactId, lib)
+  //       }
+  //     }
+  //   }
+
+  //   // 3. On génère le tableau de chemins final
+  //   const classpath = Array.from(bestVersions.values()).map((lib) => {
+  //     return path_.join(this.config.root, lib.path, lib.name).replaceAll('\\', '/')
+  //   })
+
+  //   return classpath.join(path_.delimiter)
+  // }
 
   private getMainClass() {
     return this.loaderManifest?.mainClass ?? this.manifest.mainClass
