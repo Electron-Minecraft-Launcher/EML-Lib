@@ -33,8 +33,13 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
     const files = await this.isPatched()
     let i = 0
 
-    if (!this.installProfile.processors || this.installProfile.processors.length === 0 || files.patched) {
+    if (files.patched) {
       this.emit('patch_end', { amount: i })
+      return files.files
+    }
+
+    if (!this.installProfile.processors || this.installProfile.processors.length === 0) {
+      this.emit('patch_end', { amount: 0 })
       return files.files
     }
 
@@ -50,10 +55,15 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
       )
       const mainClass = this.getJarMain(jarExtractPathName)!
 
+      if (!mainClass) {
+        console.warn(`[Patcher] Could not find Main-Class for processor ${processor.jar}`)
+        continue
+      }
+
       await new Promise((resolve) => {
         const patch = spawn(
           `"${this.config.java.absolutePath.replace('${X}', this.manifest.javaVersion?.majorVersion + '' || '8')}"`,
-          ['-classpath', [`"${jarExtractPathName}"`, ...classpath].join(path_.delimiter), mainClass, ...args],
+          ['-Xmx2G', '-classpath', [`"${jarExtractPathName}"`, ...classpath].join(path_.delimiter), mainClass, ...args],
           { shell: true }
         )
 
@@ -67,9 +77,10 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
       })
     }
 
+    const resultAfterPatch = await this.isPatched()
     this.emit('patch_end', { amount: i })
 
-    return files.files
+    return resultAfterPatch.files
   }
 
   private async isPatched() {
@@ -84,7 +95,11 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
         arg = arg.replace('{', '').replace('}', '')
         if (this.installProfile.data[arg]) {
           if (arg === 'BINPATCH') return
-          libraries.push(this.installProfile.data[arg].client)
+
+          const entry = this.installProfile.data[arg]
+          const libPath = entry.client || entry.path || (typeof entry === 'string' ? entry : null)
+
+          if (libPath) libraries.push(libPath)
         }
       })
     })
@@ -92,11 +107,12 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
     libraries = [...new Set(libraries)]
 
     const promises = libraries.map(async (lib) => {
-      const libName = utils.getLibraryName(lib.replace('[', '').replace(']', ''))
-      const libPath = utils.getLibraryPath(lib.replace('[', '').replace(']', ''))
+      const cleanLib = lib.replace('[', '').replace(']', '')
+      const libName = utils.getLibraryName(cleanLib)
+      const libPath = utils.getLibraryPath(cleanLib)
       const libExtractPath = path_.join(this.config.root, 'libraries', libPath)
-
       const fileObj = { name: libName, path: path_.join('libraries', libPath), url: '', type: 'LIBRARY' }
+
       try {
         await fs.access(path_.join(libExtractPath, libName))
         return { patched: true, file: fileObj }
@@ -106,7 +122,7 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
     })
 
     const result = await Promise.all(promises)
-    const patched = result.every((c) => c.patched)
+    const patched = result.length > 0 && result.every((c) => c.patched)
     const files = result.map((c) => c.file as File)
 
     return { patched, files }
@@ -124,6 +140,7 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
 
     const universalMaven = this.installProfile.libraries.find((v: any) => {
       if (this.loader.type === 'FORGE') return v.name.startsWith('net.minecraftforge:forge')
+      if (this.loader.type === 'NEOFORGE') return v.name.startsWith('net.neoforged:neoforge')
     })
 
     if (this.installProfile.data[argType]) {
@@ -133,7 +150,9 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
         return `"${path_.join(clientDataExtractPath, clientDataName).replace('.jar', '-clientdata.lzma')}"`
       }
 
-      return this.installProfile.data[argType].client as string
+      const entry = this.installProfile.data[argType]
+      const val = entry.client || entry.path || (typeof entry === 'string' ? entry : arg)
+      return val
     }
 
     return arg

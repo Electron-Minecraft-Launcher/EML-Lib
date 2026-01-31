@@ -13,7 +13,7 @@ export interface LauncherEvents {
   ]
   launch_install_loader: [
     {
-      type: 'VANILLA' | 'FORGE' | 'FABRIC'
+      type: 'VANILLA' | 'FORGE' |'NEOFORGE' | 'FABRIC' | 'QUILT'
       minecraftVersion: string
       loaderVersion: string | null
       format: 'INSTALLER' | 'UNIVERSAL' | 'CLIENT'
@@ -24,7 +24,7 @@ export interface LauncherEvents {
   launch_patch_loader: []
   launch_check_java: []
   launch_clean: []
-  launch_launch: [{ version: string; type: 'VANILLA' | 'FORGE' | 'FABRIC'; loaderVersion: string | null }]
+  launch_launch: [{ version: string; type: 'VANILLA' | 'FORGE' |'NEOFORGE' | 'FABRIC' | 'QUILT'; loaderVersion: string | null }]
   launch_data: [string]
   launch_close: [number]
   launch_debug: [string]
