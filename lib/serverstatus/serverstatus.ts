@@ -23,7 +23,7 @@ export default class ServerStatus {
   /**
    * **Attention!** This class may not work for some Minecraft servers (Minecraft 1.4 and below, or
    * servers with a specific configuration). If you encounter any problems, please [open an
-   * issue](https://github.com/Electron-Minecraft-Launcher/EML-Lib-v2/issues).
+   * issue](https://github.com/Electron-Minecraft-Launcher/EML-Lib/issues).
    * @param ip Your Minecraft Server's IP or Host (eg. `'172.65.236.36'` or `'mc.hypixel.net'`).
    * @param port [Optional: default is `25565`] Your Minecraft Server's main port (eg. `25565`).
    * @param protocol [Optional: default is `'modern'`] The Minecraft protocol (eg. `'modern'`

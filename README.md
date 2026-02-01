@@ -19,7 +19,7 @@
 ## Features
 
 - **Authentication**: Authenticate users with Microsoft, Azuriom or Crack.
-- **Minecraft**: Automatically download and launch Minecraft (Vanilla, Forge [^1] and Fabric [^1], NeoForge, Quilt and MCP are coming soon), and remove unwanted files (such as unwanted mods).
+- **Minecraft**: Automatically download and launch Minecraft (Vanilla, Forge [^1], NeoForge [^1], Fabric [^1], and Quilt [^1]; MCP is coming soon), and remove unwanted files (such as unwanted mods).
 - **Java**: Automatically download and install Java.
 - **Bootstraps [^1]**: Auto-update your launcher.
 - **Maintenance [^1]**: Block the launcher during maintenance.
@@ -34,7 +34,7 @@
 - Node.js 20 or higher: see [Node.js](https://nodejs.org/);
 - Electron 23 or higher: please install it with `npm i electron` _if you use Microsoft Authentication_.
 
-To get all the capacities of this Node.js library, you must set up your [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool-v2) website! Without it, you can only use Minecraft Vanilla, and many features will be disabled (such as News, Bootstrap, etc.).
+To get all the capacities of this Node.js library, you must set up your [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool) website! Without it, you can only use Minecraft Vanilla, and many features will be disabled (such as News, Bootstrap, etc.).
 
 If you don't want to use EML AdminTool, you should rather use the [Minecraft Launcher Core](https://npmjs.com/package/minecraft-launcher-core) library.
 
@@ -51,7 +51,7 @@ npm i eml-lib
 
 ### Quick start
 
-Quick start using the [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool-v2):
+Quick start using the [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool):
 
 ```js
 const EMLLib = require('eml-lib')
@@ -84,37 +84,22 @@ Please refer to the [docs](https://emlproject.pages.dev/docs/set-up-environment)
 
 ## Tests
 
-The library has been tested on:
-
-![Tested OS](.github/assets/tested-os.png)
+The library has been tested on Windows 11 and macOS Tahoe (M3) with Node.js 22, on multiple Minecraft versions, from 1.0 to the Minecraft 26.1-snapshot, and with multiple loaders (Vanilla, Forge, NeoForge, Fabric and Quilt).
 
 > [!WARNING]
-> Minecraft versions below 1.19 are not supported on macOS with Apple Silicon (M1, M2, etc.).
+> Mac with Apple Silicon (M1, M2, etc.) is supported only for Minecraft 1.19 and above.
 
 > [!WARNING]
-> Forge is not working on Minecraft 1.5.2 and below.
+> Forge is supported only for Minecraft 1.6 and above.
 
 ## Contributing
-
-### Development
 
 Download the code and run the commands:
 
 ```bash
-cd EML-Lib-v2
+cd EML-Lib
 npm i
 ```
-
-### Tests
-
-You can submit your tests by creating an issue.
-
-Please indicate the following information in your issue:
-
-- The Minecraft version;
-- The operating system the test was performed on (including the version);
-- The loader used (Vanilla, Forge, Fabric, etc., including the loader version);
-- The result of the test (`OK` if the test was successful, `KO` if the test failed, or a detailed explanation if the test was not conclusive and if it breaks the game).
 
 ## Important information
 
@@ -124,5 +109,5 @@ Please indicate the following information in your issue:
 
 <br>
 
-[^1]: Requires [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool-v2).
+[^1]: Requires [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool).
 

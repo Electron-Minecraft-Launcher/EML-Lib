@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Electron-Minecraft-Launcher/EML-Lib-v2.git"
+    "url": "git+https://github.com/Electron-Minecraft-Launcher/EML-Lib.git"
   },
   "keywords": [
     "electron",
@@ -24,24 +24,24 @@
     "mods"
   ],
   "bugs": {
-    "url": "https://github.com/Electron-Minecraft-Launcher/EML-Lib-v2/issues"
+    "url": "https://github.com/Electron-Minecraft-Launcher/EML-Lib/issues"
   },
-  "homepage": "https://github.com/Electron-Minecraft-Launcher/EML-Lib-v2#readme",
+  "homepage": "https://github.com/Electron-Minecraft-Launcher/EML-Lib#readme",
   "dependencies": {
-    "@electron/remote": "^2.1.2",
     "adm-zip": "^0.5.14",
     "node-fetch": "^2.6.7",
+    "tslib": "^2.8.1",
     "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@types/adm-zip": "^0.5.5",
     "@types/node-fetch": "^2.6.7",
     "@types/uuid": "^10.0.0",
+    "electron": "^39.0.0",
+    "electron-updater": "^6.0.0",
     "prettier": "^3.3.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.5",
-    "electron": "^39.0.0",
-    "electron-updater": "^6.0.0"
+    "typescript": "^5.4.5"
   },
   "peerDependenciesMeta": {
     "electron": {
@@ -52,4 +52,3 @@
     }
   }
 }
-

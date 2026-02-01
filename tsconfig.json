@@ -1,7 +1,9 @@
 {
   "compilerOptions": {
     "target": "es2021",
+    "importHelpers": true,
     "module": "commonjs",
+    "moduleResolution": "node10",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,

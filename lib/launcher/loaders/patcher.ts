@@ -33,8 +33,13 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
     const files = await this.isPatched()
     let i = 0
 
-    if (!this.installProfile.processors || this.installProfile.processors.length === 0 || files.patched) {
+    if (files.patched) {
       this.emit('patch_end', { amount: i })
+      return files.files
+    }
+
+    if (!this.installProfile.processors || this.installProfile.processors.length === 0) {
+      this.emit('patch_end', { amount: 0 })
       return files.files
     }
 
@@ -50,10 +55,16 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
       )
       const mainClass = this.getJarMain(jarExtractPathName)!
 
+      if (!mainClass) {
+        console.warn(`[Patcher] Could not find Main-Class for processor ${processor.jar}`)
+        continue
+      }
+
       await new Promise((resolve) => {
+        // console.debug(args.join(', '))
         const patch = spawn(
           `"${this.config.java.absolutePath.replace('${X}', this.manifest.javaVersion?.majorVersion + '' || '8')}"`,
-          ['-classpath', [`"${jarExtractPathName}"`, ...classpath].join(path_.delimiter), mainClass, ...args],
+          ['-Xmx2G', '-classpath', [`"${jarExtractPathName}"`, ...classpath].join(path_.delimiter), mainClass, ...args],
           { shell: true }
         )
 
@@ -67,9 +78,10 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
       })
     }
 
+    const resultAfterPatch = await this.isPatched()
     this.emit('patch_end', { amount: i })
 
-    return files.files
+    return resultAfterPatch.files
   }
 
   private async isPatched() {
@@ -81,10 +93,14 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
       if (processor?.sides && !processor.sides.includes('client')) return
 
       processor.args.forEach((arg: string) => {
-        arg = arg.replace('{', '').replace('}', '')
+        arg = arg.replace(/[{}]/g, '')
         if (this.installProfile.data[arg]) {
           if (arg === 'BINPATCH') return
-          libraries.push(this.installProfile.data[arg].client)
+
+          const entry = this.installProfile.data[arg]
+          const libPath = entry.client ?? entry.path ?? (typeof entry === 'string' ? entry : null)
+
+          if (libPath) libraries.push(libPath)
         }
       })
     })
@@ -92,11 +108,12 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
     libraries = [...new Set(libraries)]
 
     const promises = libraries.map(async (lib) => {
-      const libName = utils.getLibraryName(lib.replace('[', '').replace(']', ''))
-      const libPath = utils.getLibraryPath(lib.replace('[', '').replace(']', ''))
+      const cleanLib = lib.replace('[', '').replace(']', '')
+      const libName = utils.getLibraryName(cleanLib)
+      const libPath = utils.getLibraryPath(cleanLib)
       const libExtractPath = path_.join(this.config.root, 'libraries', libPath)
-
       const fileObj = { name: libName, path: path_.join('libraries', libPath), url: '', type: 'LIBRARY' }
+
       try {
         await fs.access(path_.join(libExtractPath, libName))
         return { patched: true, file: fileObj }
@@ -106,7 +123,7 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
     })
 
     const result = await Promise.all(promises)
-    const patched = result.every((c) => c.patched)
+    const patched = result.length > 0 && result.every((c) => c.patched)
     const files = result.map((c) => c.file as File)
 
     return { patched, files }
@@ -120,35 +137,48 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
   }
 
   private mapArg(arg: string) {
-    const argType = arg.replace('{', '').replace('}', '')
+    const argType = arg.replace(/[{}]/g, '')
 
     const universalMaven = this.installProfile.libraries.find((v: any) => {
       if (this.loader.type === 'FORGE') return v.name.startsWith('net.minecraftforge:forge')
+      if (this.loader.type === 'NEOFORGE') return v.name.startsWith('net.neoforged:neoforge')
     })
 
     if (this.installProfile.data[argType]) {
       if (argType === 'BINPATCH') {
-        const clientDataName = utils.getLibraryName(this.installProfile.path || universalMaven.name).replace('.jar', '-clientdata.lzma')
-        const clientDataExtractPath = utils.getLibraryPath(this.installProfile.path || universalMaven.name, this.config.root, 'libraries')
-        return `"${path_.join(clientDataExtractPath, clientDataName).replace('.jar', '-clientdata.lzma')}"`
+        const clientDataName = utils.getLibraryName(this.installProfile.path ?? universalMaven.name).replace(/\.jar$/, '-clientdata.lzma')
+        const clientDataExtractPath = utils.getLibraryPath(this.installProfile.path ?? universalMaven.name, this.config.root, 'libraries')
+        return `"${path_.join(clientDataExtractPath, clientDataName)}"`
       }
 
-      return this.installProfile.data[argType].client as string
+      const entry = this.installProfile.data[argType]
+      const val = entry.client ?? entry.path ?? (typeof entry === 'string' ? entry : arg)
+      return val
     }
 
-    return arg
+    const mappedArg = arg
       .replace('{SIDE}', `client`)
-      .replace('{ROOT}', `"${this.config.root}}"`)
+      .replace(/{ROOT}(.*?)/, `"${this.config.root}$1"`)
       .replace('{MINECRAFT_JAR}', `"${path_.join(this.config.root, 'versions', this.manifest.id, `${this.manifest.id}.jar`)}"`)
       .replace('{MINECRAFT_VERSION}', `"${path_.join(this.config.root, 'versions', this.manifest.id, `${this.manifest.id}.json`)}"`)
       .replace('{INSTALLER}', `"${path_.join(this.config.root, 'libraries')}"`)
       .replace('{LIBRARY_DIR}', `"${path_.join(this.config.root, 'libraries')}"`)
+
+    return mappedArg
   }
 
   private mapPath(arg: string) {
     if (arg.startsWith('[')) {
-      return `"${path_.join(this.config.root, 'libraries', utils.getLibraryPath(arg.replace('[', '').replace(']', '')), utils.getLibraryName(arg.replace('[', '').replace(']', '')))}"`
+      const result = `"${path_.join(
+        this.config.root,
+        'libraries',
+        utils.getLibraryPath(arg.replace(/[\[\]]/g, '')),
+        utils.getLibraryName(arg.replace(/[\[\]]/g, ''))
+      )}"`
+      // console.log('    MAPPED:', result)
+      return result
     }
+    // console.log('NOT MAPPED:', arg)
     return arg
   }
 }
