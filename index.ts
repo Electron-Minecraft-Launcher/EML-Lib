@@ -105,14 +105,14 @@ export { Launcher }
  *
  * **Recommandations:**
  * - To get all the capacities of this Node.js library, you must set up your
- * [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool-v2) website!
+ * [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool) website!
  * - If you don't want to use the EML AdminTool, you should rather use the
  * [Minecraft Launcher Core](https://npmjs.com/package/minecraft-launcher-core) library.
  *
  * ---
  *
- * [Wiki](https://github.com/Electron-Minecraft-Launcher/EML-Lib/wiki) —
- * [GitHub](https://github.com/Electron-Minecraft-Launcher/EML-Lib-v2) —
+ * [Docs](https://emlproject.pages.dev/docs/set-up-environment) —
+ * [GitHub](https://github.com/Electron-Minecraft-Launcher/EML-Lib) —
  * [NPM](https://www.npmjs.com/package/eml-lib) —
  * [EML Website](https://electron-minecraft-launcher.ml)
  *

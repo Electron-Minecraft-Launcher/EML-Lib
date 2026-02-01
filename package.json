@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Electron-Minecraft-Launcher/EML-Lib-v2.git"
+    "url": "git+https://github.com/Electron-Minecraft-Launcher/EML-Lib.git"
   },
   "keywords": [
     "electron",
@@ -24,9 +24,9 @@
     "mods"
   ],
   "bugs": {
-    "url": "https://github.com/Electron-Minecraft-Launcher/EML-Lib-v2/issues"
+    "url": "https://github.com/Electron-Minecraft-Launcher/EML-Lib/issues"
   },
-  "homepage": "https://github.com/Electron-Minecraft-Launcher/EML-Lib-v2#readme",
+  "homepage": "https://github.com/Electron-Minecraft-Launcher/EML-Lib#readme",
   "dependencies": {
     "adm-zip": "^0.5.14",
     "node-fetch": "^2.6.7",
