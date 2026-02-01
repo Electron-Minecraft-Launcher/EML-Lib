@@ -162,8 +162,28 @@ class Utils {
    * @returns The name of the library.
    */
   getLibraryName(libName: string) {
-    const ext = libName.match(/@([a-z]*)$/) ? libName.split('@').pop() : 'jar'
-    const l = libName.replace(/@([a-z]*)$/, '').split(':')
+    if (libName.includes('@')) {
+      const parts = libName.split(':')
+
+      if (parts.length === 4) {
+        const artifact = parts[1] || ''
+        const version = parts[2] || ''
+        const classifierExt = parts[3] || ''
+
+        const [classifier, extension] = classifierExt.split('@')
+        return `${artifact}-${version}${classifier ? '-' + classifier : ''}.${extension}`
+      }
+      if (parts.length === 3) {
+        const artifact = parts[1] || ''
+        const versionExt = parts[2] || ''
+
+        const [version, extension] = versionExt.split('@')
+        return `${artifact}-${version}.${extension}`
+      }
+    }
+
+    const ext = 'jar'
+    const l = libName.split(':')
     return `${l[1]}-${l[2]}${l[3] ? '-' + l[3] : ''}.${ext}`
   }
 

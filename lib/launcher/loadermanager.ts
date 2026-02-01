@@ -8,10 +8,9 @@ import { FilesManagerEvents, PatcherEvents } from '../../types/events'
 import { ExtraFile, File, ILoader } from '../../types/file'
 import { MinecraftManifest } from '../../types/manifest'
 import EventEmitter from '../utils/events'
-import ForgeLoader from './loaders/forgeloader'
 import Patcher from './loaders/patcher'
-import FabricLikeLoader from './loaders/fabriclike'
 import ForgeLikeLoader from './loaders/forgelike'
+import FabricLikeLoader from './loaders/fabriclike'
 
 export default class LoaderManager extends EventEmitter<FilesManagerEvents & PatcherEvents> {
   private readonly config: FullConfig

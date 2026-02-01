@@ -61,6 +61,7 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
       }
 
       await new Promise((resolve) => {
+        // console.debug(args.join(', '))
         const patch = spawn(
           `"${this.config.java.absolutePath.replace('${X}', this.manifest.javaVersion?.majorVersion + '' || '8')}"`,
           ['-Xmx2G', '-classpath', [`"${jarExtractPathName}"`, ...classpath].join(path_.delimiter), mainClass, ...args],
@@ -92,12 +93,12 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
       if (processor?.sides && !processor.sides.includes('client')) return
 
       processor.args.forEach((arg: string) => {
-        arg = arg.replace('{', '').replace('}', '')
+        arg = arg.replace(/[{}]/g, '')
         if (this.installProfile.data[arg]) {
           if (arg === 'BINPATCH') return
 
           const entry = this.installProfile.data[arg]
-          const libPath = entry.client || entry.path || (typeof entry === 'string' ? entry : null)
+          const libPath = entry.client ?? entry.path ?? (typeof entry === 'string' ? entry : null)
 
           if (libPath) libraries.push(libPath)
         }
@@ -136,7 +137,7 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
   }
 
   private mapArg(arg: string) {
-    const argType = arg.replace('{', '').replace('}', '')
+    const argType = arg.replace(/[{}]/g, '')
 
     const universalMaven = this.installProfile.libraries.find((v: any) => {
       if (this.loader.type === 'FORGE') return v.name.startsWith('net.minecraftforge:forge')
@@ -145,29 +146,39 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
 
     if (this.installProfile.data[argType]) {
       if (argType === 'BINPATCH') {
-        const clientDataName = utils.getLibraryName(this.installProfile.path || universalMaven.name).replace('.jar', '-clientdata.lzma')
-        const clientDataExtractPath = utils.getLibraryPath(this.installProfile.path || universalMaven.name, this.config.root, 'libraries')
-        return `"${path_.join(clientDataExtractPath, clientDataName).replace('.jar', '-clientdata.lzma')}"`
+        const clientDataName = utils.getLibraryName(this.installProfile.path ?? universalMaven.name).replace(/\.jar$/, '-clientdata.lzma')
+        const clientDataExtractPath = utils.getLibraryPath(this.installProfile.path ?? universalMaven.name, this.config.root, 'libraries')
+        return `"${path_.join(clientDataExtractPath, clientDataName)}"`
       }
 
       const entry = this.installProfile.data[argType]
-      const val = entry.client || entry.path || (typeof entry === 'string' ? entry : arg)
+      const val = entry.client ?? entry.path ?? (typeof entry === 'string' ? entry : arg)
       return val
     }
 
-    return arg
+    const mappedArg = arg
       .replace('{SIDE}', `client`)
-      .replace('{ROOT}', `"${this.config.root}}"`)
+      .replace(/{ROOT}(.*?)/, `"${this.config.root}$1"`)
       .replace('{MINECRAFT_JAR}', `"${path_.join(this.config.root, 'versions', this.manifest.id, `${this.manifest.id}.jar`)}"`)
       .replace('{MINECRAFT_VERSION}', `"${path_.join(this.config.root, 'versions', this.manifest.id, `${this.manifest.id}.json`)}"`)
       .replace('{INSTALLER}', `"${path_.join(this.config.root, 'libraries')}"`)
       .replace('{LIBRARY_DIR}', `"${path_.join(this.config.root, 'libraries')}"`)
+
+    return mappedArg
   }
 
   private mapPath(arg: string) {
     if (arg.startsWith('[')) {
-      return `"${path_.join(this.config.root, 'libraries', utils.getLibraryPath(arg.replace('[', '').replace(']', '')), utils.getLibraryName(arg.replace('[', '').replace(']', '')))}"`
+      const result = `"${path_.join(
+        this.config.root,
+        'libraries',
+        utils.getLibraryPath(arg.replace(/[\[\]]/g, '')),
+        utils.getLibraryName(arg.replace(/[\[\]]/g, ''))
+      )}"`
+      // console.log('    MAPPED:', result)
+      return result
     }
+    // console.log('NOT MAPPED:', arg)
     return arg
   }
 }

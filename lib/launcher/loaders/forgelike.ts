@@ -96,6 +96,7 @@ export default class ForgeLikeLoader extends EventEmitter<FilesManagerEvents> {
     }
 
     const jsonName = `${loaderId}-${this.loader.loaderVersion}.json`
+    
     await fs.writeFile(path_.join(loaderPath, jsonName), JSON.stringify(loaderManifest, null, 2))
     files.push({ name: jsonName, path: this.loader.file!.path, url: '', type: 'OTHER' })
 
@@ -159,6 +160,27 @@ export default class ForgeLikeLoader extends EventEmitter<FilesManagerEvents> {
         files.push({ name: clientDataName, path: path_.join('libraries', clientDataPath), url: '', type: 'LIBRARY' })
         i++
         this.emit('extract_progress', { filename: clientDataName })
+      }
+    }
+
+    if (installProfile.data?.PATCHED) {
+      const entry = installProfile.data.PATCHED
+      const rawValue = entry.client || entry.path || (typeof entry === 'string' ? entry : '')
+
+      if (rawValue && rawValue.startsWith('[')) {
+        const cleanLib = rawValue.replace('[', '').replace(']', '')
+        const patchName = utils.getLibraryName(cleanLib)
+        const patchPath = utils.getLibraryPath(cleanLib)
+
+        libraries.push({
+          name: patchName,
+          path: path_.join('libraries', patchPath),
+          url: '',
+          sha1: '',
+          size: 0,
+          type: 'LIBRARY',
+          extra: 'INSTALL'
+        })
       }
     }
 
