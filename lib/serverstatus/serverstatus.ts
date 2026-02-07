@@ -24,12 +24,12 @@ export default class ServerStatus {
    * **Attention!** This class may not work for some Minecraft servers (Minecraft 1.4 and below, or
    * servers with a specific configuration). If you encounter any problems, please [open an
    * issue](https://github.com/Electron-Minecraft-Launcher/EML-Lib/issues).
-   * @param ip Your Minecraft Server's IP or Host (eg. `'172.65.236.36'` or `'mc.hypixel.net'`).
-   * @param port [Optional: default is `25565`] Your Minecraft Server's main port (eg. `25565`).
-   * @param protocol [Optional: default is `'modern'`] The Minecraft protocol (eg. `'modern'`
+   * @param ip Your Minecraft Server's IP or Host (e.g. `'172.65.236.36'` or `'mc.hypixel.net'`).
+   * @param port [Optional: default is `25565`] Your Minecraft Server's main port (e.g. `25565`).
+   * @param protocol [Optional: default is `'modern'`] The Minecraft protocol (e.g. `'modern'`
    * for 13w41a/1.7 and above, `'1.6'` for from 13w16a/1.6 to 13w39b/1.6.4, and `'1.4-1.5'` for from
    * 12w32a/1.4 to 1.5.2).
-   * @param pvn [Optional: default is `-1`] The Minecraft protocol version (eg. `754` for 1.16.4).
+   * @param pvn [Optional: default is `-1`] The Minecraft protocol version (e.g. `754` for 1.16.4).
    * This parameter is optional, but it is recommended to use it for better compatibility. You can
    * find the protocol version of your Minecraft version [here](https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol_version_numbers).
    * @param timeout [Optional: default is `5`] The timeout in seconds.

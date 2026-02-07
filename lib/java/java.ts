@@ -30,8 +30,8 @@ export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
    * `null` to get the version from the EML AdminTool. Set to `latest_release` to get the latest
    * release version of Minecraft. Set to `latest_snapshot` to get the latest snapshot version of
    * Minecraft.
-   * @param serverId Your Minecraft server ID (eg. `'minecraft'`). This will be used to
-   * create the server folder (eg. `.minecraft`). Java will be installed in the `runtime/jre-X`
+   * @param serverId Your Minecraft server ID (e.g. `'minecraft'`). This will be used to
+   * create the server folder (e.g. `.minecraft`). Java will be installed in the `runtime/jre-X`
    * folder, where `X` is the major version of Java. If you don't want to install Java in the
    * game folder, you must install Java by yourself.
    * @param url The URL of the EML AdminTool website, to get the version from the EML AdminTool.

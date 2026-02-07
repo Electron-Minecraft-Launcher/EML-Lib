@@ -4,22 +4,18 @@ export interface Config {
   /**
    * [Optional but strongly recommended!] The URL of your EML AdminTool website, where is stored your
    * modpack and loader info. If you don't set this value, the launcher will use the vanilla version
-   * of Minecraft (loaders such as Forge are only available through the EML AdminTool).
+   * of Minecraft (loaders such as Forge or Fabric are only available through the EML AdminTool).
    */
   url?: string
   /**
-   * Your Minecraft server ID (eg. `'minecraft'`). This will be used to create the
-   * server folder (eg. `.minecraft`).
+   * Your Minecraft server ID (e.g. `'minecraft'`). This will be used to create the
+   * server folder (e.g. `.minecraft`).
    */
   serverId: string
   /**
-   * [Optional: default is `['runtime/', 'crash-reports/', 'logs/', 'resourcepacks/', 'resources/',
-   * 'saves/', 'shaderpacks/', 'options.txt', 'optionsof.txt']`]
-   * The list of paths/files to ignore when checking and cleaning the game folder, before launching
-   * the Minecraft game.
-   *
-   * **Attention!** If you don't include `'runtime/'` in this list, the launcher will delete the
-   * Java installation folder when cleaning the game folder.
+   * [Optional: default is `{ clean: true, ignored: ['runtime/', 'crash-reports/', 'logs/', 
+   * 'resourcepacks/', 'resources/', 'saves/', 'shaderpacks/', 'options.txt', 'optionsof.txt'] }`]
+   * The cleaning configuration, used to clean the game folder before launching the Minecraft game.
    */
   cleaning?: {
     /**
@@ -42,8 +38,9 @@ export interface Config {
     ignored?: string[]
   }
   /**
-   * The player account (use `MicrosoftAuth`, `AzAuth` or `CrackAuth` to get the account, but you should 
-   * **not** authenticate the user directly in the `config`, to be able to handle authentication).
+   * The player account (use `MicrosoftAuth`, `AzAuth` `YggdrasilAuth` or `CrackAuth` to get the account,
+   * but you should **not** authenticate the user directly in the `config`, to be able to handle
+   * authentication).
    */
   account: Account
   /**

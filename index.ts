@@ -6,6 +6,7 @@
 import MicrosoftAuth from './lib/auth/microsoft'
 import AzAuth from './lib/auth/azuriom'
 import CrackAuth from './lib/auth/crack'
+import YggdrasilAuth from './lib/auth/yggdrasil'
 import Bootstraps from './lib/bootstraps/bootstraps'
 import Maintenance from './lib/maintenance/maintenance'
 import News from './lib/news/news'
@@ -37,6 +38,15 @@ export { MicrosoftAuth }
  * Authenticate a user with [Azuriom](https://azuriom.com/).
  */
 export { AzAuth }
+
+/**
+ * Authenticate a user with an [Yggdrasil-compatible](https://minecraft.wiki/w/Yggdrasil) server.
+ * 
+ * **Attention!** While Yggdrasil has been deprecated by Mojang/Microsoft, the API is maintained by a community 
+ * who wants to keep the protocol alive. Usage of a custom authentication server may or may not violate 
+ * Minecraft's Terms of Service: make sure to validate your player's Minecraft ownership!
+ */
+export { YggdrasilAuth }
 
 /**
  * Authenticate a user with a crack account.
@@ -136,6 +146,15 @@ const EMLLib = {
   AzAuth,
 
   /**
+    * Authenticate a user with an [Yggdrasil-compatible](https://minecraft.wiki/w/Yggdrasil) server.
+ * 
+ * **Attention!** While Yggdrasil has been deprecated by Mojang/Microsoft, the API is maintained by a community 
+ * who wants to keep the protocol alive. Usage of a custom authentication server may or may not violate 
+ * Minecraft's Terms of Service: make sure to validate your player's Minecraft ownership!
+   */
+  YggdrasilAuth,
+
+  /**
    * Authenticate a user with a crack account.
    * @deprecated This auth method is not secure, use it only for testing purposes or for local servers!
    */
@@ -189,5 +208,6 @@ const EMLLib = {
    */
   Launcher
 }
+
 
 export default EMLLib

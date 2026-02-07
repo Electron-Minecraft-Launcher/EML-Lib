@@ -8,16 +8,14 @@ import MicrosoftAuthGui from './microsoftgui'
 import { Account } from '../../types/account'
 import { EMLLibError, ErrorType } from '../../types/errors'
 
-/**
- * Authenticate a user with Microsoft.
- *
- * **Attention!** Using this class requires Electron. Use `npm i electron` to install it.
- */
 export default class MicrosoftAuth {
   private readonly mainWindow: BrowserWindow
   private readonly clientId: string
 
   /**
+   * Authenticate a user with Microsoft.
+   *
+   * **Attention!** Using this class requires Electron. Use `npm i electron` to install it.
    * @param mainWindow Your Electron application's main window (to create a child window for the Microsoft login).
    * @param clientId [Optional] Your Microsoft application's client ID.
    */
@@ -224,3 +222,4 @@ export default class MicrosoftAuth {
     return result
   }
 }
+

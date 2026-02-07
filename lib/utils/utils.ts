@@ -59,7 +59,7 @@ class Utils {
 
   /**
    * Get the path to the application data folder, depending on the operating system.
-   * @returns The path to the application data folder (eg. `'C:\Users\user\AppData\Roaming'`).
+   * @returns The path to the application data folder (e.g. `'C:\Users\user\AppData\Roaming'`).
    */
   getAppDataFolder() {
     return this.getOS() === 'win'
@@ -71,8 +71,8 @@ class Utils {
 
   /**
    * Get the path to the server folder.
-   * @param serverId Your Minecraft server ID (eg. `'minecraft'`).
-   * @returns The path to the server folder (eg. `'C:\Users\user\AppData\Roaming\.minecraft'`).
+   * @param serverId Your Minecraft server ID (e.g. `'minecraft'`).
+   * @returns The path to the server folder (e.g. `'C:\Users\user\AppData\Roaming\.minecraft'`).
    */
   getServerFolder(serverId: string) {
     serverId = serverId.replace(/[^a-z0-9]/gi, '_').toLowerCase()
@@ -82,7 +82,7 @@ class Utils {
 
   /**
    * Get the path of the temp folder, depending on the operating system.
-   * @returns The path to the temp folder (eg. `'C:\Users\user\AppData\Local\Temp'`).
+   * @returns The path to the temp folder (e.g. `'C:\Users\user\AppData\Local\Temp'`).
    */
   getTempFolder() {
     return this.getOS() === 'win' ? process.env.TEMP + '' : '/tmp'
@@ -158,7 +158,7 @@ class Utils {
 
   /**
    * Get the name of a Maven library.
-   * @param libName The name of the library (eg. `'com.mojang:authlib:1.5.25'`).
+   * @param libName The name of the library (e.g. `'com.mojang:authlib:1.5.25'`).
    * @returns The name of the library.
    */
   getLibraryName(libName: string) {
@@ -189,7 +189,7 @@ class Utils {
 
   /**
    * Get the path of a Maven library.
-   * @param libName The name of the library (eg. `'com.mojang:authlib:1.5.25'`).
+   * @param libName The name of the library (e.g. `'com.mojang:authlib:1.5.25'`).
    * @param path [Optional] Additional path to add to the library path.
    * @returns The path of the library.
    */

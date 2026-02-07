@@ -25,25 +25,38 @@ export default class ArgumentsManager {
   /**
    * Get the arguments to launch the game.
    * @param libraries The libraries of the game (including loader libraries).
+   * @param loader The loader used (can be null if no loader is used).
+   * @param loaderManifest The manifest of the loader (can be null if no loader is used).
+   * @param customAuth [Optional] Custom authentication method (for advanced users, use with authlib-injector).
    * @returns The arguments to launch the game.
    */
-  getArgs(libraries: ExtraFile[], loader: ILoader | null, loaderManifest: MinecraftManifest | null = null) {
+  getArgs(
+    libraries: ExtraFile[],
+    loader: ILoader | null,
+    loaderManifest: MinecraftManifest | null = null,
+    customAuth?: { injectorPath: string; authServerUrl: string }
+  ) {
     this.loaderManifest = loaderManifest
     this.loader = loader
 
-    const jvmArgs = this.getJvmArgs(libraries)
+    const jvmArgs = this.getJvmArgs(libraries, customAuth)
     const mainClass = this.getMainClass()
     const minecraftArgs = this.getMinecraftArgs()
 
     return [...jvmArgs, mainClass, ...minecraftArgs]
   }
 
-  private getJvmArgs(libraries: ExtraFile[]) {
+  private getJvmArgs(libraries: ExtraFile[], customAuth?: { injectorPath: string; authServerUrl: string }) {
     const nativeDirectory = path_.join(this.config.root, 'bin', 'natives').replaceAll('\\', '/')
     const libraryDirectory = path_.join(this.config.root, 'libraries').replaceAll('\\', '/')
     const classpath = this.getClasspath(libraries)
 
     let args: string[] = this.config.java?.args || []
+
+    if (customAuth) {
+      args.push('-Djava.net.preferIPv4Stack=true')
+      args.push(`-javaagent:${customAuth.injectorPath}=${customAuth.authServerUrl}`)
+    }
 
     if (this.manifest.arguments?.jvm) {
       ;[...this.manifest.arguments.jvm, ...(this.loaderManifest?.arguments!.jvm || [])].forEach((arg) => {
@@ -152,7 +165,11 @@ export default class ArgumentsManager {
           .replaceAll('${auth_access_token}', this.config.account.accessToken)
           .replaceAll(
             '${user_type}',
-            this.manifest.id.startsWith('1.16') && this.config.account.meta.type === 'msa' ? 'Xbox' : this.config.account.meta.type
+            this.manifest.id.startsWith('1.16') && this.config.account.meta.type === 'msa'
+              ? 'Xbox'
+              : this.config.account.meta.type === 'yggdrasil'
+                ? 'Mojang'
+                : this.config.account.meta.type
           )
           .replaceAll('${version_name}', this.manifest.id)
           .replaceAll('${game_directory}', gameDirectory)
@@ -260,3 +277,4 @@ export default class ArgumentsManager {
     return this.loaderManifest?.mainClass ?? this.manifest.mainClass
   }
 }
+

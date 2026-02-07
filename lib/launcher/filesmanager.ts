@@ -191,6 +191,44 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
   }
 
   /**
+   * Get authlib-injector file.
+   * @returns `injector`: The injector file object; `files`: array containing the injector.
+   */
+  async getInjector() {
+    if (this.config.account.meta.type !== 'yggdrasil') return { injector: [], files: [] }
+
+    const url = 'https://github.com/yushijinhun/authlib-injector/releases/download/v1.2.7/authlib-injector-1.2.7.jar'
+
+    let size: number
+    try {
+      const req = await fetch(url, { method: 'HEAD' })
+
+      if (!req.ok) {
+        const errorText = await req.text()
+        throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch authlib-injector file info: HTTP ${req.status} ${errorText}`)
+      }
+
+      size = Number(req.headers.get('content-length')) || 0
+    } catch (err: unknown) {
+      if (err instanceof EMLLibError) throw err
+      throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch authlib-injector file info: ${err instanceof Error ? err.message : err}`)
+    }
+
+    const injector: File[] = [
+      {
+        name: 'authlib-injector.jar',
+        path: 'libraries/',
+        url: url,
+        sha1: '',
+        size: size,
+        type: 'LIBRARY'
+      }
+    ]
+
+    return { injector: injector, files: injector }
+  }
+
+  /**
    * Get Log4j files to patch the Log4shell.
    * @returns `log4j`: Log4j files; `files`: all files created by this method or that will be
    * created (including `log4j`).
@@ -343,3 +381,4 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
     return { files }
   }
 }
+

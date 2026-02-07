@@ -1,0 +1,13 @@
+# Drasl default config file
+
+Domain = "localhost"
+BaseURL = "http://localhost:25585"
+DefaultAdmins = ["admin"]
+PlayerUUIDGeneration = "offline"
+
+[CreateNewPlayer]
+AllowChoosingUUID = true
+
+[RegistrationNewPlayer]
+Allow = true
+RequireInvite = true
