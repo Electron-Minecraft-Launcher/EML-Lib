@@ -131,9 +131,14 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
 
   private getJarMain(jarPath: string) {
     if (!existsSync(jarPath)) return null
-    const manifest = new AdmZip(jarPath).getEntry('META-INF/MANIFEST.MF')?.getData()
-    if (!manifest) return null
-    return manifest.toString('utf8').split('Main-Class: ')[1].split('\r\n')[0]
+    try {
+      const manifest = new AdmZip(jarPath).getEntry('META-INF/MANIFEST.MF')?.getData()
+      if (!manifest) return null
+      return manifest.toString('utf8').split('Main-Class: ')[1].split('\r\n')[0]
+    } catch (err) {
+      console.warn(`Failed to read manifest from ${jarPath}:`, err)
+      return null
+    }
   }
 
   private mapArg(arg: string) {

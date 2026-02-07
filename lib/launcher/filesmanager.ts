@@ -217,7 +217,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
         type: 'CONFIG'
       })
     }
-    
+
     return { log4j: log4j, files: log4j }
   }
 
@@ -238,47 +238,51 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
     const promises = natives.map(async (native) => {
       if (!existsSync(path_.join(this.config.root, native.path, native.name))) return
 
-      const zip = new AdmZip(path_.join(this.config.root, native.path, native.name))
-      const promisesInner = zip.getEntries().map(async (entry) => {
-        if (!entry.entryName.startsWith('META-INF')) {
-          const entryName = entry.entryName.replace(/\\/g, '/').replace(/^\/+/, '')
+      try {
+        const zip = new AdmZip(path_.join(this.config.root, native.path, native.name))
+        const promisesInner = zip.getEntries().map(async (entry) => {
+          if (!entry.entryName.startsWith('META-INF')) {
+            const entryName = entry.entryName.replace(/\\/g, '/').replace(/^\/+/, '')
 
-          if (!entryName || entryName.includes('..') || path_.isAbsolute(entryName)) {
-            console.warn(`[Security] Skipped unsafe native extraction: ${entry.entryName}`)
-            return
+            if (!entryName || entryName.includes('..') || path_.isAbsolute(entryName)) {
+              console.warn(`[Security] Skipped unsafe native extraction: ${entry.entryName}`)
+              return
+            }
+
+            const entryPath = path_.resolve(nativesFolder, entryName)
+            const relative = path_.relative(nativesFolder, entryPath)
+            const isSafe = relative && !relative.startsWith('..') && !path_.isAbsolute(relative)
+
+            if (!isSafe) {
+              console.warn(`[Security] Skipped unsafe native extraction: ${entry.entryName}`)
+              return
+            }
+
+            if (entry.isDirectory && !existsSync(entryPath)) {
+              await fs.mkdir(entryPath, { recursive: true })
+            } else {
+              const parentDir = path_.dirname(entryPath)
+              if (!existsSync(parentDir)) await fs.mkdir(parentDir, { recursive: true })
+
+              const data = zip.readFile(entry)
+              if (data) await fs.writeFile(entryPath, data)
+            }
+
+            files.push({
+              name: path_.basename(entryName),
+              path: path_.join('bin', 'natives', path_.dirname(entryName), '/'),
+              url: '',
+              sha1: '',
+              size: entry.header.size,
+              type: entry.isDirectory ? 'FOLDER' : 'NATIVE'
+            })
           }
+        })
 
-          const entryPath = path_.resolve(nativesFolder, entryName)
-          const relative = path_.relative(nativesFolder, entryPath)
-          const isSafe = relative && !relative.startsWith('..') && !path_.isAbsolute(relative)
-
-          if (!isSafe) {
-            console.warn(`[Security] Skipped unsafe native extraction: ${entry.entryName}`)
-            return
-          }
-
-          if (entry.isDirectory && !existsSync(entryPath)) {
-            await fs.mkdir(entryPath, { recursive: true })
-          } else {
-            const parentDir = path_.dirname(entryPath)
-            if (!existsSync(parentDir)) await fs.mkdir(parentDir, { recursive: true })
-
-            const data = zip.readFile(entry)
-            if (data) await fs.writeFile(entryPath, data)
-          }
-
-          files.push({
-            name: path_.basename(entryName),
-            path: path_.join('bin', 'natives', path_.dirname(entryName), '/'),
-            url: '',
-            sha1: '',
-            size: entry.header.size,
-            type: entry.isDirectory ? 'FOLDER' : 'NATIVE'
-          })
-        }
-      })
-
-      await Promise.all(promisesInner)
+        await Promise.all(promisesInner)
+      } catch (err) {
+        throw new EMLLibError(ErrorType.FILE_ERROR, `Failed to extract natives from ${native.name}: ${err instanceof Error ? err.message : err}`)
+      }
 
       this.emit('extract_progress', { filename: native.name })
     })

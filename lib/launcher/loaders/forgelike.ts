@@ -13,6 +13,7 @@ import path_ from 'node:path'
 import utils from '../../utils/utils'
 import EventEmitter from '../../utils/events'
 import { FilesManagerEvents } from '../../../types/events'
+import { EMLLibError, ErrorType } from '../../../types/errors'
 
 export default class ForgeLikeLoader extends EventEmitter<FilesManagerEvents> {
   private readonly config: FullConfig
@@ -32,16 +33,21 @@ export default class ForgeLikeLoader extends EventEmitter<FilesManagerEvents> {
    * to download; `files`: all files created by this method or that will be created (including `libraries`)
    */
   async setup() {
-    const loaderPath = path_.join(this.config.root, this.loader.file.path)
-    const minecraftPath = path_.join(this.config.root, 'versions', this.manifest.id)
-    const zip = new AdmZip(path_.join(loaderPath, this.loader.file.name))
-    const jar = new AdmZip(path_.join(minecraftPath, `${this.manifest.id}.jar`))
+    try {
+      const loaderPath = path_.join(this.config.root, this.loader.file.path)
+      const minecraftPath = path_.join(this.config.root, 'versions', this.manifest.id)
 
-    if (!existsSync(loaderPath)) {
-      await fs.mkdir(loaderPath, { recursive: true })
+      const zip = new AdmZip(path_.join(loaderPath, this.loader.file.name))
+      const jar = new AdmZip(path_.join(minecraftPath, `${this.manifest.id}.jar`))
+
+      if (!existsSync(loaderPath)) {
+        await fs.mkdir(loaderPath, { recursive: true })
+      }
+
+      return this.loader.format !== 'INSTALLER' ? await this.extractZip(loaderPath, minecraftPath, zip, jar) : await this.extractJar(loaderPath, zip)
+    } catch (err) {
+      throw new EMLLibError(ErrorType.FILE_ERROR, `Failed to setup ForgeLike loader: ${err instanceof Error ? err.message : err}`)
     }
-
-    return this.loader.format !== 'INSTALLER' ? await this.extractZip(loaderPath, minecraftPath, zip, jar) : await this.extractJar(loaderPath, zip)
   }
 
   private async extractZip(loaderPath: string, minecraftPath: string, zip: AdmZip, jar: AdmZip) {
@@ -96,7 +102,7 @@ export default class ForgeLikeLoader extends EventEmitter<FilesManagerEvents> {
     }
 
     const jsonName = `${loaderId}-${this.loader.loaderVersion}.json`
-    
+
     await fs.writeFile(path_.join(loaderPath, jsonName), JSON.stringify(loaderManifest, null, 2))
     files.push({ name: jsonName, path: this.loader.file!.path, url: '', type: 'OTHER' })
 
