@@ -57,7 +57,7 @@ export { CrackAuth }
 /**
  * Update your Launcher.
  *
- * **Attention!** This class only works with the EML AdminTool. Please do not use it without the AdminTool.
+ * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
  * @workInProgress
  */
 export { Bootstraps }
@@ -65,21 +65,21 @@ export { Bootstraps }
 /**
  * Manage the Maintenance of the Launcher.
  *
- * **Attention!** This class only works with the EML AdminTool. Please do not use it without the AdminTool.
+ * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
  */
 export { Maintenance }
 
 /**
  * Manage the News of the Launcher.
  *
- * **Attention!** This class only works with the EML AdminTool. Please do not use it without the AdminTool.
+ * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
  */
 export { News }
 
 /**
  * Manage the background of the Launcher.
  *
- * **Attention!** This class only works with the EML AdminTool. Please do not use it without the AdminTool.
+ * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
  */
 export { Background }
 
@@ -163,7 +163,7 @@ const EMLLib = {
   /**
    * Update your Launcher.
    *
-   * **Attention!** This class only works with the EML AdminTool. Please do not use it without the AdminTool.
+   * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    * @workInProgress
    */
   Bootstraps,
@@ -171,21 +171,21 @@ const EMLLib = {
   /**
    * Manage the Maintenance of the Launcher.
    *
-   * **Attention!** This class only works with the EML AdminTool. Please do not use it without the AdminTool.
+   * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    */
   Maintenance,
 
   /**
    * Manage the News of the Launcher.
    *
-   * **Attention!** This class only works with the EML AdminTool. Please do not use it without the AdminTool.
+   * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    */
   News,
 
   /**
    * Manage the background of the Launcher.
    *
-   * **Attention!** This class only works with the EML AdminTool. Please do not use it without the AdminTool.
+   * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    */
   Background,
 

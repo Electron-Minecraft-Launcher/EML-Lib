@@ -6,15 +6,13 @@
 import { EMLLibError, ErrorType } from '../../types/errors'
 import { IBackground } from '../../types/background'
 
-/**
- * Manage the background of the Launcher.
- *
- * **Attention!** This class only works with the EML AdminTool. Please do not use it without the AdminTool.
- */
 export default class Background {
   private readonly url: string
 
   /**
+   * Manage the background of the Launcher.
+   *
+   * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    * @param url The URL of your EML AdminTool website.
    */
   constructor(url: string) {
@@ -28,7 +26,7 @@ export default class Background {
   async getBackground() {
     try {
       const req = await fetch(`${this.url}/background`)
-      
+
       if (!req.ok) {
         const errorText = await req.text()
         throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching background: HTTP ${req.status} ${errorText}`)

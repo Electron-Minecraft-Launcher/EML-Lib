@@ -14,18 +14,16 @@ import { spawn } from 'node:child_process'
 import { EMLLibError, ErrorType } from '../../types/errors'
 import { MinecraftManifest } from '../../types/manifest'
 
-/**
- * Download Java for Minecraft.
- *
- * You should not use this class if you launch Minecraft with `java.install: 'auto'` in
- * the configuration.
- */
 export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
   private readonly minecraftVersion: string | null
   private readonly serverId: string
   private readonly url?: string
 
   /**
+   * Download Java for Minecraft.
+   *
+   * You should not use this class if you launch Minecraft with `java.install: 'auto'` in
+   * the configuration.
    * @param minecraftVersion The version of Minecraft you want to install Java for. Set to
    * `null` to get the version from the EML AdminTool. Set to `latest_release` to get the latest
    * release version of Minecraft. Set to `latest_snapshot` to get the latest snapshot version of

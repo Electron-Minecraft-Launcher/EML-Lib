@@ -6,11 +6,6 @@
 import { EMLLibError, ErrorType } from '../../types/errors'
 import { IMaintenance } from '../../types/maintenance'
 
-/**
- * Manage the Maintenance of the Launcher.
- *
- * **Attention!** This class only works with the EML AdminTool. Please do not use it without the AdminTool.
- */
 export default class Maintenance {
   private readonly url: string
 
@@ -22,6 +17,9 @@ export default class Maintenance {
   }
 
   /**
+   * Manage the Maintenance of the Launcher.
+   *
+   * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    * Get the current Maintenance status from the EML AdminTool.
    * @returns `null` if there is no maintenance, otherwise it will return the maintenance status.
    * You can check the `startTime` and `endTime` properties to see if the maintenance is active.

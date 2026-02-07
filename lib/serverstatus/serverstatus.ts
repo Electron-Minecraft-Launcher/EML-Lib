@@ -10,9 +10,6 @@ import { EMLLibError, ErrorType } from '../../types/errors'
 import BufferWriter from './bufferwriter'
 import BufferReader from './bufferreader'
 
-/**
- * Get the status of a Minecraft server.
- */
 export default class ServerStatus {
   private readonly ip: string
   private readonly port: number
@@ -21,6 +18,7 @@ export default class ServerStatus {
   private readonly timeout: number
 
   /**
+   * Get the status of a Minecraft server.
    * **Attention!** This class may not work for some Minecraft servers (Minecraft 1.4 and below, or
    * servers with a specific configuration). If you encounter any problems, please [open an
    * issue](https://github.com/Electron-Minecraft-Launcher/EML-Lib/issues).

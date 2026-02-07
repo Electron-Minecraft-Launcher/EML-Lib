@@ -10,18 +10,16 @@ import type { AppUpdater } from 'electron-updater'
 import { IBootstraps } from '../../types/bootstraps'
 import utils from '../utils/utils'
 
-/**
- * Update your Launcher.
- *
- * **Attention!** This class only works with the EML AdminTool. Please do not use it without the AdminTool.
- *
- * **Attention!** Using this class requires Electron Updater. Use `npm i electron-updater` to install it.
- */
 export default class Bootstraps extends EventEmitter<DownloaderEvents & BootstrapsEvents> {
   private readonly url: string
   private autoUpdater: AppUpdater | undefined
 
   /**
+   * Update your Launcher.
+   *
+   * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
+   *
+   * **Attention!** Using this class requires Electron Updater. Use `npm i electron-updater` to install it.
    * @param url The URL of your EML AdminTool website
    */
   constructor(url: string) {

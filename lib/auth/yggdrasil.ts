@@ -115,7 +115,7 @@ export default class YggdrasilAuth {
   /**
    * Validate a user's access token with Yggdrasil. This method will check if the token is still valid.
    * @param user The user account to validate.
-   * @returns True if the token is valid, false otherwise (then you should call `YggdrasilAuth.refresh`).
+   * @returns `true` if the token is valid, `false` otherwise (then you should call `YggdrasilAuth.refresh`).
    */
   async validate(user: Account) {
     try {
