@@ -54,7 +54,7 @@ export default class BufferReader {
     return result
   }
 
-  getOffset(): number {
+  getOffset() {
     return this.offset
   }
 }

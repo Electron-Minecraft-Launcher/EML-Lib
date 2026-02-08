@@ -93,7 +93,7 @@ class Utils {
    * @param filePath Path of the file.
    * @returns The hash of the file.
    */
-  async getFileHash(filePath: string): Promise<string> {
+  async getFileHash(filePath: string) {
     try {
       const hash = createHash('sha1')
       const input = fs.createReadStream(filePath)

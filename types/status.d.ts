@@ -1,4 +1,4 @@
-export interface ServerStatus {
+export interface IServerStatus {
   /**
    * The ping of the server, in ms.
    */
