@@ -14,7 +14,7 @@ import { EMLLibError, ErrorType } from '../../types/errors'
 import { Readable } from 'node:stream'
 
 export default class Downloader extends EventEmitter<DownloaderEvents> {
-  private readonly CONCURRENCY_LIMIT = 5
+  private readonly CONCURRENCY_LIMIT = 8
   private readonly dest: string
 
   private size = 0
@@ -147,8 +147,7 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
       throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching ${file.name}: HTTP ${req.status} ${errorText}`)
     }
     const fileStream = fsSync.createWriteStream(filePath)
-    // @ts-ignore
-    const nodeStream = Readable.fromWeb(req.body)
+    const nodeStream = Readable.fromWeb(req.body as any)
 
     return new Promise<void>((resolve, reject) => {
       const cleanup = () => {
