@@ -7,20 +7,15 @@ import { File } from '../../types/file'
 import fsSync from 'node:fs'
 import fs from 'node:fs/promises'
 import path_ from 'node:path'
-import fetch from 'node-fetch'
 import EventEmitter from '../utils/events'
 import { DownloaderEvents } from '../../types/events'
 import utils from './utils'
 import { EMLLibError, ErrorType } from '../../types/errors'
-import http from 'node:http'
-import https from 'node:https'
+import { Readable } from 'node:stream'
 
 export default class Downloader extends EventEmitter<DownloaderEvents> {
   private readonly CONCURRENCY_LIMIT = 5
   private readonly dest: string
-
-  private httpAgent = new http.Agent({ keepAlive: true, maxSockets: 32 })
-  private httpsAgent = new https.Agent({ keepAlive: true, maxSockets: 32 })
 
   private size = 0
   private amount = 0
@@ -143,10 +138,7 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
 
     await fs.mkdir(dirPath, { recursive: true })
 
-    const agent = file.url.startsWith('https') ? this.httpsAgent : this.httpAgent
-
     const req = await fetch(file.url, {
-      agent: agent,
       headers: { Accept: 'application/octet-stream' }
     })
 
@@ -154,16 +146,18 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
       const errorText = await req.text()
       throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching ${file.name}: HTTP ${req.status} ${errorText}`)
     }
-    const stream = fsSync.createWriteStream(filePath)
+    const fileStream = fsSync.createWriteStream(filePath)
+    // @ts-ignore
+    const nodeStream = Readable.fromWeb(req.body)
 
     return new Promise<void>((resolve, reject) => {
       const cleanup = () => {
-        req.body?.removeAllListeners()
-        stream.removeAllListeners()
-        stream.destroy()
+        nodeStream.removeAllListeners()
+        fileStream.removeAllListeners()
+        fileStream.destroy()
       }
-      req.body!.on('data', (chunk: Buffer) => {
-        stream.write(chunk)
+      nodeStream.on('data', (chunk: Buffer) => {
+        fileStream.write(chunk)
 
         bytesDownloadedThisAttempt += chunk.length
         this.downloaded.size += chunk.length
@@ -187,18 +181,18 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
         })
       })
 
-      req.body!.on('end', () => {
-        stream.end()
+      nodeStream.on('end', () => {
+        fileStream.end()
       })
 
-      req.body!.on('error', (err) => {
+      nodeStream.on('error', (err) => {
         this.downloaded.size -= bytesDownloadedThisAttempt
         this.lastSize = Math.min(this.lastSize, this.downloaded.size)
         cleanup()
         reject(err)
       })
 
-      stream.on('finish', async () => {
+      fileStream.on('finish', async () => {
         cleanup()
         try {
           await this.chmodJavaFiles(filePath, file)
@@ -208,7 +202,7 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
         }
       })
 
-      stream.on('error', (err) => {
+      fileStream.on('error', (err) => {
         this.downloaded.size -= bytesDownloadedThisAttempt
         cleanup()
         reject(err)
@@ -222,3 +216,4 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
     }
   }
 }
+
