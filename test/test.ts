@@ -1,7 +1,7 @@
 import EMLLib from '../index'
 import { app, BrowserWindow } from 'electron'
 
-async function main() {
+async function mainWithElectron() {
   app.whenReady().then(async () => {
     const mainWindow = new BrowserWindow({
       width: 800,
@@ -26,7 +26,7 @@ async function main() {
   })
 }
 
-async function _main() {
+async function main() {
   let acc = await new EMLLib.YggdrasilAuth('http://localhost:25585').auth('GoldFrite', 'password')
   if ('needsProfileSelection' in acc) {
     acc = new EMLLib.YggdrasilAuth('http://localhost:25585').selectProfile(acc, { name: 'GoldFrite' })
@@ -85,5 +85,9 @@ async function _main() {
   }
 }
 
-_main()
+async function featerTest() {
+  const status = await new EMLLib.ServerStatus('play.vanillahaven.net', 25565, 'beta1.8-1.3').getStatus()
+  console.log(status)
+}
 
+featerTest()

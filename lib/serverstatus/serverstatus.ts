@@ -13,7 +13,7 @@ import BufferReader from './bufferreader'
 export default class ServerStatus {
   private readonly ip: string
   private readonly port: number
-  private readonly protocol: 'modern' | '1.6' | '1.4-1.5' | 'Beta1.8-1.3'
+  private readonly protocol: 'modern' | '1.6' | '1.4-1.5' | 'beta1.8-1.3'
   private readonly pvn: number
   private readonly timeout: number
 
@@ -32,7 +32,13 @@ export default class ServerStatus {
    * find the protocol version of your Minecraft version [here](https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol_version_numbers).
    * @param timeout [Optional: default is `5`] The timeout in seconds.
    */
-  constructor(ip: string, port: number = 25565, protocol: 'modern' | '1.6' | '1.4-1.5' = 'modern', pvn: number = -1, timeout: number = 5) {
+  constructor(
+    ip: string,
+    port: number = 25565,
+    protocol: 'modern' | '1.6' | '1.4-1.5' | 'beta1.8-1.3' = 'modern',
+    pvn: number = -1,
+    timeout: number = 5
+  ) {
     this.ip = ip
     this.port = port
     this.protocol = protocol
@@ -77,14 +83,17 @@ export default class ServerStatus {
             bufWriter.writeShort(11),
             bufWriter.writeStringUTF16BE('MC|PingHost'),
             bufWriter.writeShort(7 + 2 * this.ip.length),
-            bufWriter.writeByte(this.pvn),
-            bufWriter.writeShort(2 * this.ip.length),
+            bufWriter.writeByte(0x4a),
+            bufWriter.writeShort(this.ip.length),
             bufWriter.writeStringUTF16BE(this.ip),
             bufWriter.writeInt(this.port)
           ])
           socket.write(buf)
         } else if (this.protocol === '1.4-1.5') {
           const buf = Buffer.concat([bufWriter.writeByte(0xfe), bufWriter.writeByte(1)])
+          socket.write(buf)
+        } else if (this.protocol === 'beta1.8-1.3') {
+          const buf = bufWriter.writeByte(0xfe)
           socket.write(buf)
         } else {
           reject(new EMLLibError(ErrorType.NET_ERROR, 'Unsupported protocol version'))
@@ -117,7 +126,7 @@ export default class ServerStatus {
                 ping: ping,
                 version: json.version.name,
                 motd:
-                  typeof json.description === 'object' && json.description.text
+                  typeof json.description === 'object' && typeof json.description.text === 'string'
                     ? json.description.text
                     : typeof json.description === 'string'
                       ? json.description
@@ -136,10 +145,10 @@ export default class ServerStatus {
             socket.destroy()
             clearTimeout(timeout)
           }
-        } else {
+        } else if (this.protocol === '1.6' || this.protocol === '1.4-1.5') {
           if (incomingBuf.readUInt8(0) === 0xff) {
             const bufReader = new BufferReader(incomingBuf)
-            const fields = bufReader.readStringUTF16BE().split('\u0000')
+            const fields = bufReader.readStringUTF16BE_Old().split('\u0000')
 
             if (fields[0] !== '§1') {
               reject(new EMLLibError(ErrorType.NET_ERROR, `Received invalid response: the first field is not '§1'`))
@@ -152,6 +161,26 @@ export default class ServerStatus {
               version: fields[2],
               motd: fields[3],
               players: { max: +fields[5], online: +fields[4] }
+            })
+            socket.destroy()
+            clearTimeout(timeout)
+          } else {
+            reject(new EMLLibError(ErrorType.NET_ERROR, `Received invalid response: wrong packet identifier`))
+            socket.destroy()
+            clearTimeout(timeout)
+          }
+        } else if (this.protocol === 'beta1.8-1.3') {
+          const bufReader = new BufferReader(incomingBuf)
+          const responseStr = bufReader.readStringUTF16BE_Old()
+
+          if (this.protocol === 'beta1.8-1.3') {
+            const fields = responseStr.split('§')
+
+            resolve({
+              ping: ping,
+              version: '< 1.4',
+              motd: fields[0],
+              players: { max: +fields[2], online: +fields[1] }
             })
             socket.destroy()
             clearTimeout(timeout)
