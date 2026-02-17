@@ -3,8 +3,8 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
-import { EMLLibError, ErrorType } from '../../types/errors'
-import { IMaintenance } from '../../types/maintenance'
+import { EMLLibError, ErrorType } from '../../types/errors.js'
+import { IMaintenance } from '../../types/maintenance.js'
 
 export default class Maintenance {
   private readonly url: string

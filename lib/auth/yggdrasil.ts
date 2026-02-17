@@ -3,8 +3,8 @@
  * @copyright Copyright (c) 2026, IkyMax, GoldFrite
  */
 
-import { Account, MultipleProfiles } from '../../types/account'
-import { EMLLibError, ErrorType } from '../../types/errors'
+import { Account, MultipleProfiles } from '../../types/account.js'
+import { EMLLibError, ErrorType } from '../../types/errors.js'
 
 export default class YggdrasilAuth {
   private readonly url: string

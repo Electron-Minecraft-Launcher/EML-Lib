@@ -3,8 +3,8 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
-import { EMLLibError, ErrorType } from '../../types/errors'
-import { IBackground } from '../../types/background'
+import { EMLLibError, ErrorType } from '../../types/errors.js'
+import { IBackground } from '../../types/background.js'
 
 export default class Background {
   private readonly url: string

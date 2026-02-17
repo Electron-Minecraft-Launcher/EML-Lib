@@ -4,18 +4,18 @@
  * @copyright Copyright (c) 2019, Pierce Harriz, from [Minecraft Launcher Core](https://github.com/Pierce01/MinecraftLauncher-core)
  */
 
-import { FullConfig } from '../../types/config'
-import { EMLLibError, ErrorType } from '../../types/errors'
-import { ExtraFile, File, ILoader } from '../../types/file'
-import { Artifact, MinecraftManifest, Assets } from '../../types/manifest'
-import utils from '../utils/utils'
+import { FullConfig } from '../../types/config.js'
+import { EMLLibError, ErrorType } from '../../types/errors.js'
+import { ExtraFile, File, ILoader } from '../../types/file.js'
+import { Artifact, MinecraftManifest, Assets } from '../../types/manifest.js'
+import utils from '../utils/utils.js'
 import path_ from 'node:path'
 import fs from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import AdmZip from 'adm-zip'
-import EventEmitter from '../utils/events'
-import { FilesManagerEvents } from '../../types/events'
-import Java from '../java/java'
+import EventEmitter from '../utils/events.js'
+import { FilesManagerEvents } from '../../types/events.js'
+import Java from '../java/java.js'
 
 export default class FilesManager extends EventEmitter<FilesManagerEvents> {
   private config: FullConfig

@@ -4,8 +4,8 @@
  */
 
 import { createHash } from 'node:crypto'
-import { Account } from '../../types/account'
-import { EMLLibError, ErrorType } from './../../types/errors'
+import { Account } from '../../types/account.js'
+import { EMLLibError, ErrorType } from './../../types/errors.js'
 
 export default class CrackAuth {
   /**

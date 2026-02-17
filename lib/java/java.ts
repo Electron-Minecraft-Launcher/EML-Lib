@@ -3,16 +3,16 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
-import { DownloaderEvents, JavaEvents } from '../../types/events'
-import EventEmitter from '../utils/events'
-import manifests from '../utils/manifests'
-import { File } from '../../types/file'
+import { DownloaderEvents, JavaEvents } from '../../types/events.js'
+import EventEmitter from '../utils/events.js'
+import manifests from '../utils/manifests.js'
+import { File } from '../../types/file.js'
 import path_ from 'node:path'
-import Downloader from '../utils/downloader'
-import utils from '../utils/utils'
+import Downloader from '../utils/downloader.js'
+import utils from '../utils/utils.js'
 import { spawn } from 'node:child_process'
-import { EMLLibError, ErrorType } from '../../types/errors'
-import { MinecraftManifest } from '../../types/manifest'
+import { EMLLibError, ErrorType } from '../../types/errors.js'
+import { MinecraftManifest } from '../../types/manifest.js'
 
 export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
   private readonly minecraftVersion: string | null

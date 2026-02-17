@@ -3,14 +3,14 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
-import { File } from '../../types/file'
+import { File } from '../../types/file.js'
 import fsSync from 'node:fs'
 import fs from 'node:fs/promises'
 import path_ from 'node:path'
-import EventEmitter from '../utils/events'
-import { DownloaderEvents } from '../../types/events'
-import utils from './utils'
-import { EMLLibError, ErrorType } from '../../types/errors'
+import EventEmitter from '../utils/events.js'
+import { DownloaderEvents } from '../../types/events.js'
+import utils from './utils.js'
+import { EMLLibError, ErrorType } from '../../types/errors.js'
 import { Readable } from 'node:stream'
 
 export default class Downloader extends EventEmitter<DownloaderEvents> {

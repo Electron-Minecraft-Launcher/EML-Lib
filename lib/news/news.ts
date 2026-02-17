@@ -3,8 +3,8 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
-import { EMLLibError, ErrorType } from '../../types/errors'
-import { INews, INewsCategory } from '../../types/news'
+import { EMLLibError, ErrorType } from '../../types/errors.js'
+import { INews, INewsCategory } from '../../types/news.js'
 
 export default class News {
   private readonly url: string

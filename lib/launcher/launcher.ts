@@ -3,18 +3,18 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
-import { CleanerEvents, DownloaderEvents, FilesManagerEvents, JavaEvents, LauncherEvents, PatcherEvents } from '../../types/events'
-import EventEmitter from '../utils/events'
-import manifests from '../utils/manifests'
-import utils from '../utils/utils'
-import { Config, FullConfig } from './../../types/config'
+import { CleanerEvents, DownloaderEvents, FilesManagerEvents, JavaEvents, LauncherEvents, PatcherEvents } from '../../types/events.js'
+import EventEmitter from '../utils/events.js'
+import manifests from '../utils/manifests.js'
+import utils from '../utils/utils.js'
+import { Config, FullConfig } from './../../types/config.js'
 import path_ from 'node:path'
-import FilesManager from './filesmanager'
-import Downloader from '../utils/downloader'
-import Cleaner from '../utils/cleaner'
-import Java from '../java/java'
-import LoaderManager from './loadermanager'
-import ArgumentsManager from './argumentsmanager'
+import FilesManager from './filesmanager.js'
+import Downloader from '../utils/downloader.js'
+import Cleaner from '../utils/cleaner.js'
+import Java from '../java/java.js'
+import LoaderManager from './loadermanager.js'
+import ArgumentsManager from './argumentsmanager.js'
 import { spawn } from 'node:child_process'
 
 export default class Launcher extends EventEmitter<

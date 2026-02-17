@@ -3,11 +3,11 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
-import { FullConfig } from '../../types/config'
-import { MinecraftManifest } from '../../types/manifest'
-import utils from '../utils/utils'
+import { FullConfig } from '../../types/config.js'
+import { MinecraftManifest } from '../../types/manifest.js'
+import utils from '../utils/utils.js'
 import path_ from 'node:path'
-import { ExtraFile, ILoader } from '../../types/file'
+import { ExtraFile, ILoader } from '../../types/file.js'
 
 export default class ArgumentsManager {
   private config: FullConfig

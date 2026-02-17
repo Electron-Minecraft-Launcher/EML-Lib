@@ -3,13 +3,13 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
-import { EMLLibError, ErrorType } from '../../types/errors'
+import { EMLLibError, ErrorType } from '../../types/errors.js'
 import path_ from 'node:path'
 import fs from 'node:fs'
 import os from 'node:os'
 import { createHash } from 'node:crypto'
 import { pipeline } from 'node:stream/promises'
-import { ExtraFile } from '../../types/file'
+import { ExtraFile } from '../../types/file.js'
 
 class Utils {
   /**

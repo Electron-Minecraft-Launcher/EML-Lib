@@ -3,8 +3,8 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
-import { Account } from '../../types/account'
-import { EMLLibError, ErrorType } from '../../types/errors'
+import { Account } from '../../types/account.js'
+import { EMLLibError, ErrorType } from '../../types/errors.js'
 
 export default class AzAuth {
   private readonly url: string

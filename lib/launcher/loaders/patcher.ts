@@ -4,16 +4,16 @@
  */
 
 import AdmZip from 'adm-zip'
-import { FullConfig } from '../../../types/config'
-import { ILoader, File } from '../../../types/file'
-import { MinecraftManifest } from '../../../types/manifest'
-import utils from '../../utils/utils'
+import { FullConfig } from '../../../types/config.js'
+import { ILoader, File } from '../../../types/file.js'
+import { MinecraftManifest } from '../../../types/manifest.js'
+import utils from '../../utils/utils.js'
 import fs from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import path_ from 'node:path'
 import { spawn } from 'node:child_process'
-import EventEmitter from '../../utils/events'
-import { PatcherEvents } from '../../../types/events'
+import EventEmitter from '../../utils/events.js'
+import { PatcherEvents } from '../../../types/events.js'
 
 export default class Patcher extends EventEmitter<PatcherEvents> {
   private readonly config: FullConfig

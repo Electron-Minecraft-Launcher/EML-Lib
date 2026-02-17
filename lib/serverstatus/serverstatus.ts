@@ -5,10 +5,10 @@
  */
 
 import * as net from 'node:net'
-import type { IServerStatus } from '../../types/status'
-import { EMLLibError, ErrorType } from '../../types/errors'
-import BufferWriter from './bufferwriter'
-import BufferReader from './bufferreader'
+import type { IServerStatus } from '../../types/status.js'
+import { EMLLibError, ErrorType } from '../../types/errors.js'
+import BufferWriter from './bufferwriter.js'
+import BufferReader from './bufferreader.js'
 
 export default class ServerStatus {
   private readonly ip: string

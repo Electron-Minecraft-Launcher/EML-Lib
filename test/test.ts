@@ -1,7 +1,8 @@
-import EMLLib from '../index'
-import { app, BrowserWindow } from 'electron'
+import EMLLib from '../index.js'
 
 async function mainWithElectron() {
+  const { app, BrowserWindow } = await import('electron')
+  
   app.whenReady().then(async () => {
     const mainWindow = new BrowserWindow({
       width: 800,

@@ -4,9 +4,9 @@
  */
 
 import type { BrowserWindow } from 'electron'
-import MicrosoftAuthGui from './microsoftgui'
-import { Account } from '../../types/account'
-import { EMLLibError, ErrorType } from '../../types/errors'
+import MicrosoftAuthGui from './microsoftgui.js'
+import { Account } from '../../types/account.js'
+import { EMLLibError, ErrorType } from '../../types/errors.js'
 
 export default class MicrosoftAuth {
   private readonly mainWindow: BrowserWindow
