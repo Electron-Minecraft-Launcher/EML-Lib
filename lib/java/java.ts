@@ -3,35 +3,33 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
-import { DownloaderEvents, JavaEvents } from '../../types/events'
-import EventEmitter from '../utils/events'
-import manifests from '../utils/manifests'
-import { File } from '../../types/file'
+import { DownloaderEvents, JavaEvents } from '../../types/events.js'
+import EventEmitter from '../utils/events.js'
+import manifests from '../utils/manifests.js'
+import { File } from '../../types/file.js'
 import path_ from 'node:path'
-import Downloader from '../utils/downloader'
-import utils from '../utils/utils'
+import Downloader from '../utils/downloader.js'
+import utils from '../utils/utils.js'
 import { spawn } from 'node:child_process'
-import { EMLLibError, ErrorType } from '../../types/errors'
-import { MinecraftManifest } from '../../types/manifest'
+import { EMLLibError, ErrorType } from '../../types/errors.js'
+import { MinecraftManifest } from '../../types/manifest.js'
 
-/**
- * Download Java for Minecraft.
- *
- * You should not use this class if you launch Minecraft with `java.install: 'auto'` in
- * the configuration.
- */
 export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
   private readonly minecraftVersion: string | null
   private readonly serverId: string
   private readonly url?: string
 
   /**
+   * Download Java for Minecraft.
+   *
+   * You should not use this class if you launch Minecraft with `java.install: 'auto'` in
+   * the configuration.
    * @param minecraftVersion The version of Minecraft you want to install Java for. Set to
    * `null` to get the version from the EML AdminTool. Set to `latest_release` to get the latest
    * release version of Minecraft. Set to `latest_snapshot` to get the latest snapshot version of
    * Minecraft.
-   * @param serverId Your Minecraft server ID (eg. `'minecraft'`). This will be used to
-   * create the server folder (eg. `.minecraft`). Java will be installed in the `runtime/jre-X`
+   * @param serverId Your Minecraft server ID (e.g. `'minecraft'`). This will be used to
+   * create the server folder (e.g. `.minecraft`). Java will be installed in the `runtime/jre-X`
    * folder, where `X` is the major version of Java. If you don't want to install Java in the
    * game folder, you must install Java by yourself.
    * @param url The URL of the EML AdminTool website, to get the version from the EML AdminTool.

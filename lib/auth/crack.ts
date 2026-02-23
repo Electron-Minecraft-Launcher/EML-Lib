@@ -3,14 +3,10 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
-import { Account } from '../../types/account'
-import { EMLLibError, ErrorType } from './../../types/errors'
-import { v4 } from 'uuid'
+import { createHash } from 'node:crypto'
+import { Account } from '../../types/account.js'
+import { EMLLibError, ErrorType } from './../../types/errors.js'
 
-/**
- * Authenticate a user with a crack account.
- * @deprecated This auth method is not secure, use it only for testing purposes or for local servers!
- */
 export default class CrackAuth {
   /**
    * Authenticate a user with a crack account.
@@ -20,7 +16,7 @@ export default class CrackAuth {
    */
   auth(username: string) {
     if (/^[a-zA-Z0-9_]+$/gm.test(username) && username.length > 2) {
-      const uuid = v4()
+      const uuid = this.getOfflineUUID(username)
       return {
         name: username,
         uuid: uuid,
@@ -34,5 +30,20 @@ export default class CrackAuth {
     } else {
       throw new EMLLibError(ErrorType.AUTH_ERROR, 'Invalid username')
     }
+  }
+
+  private getOfflineUUID(username: string): string {
+    const hash = createHash('md5').update(`OfflinePlayer:${username}`).digest()
+
+    hash[6] = (hash[6] & 0x0f) | 0x30
+    hash[8] = (hash[8] & 0x3f) | 0x80
+
+    return [
+      hash.toString('hex', 0, 4),
+      hash.toString('hex', 4, 6),
+      hash.toString('hex', 6, 8),
+      hash.toString('hex', 8, 10),
+      hash.toString('hex', 10, 16)
+    ].join('-')
   }
 }

@@ -3,14 +3,14 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
-import { FullConfig } from '../../types/config'
-import { FilesManagerEvents, PatcherEvents } from '../../types/events'
-import { ExtraFile, File, ILoader } from '../../types/file'
-import { MinecraftManifest } from '../../types/manifest'
-import EventEmitter from '../utils/events'
-import Patcher from './loaders/patcher'
-import ForgeLikeLoader from './loaders/forgelike'
-import FabricLikeLoader from './loaders/fabriclike'
+import { FullConfig } from '../../types/config.js'
+import { FilesManagerEvents, PatcherEvents } from '../../types/events.js'
+import { ExtraFile, File, ILoader } from '../../types/file.js'
+import { MinecraftManifest } from '../../types/manifest.js'
+import EventEmitter from '../utils/events.js'
+import Patcher from './loaders/patcher.js'
+import ForgeLikeLoader from './loaders/forgelike.js'
+import FabricLikeLoader from './loaders/fabriclike.js'
 
 export default class LoaderManager extends EventEmitter<FilesManagerEvents & PatcherEvents> {
   private readonly config: FullConfig

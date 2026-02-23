@@ -3,18 +3,16 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
-import { EMLLibError, ErrorType } from '../../types/errors'
-import { INews, INewsCategory } from '../../types/news'
+import { EMLLibError, ErrorType } from '../../types/errors.js'
+import { INews, INewsCategory } from '../../types/news.js'
 
-/**
- * Manage the News of the Launcher.
- *
- * **Attention!** This class only works with the EML AdminTool. Please do not use it without the AdminTool.
- */
 export default class News {
   private readonly url: string
 
   /**
+   * Manage the News of the Launcher.
+   *
+   * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    * @param url The URL of your EML AdminTool website.
    */
   constructor(url: string) {

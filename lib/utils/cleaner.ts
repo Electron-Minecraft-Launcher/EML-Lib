@@ -3,12 +3,12 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
-import EventEmitter from './events'
+import EventEmitter from './events.js'
 import path_ from 'node:path'
 import fs from 'node:fs/promises'
 import { existsSync } from 'node:fs'
-import { CleanerEvents } from '../../types/events'
-import { File } from '../../types/file'
+import { CleanerEvents } from '../../types/events.js'
+import { File } from '../../types/file.js'
 
 export default class Cleaner extends EventEmitter<CleanerEvents> {
   private readonly dest: string = ''

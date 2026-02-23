@@ -3,28 +3,29 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
-import MicrosoftAuth from './lib/auth/microsoft'
-import AzAuth from './lib/auth/azuriom'
-import CrackAuth from './lib/auth/crack'
-import Bootstraps from './lib/bootstraps/bootstraps'
-import Maintenance from './lib/maintenance/maintenance'
-import News from './lib/news/news'
-import Background from './lib/background/background'
-import ServerStatus from './lib/serverstatus/serverstatus'
-import Java from './lib/java/java'
-import Launcher from './lib/launcher/launcher'
+import MicrosoftAuth from './lib/auth/microsoft.js'
+import AzAuth from './lib/auth/azuriom.js'
+import CrackAuth from './lib/auth/crack.js'
+import YggdrasilAuth from './lib/auth/yggdrasil.js'
+import Bootstraps from './lib/bootstraps/bootstraps.js'
+import Maintenance from './lib/maintenance/maintenance.js'
+import News from './lib/news/news.js'
+import Background from './lib/background/background.js'
+import ServerStatus from './lib/serverstatus/serverstatus.js'
+import Java from './lib/java/java.js'
+import Launcher from './lib/launcher/launcher.js'
 
-export type * from './types/account'
-export type * from './types/background'
-export type * from './types/bootstraps'
-export type * from './types/config'
-export type * from './types/errors'
-export type * from './types/events'
-export type * from './types/file'
-export type * from './types/maintenance'
-export type * from './types/manifest'
-export type * from './types/news'
-export type * from './types/status'
+export type * from './types/account.js'
+export type * from './types/background.js'
+export type * from './types/bootstraps.js'
+export type * from './types/config.js'
+export type * from './types/errors.js'
+export type * from './types/events.js'
+export type * from './types/file.js'
+export type * from './types/maintenance.js'
+export type * from './types/manifest.js'
+export type * from './types/news.js'
+export type * from './types/status.js'
 
 /**
  * Authenticate a user with Microsoft.
@@ -39,6 +40,15 @@ export { MicrosoftAuth }
 export { AzAuth }
 
 /**
+ * Authenticate a user with an [Yggdrasil-compatible](https://minecraft.wiki/w/Yggdrasil) server.
+ * 
+ * **Attention!** While Yggdrasil has been deprecated by Mojang/Microsoft, the API is maintained by a community 
+ * who wants to keep the protocol alive. Usage of a custom authentication server may or may not violate 
+ * Minecraft's Terms of Service: make sure to validate your player's Minecraft ownership!
+ */
+export { YggdrasilAuth }
+
+/**
  * Authenticate a user with a crack account.
  * @deprecated This auth method is not secure, use it only for testing purposes or for local servers!
  */
@@ -47,7 +57,7 @@ export { CrackAuth }
 /**
  * Update your Launcher.
  *
- * **Attention!** This class only works with the EML AdminTool. Please do not use it without the AdminTool.
+ * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
  * @workInProgress
  */
 export { Bootstraps }
@@ -55,21 +65,21 @@ export { Bootstraps }
 /**
  * Manage the Maintenance of the Launcher.
  *
- * **Attention!** This class only works with the EML AdminTool. Please do not use it without the AdminTool.
+ * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
  */
 export { Maintenance }
 
 /**
  * Manage the News of the Launcher.
  *
- * **Attention!** This class only works with the EML AdminTool. Please do not use it without the AdminTool.
+ * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
  */
 export { News }
 
 /**
  * Manage the background of the Launcher.
  *
- * **Attention!** This class only works with the EML AdminTool. Please do not use it without the AdminTool.
+ * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
  */
 export { Background }
 
@@ -118,7 +128,7 @@ export { Launcher }
  *
  * ---
  *
- * @version 2.0.0-beta.20
+ * @version 2.0.0
  * @license MIT — See the `LICENSE` file for more information
  * @copyright Copyright (c) 2026, GoldFrite
  */
@@ -136,6 +146,15 @@ const EMLLib = {
   AzAuth,
 
   /**
+    * Authenticate a user with an [Yggdrasil-compatible](https://minecraft.wiki/w/Yggdrasil) server.
+ * 
+ * **Attention!** While Yggdrasil has been deprecated by Mojang/Microsoft, the API is maintained by a community 
+ * who wants to keep the protocol alive. Usage of a custom authentication server may or may not violate 
+ * Minecraft's Terms of Service: make sure to validate your player's Minecraft ownership!
+   */
+  YggdrasilAuth,
+
+  /**
    * Authenticate a user with a crack account.
    * @deprecated This auth method is not secure, use it only for testing purposes or for local servers!
    */
@@ -144,7 +163,7 @@ const EMLLib = {
   /**
    * Update your Launcher.
    *
-   * **Attention!** This class only works with the EML AdminTool. Please do not use it without the AdminTool.
+   * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    * @workInProgress
    */
   Bootstraps,
@@ -152,21 +171,21 @@ const EMLLib = {
   /**
    * Manage the Maintenance of the Launcher.
    *
-   * **Attention!** This class only works with the EML AdminTool. Please do not use it without the AdminTool.
+   * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    */
   Maintenance,
 
   /**
    * Manage the News of the Launcher.
    *
-   * **Attention!** This class only works with the EML AdminTool. Please do not use it without the AdminTool.
+   * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    */
   News,
 
   /**
    * Manage the background of the Launcher.
    *
-   * **Attention!** This class only works with the EML AdminTool. Please do not use it without the AdminTool.
+   * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    */
   Background,
 
@@ -189,5 +208,6 @@ const EMLLib = {
    */
   Launcher
 }
+
 
 export default EMLLib

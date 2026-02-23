@@ -3,25 +3,23 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
-import EventEmitter from '../utils/events'
-import { EMLLibError, ErrorType } from '../../types/errors'
-import { BootstrapsEvents, DownloaderEvents } from '../../types/events'
+import EventEmitter from '../utils/events.js'
+import { EMLLibError, ErrorType } from '../../types/errors.js'
+import { BootstrapsEvents, DownloaderEvents } from '../../types/events.js'
 import type { AppUpdater } from 'electron-updater'
-import { IBootstraps } from '../../types/bootstraps'
-import utils from '../utils/utils'
+import { IBootstraps } from '../../types/bootstraps.js'
+import utils from '../utils/utils.js'
 
-/**
- * Update your Launcher.
- *
- * **Attention!** This class only works with the EML AdminTool. Please do not use it without the AdminTool.
- *
- * **Attention!** Using this class requires Electron Updater. Use `npm i electron-updater` to install it.
- */
 export default class Bootstraps extends EventEmitter<DownloaderEvents & BootstrapsEvents> {
   private readonly url: string
   private autoUpdater: AppUpdater | undefined
 
   /**
+   * Update your Launcher.
+   *
+   * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
+   *
+   * **Attention!** Using this class requires Electron Updater. Use `npm i electron-updater` to install it.
    * @param url The URL of your EML AdminTool website
    */
   constructor(url: string) {

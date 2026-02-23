@@ -4,7 +4,7 @@
 
 [<img src="https://img.shields.io/badge/Discord-EML-5561e6?&style=for-the-badge">](https://discord.gg/YVB4k6HzAY)
 [<img src="https://img.shields.io/badge/platforms-Windows%2C%20macOS%2C%20Linux-0077DA?style=for-the-badge&color=0077DA">](#platforms)
-[<img src="https://img.shields.io/badge/version-2.0.0--beta.20-orangered?style=for-the-badge&color=orangered">](package.json)
+[<img src="https://img.shields.io/badge/version-2.0.0-orangered?style=for-the-badge&color=orangered">](package.json)
 
 <p>
 <center>
@@ -18,7 +18,7 @@
 
 ## Features
 
-- **Authentication**: Authenticate users with Microsoft, Azuriom or Crack.
+- **Authentication**: Authenticate users with Microsoft, Azuriom, Yggdrasil or Crack.
 - **Minecraft**: Automatically download and launch Minecraft (Vanilla, Forge [^1], NeoForge [^1], Fabric [^1], and Quilt [^1]; MCP is coming soon), and remove unwanted files (such as unwanted mods).
 - **Java**: Automatically download and install Java.
 - **Bootstraps [^1]**: Auto-update your launcher.

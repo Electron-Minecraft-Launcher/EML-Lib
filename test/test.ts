@@ -1,7 +1,8 @@
-import EMLLib from '../index'
-import { app, BrowserWindow } from 'electron'
+import EMLLib from '../index.js'
 
-async function main() {
+async function mainWithElectron() {
+  const { app, BrowserWindow } = await import('electron')
+
   app.whenReady().then(async () => {
     const mainWindow = new BrowserWindow({
       width: 800,
@@ -26,11 +27,11 @@ async function main() {
   })
 }
 
-async function _main() {
+async function main() {
   const launcher = new EMLLib.Launcher({
     url: 'http://localhost:5173',
     serverId: 'goldfrite',
-    account: new EMLLib.CrackAuth().auth('GoldFrite'),
+    account: new EMLLib.CrackAuth().auth('Goldfrite'),
     cleaning: {
       clean: true
     }
@@ -81,5 +82,10 @@ async function _main() {
   }
 }
 
-_main()
+async function featureTest() {
+  const status = await new EMLLib.ServerStatus('play.vanillahaven.net', 25565, 'beta1.8-1.3').getStatus()
+  console.log(status)
+}
+
+main()
 

@@ -4,7 +4,7 @@
  */
 
 import type { BrowserWindow } from 'electron'
-import { EMLLibError, ErrorType } from '../../types/errors'
+import { EMLLibError, ErrorType } from '../../types/errors.js'
 
 export default class MicrosoftAuthGui {
   private readonly clientId: string

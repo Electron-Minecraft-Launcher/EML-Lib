@@ -3,10 +3,10 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
-import { MinecraftManifest } from './../../types/manifest.d'
-import { EMLLibError, ErrorType } from '../../types/errors'
-import { JAVA_RUNTIME_URL, MINECRAFT_MANIFEST_URL } from './consts'
-import { ILoader } from '../../types/file'
+import { MinecraftManifest } from './../../types/manifest.js'
+import { EMLLibError, ErrorType } from '../../types/errors.js'
+import { JAVA_RUNTIME_URL, MINECRAFT_MANIFEST_URL } from './consts.js'
+import { ILoader } from '../../types/file.js'
 
 type JavaVersion =
   | 'java-runtime-alpha'

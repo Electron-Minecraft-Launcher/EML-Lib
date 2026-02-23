@@ -4,18 +4,18 @@
  * @copyright Copyright (c) 2019, Pierce Harriz, from [Minecraft Launcher Core](https://github.com/Pierce01/MinecraftLauncher-core)
  */
 
-import { FullConfig } from '../../types/config'
-import { EMLLibError, ErrorType } from '../../types/errors'
-import { ExtraFile, File, ILoader } from '../../types/file'
-import { Artifact, MinecraftManifest, Assets } from '../../types/manifest'
-import utils from '../utils/utils'
+import { FullConfig } from '../../types/config.js'
+import { EMLLibError, ErrorType } from '../../types/errors.js'
+import { ExtraFile, File, ILoader } from '../../types/file.js'
+import { Artifact, MinecraftManifest, Assets } from '../../types/manifest.js'
+import utils from '../utils/utils.js'
 import path_ from 'node:path'
 import fs from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import AdmZip from 'adm-zip'
-import EventEmitter from '../utils/events'
-import { FilesManagerEvents } from '../../types/events'
-import Java from '../java/java'
+import EventEmitter from '../utils/events.js'
+import { FilesManagerEvents } from '../../types/events.js'
+import Java from '../java/java.js'
 
 export default class FilesManager extends EventEmitter<FilesManagerEvents> {
   private config: FullConfig
@@ -191,6 +191,44 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
   }
 
   /**
+   * Get authlib-injector file.
+   * @returns `injector`: The injector file object; `files`: array containing the injector.
+   */
+  async getInjector() {
+    if (this.config.account.meta.type !== 'yggdrasil') return { injector: [], files: [] }
+
+    const url = 'https://github.com/yushijinhun/authlib-injector/releases/download/v1.2.7/authlib-injector-1.2.7.jar'
+
+    let size: number
+    try {
+      const req = await fetch(url, { method: 'HEAD' })
+
+      if (!req.ok) {
+        const errorText = await req.text()
+        throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch authlib-injector file info: HTTP ${req.status} ${errorText}`)
+      }
+
+      size = Number(req.headers.get('content-length')) || 0
+    } catch (err: unknown) {
+      if (err instanceof EMLLibError) throw err
+      throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch authlib-injector file info: ${err instanceof Error ? err.message : err}`)
+    }
+
+    const injector: File[] = [
+      {
+        name: 'authlib-injector.jar',
+        path: 'libraries/',
+        url: url,
+        sha1: '',
+        size: size,
+        type: 'LIBRARY'
+      }
+    ]
+
+    return { injector: injector, files: injector }
+  }
+
+  /**
    * Get Log4j files to patch the Log4shell.
    * @returns `log4j`: Log4j files; `files`: all files created by this method or that will be
    * created (including `log4j`).
@@ -217,7 +255,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
         type: 'CONFIG'
       })
     }
-    
+
     return { log4j: log4j, files: log4j }
   }
 
@@ -238,47 +276,51 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
     const promises = natives.map(async (native) => {
       if (!existsSync(path_.join(this.config.root, native.path, native.name))) return
 
-      const zip = new AdmZip(path_.join(this.config.root, native.path, native.name))
-      const promisesInner = zip.getEntries().map(async (entry) => {
-        if (!entry.entryName.startsWith('META-INF')) {
-          const entryName = entry.entryName.replace(/\\/g, '/').replace(/^\/+/, '')
+      try {
+        const zip = new AdmZip(path_.join(this.config.root, native.path, native.name))
+        const promisesInner = zip.getEntries().map(async (entry) => {
+          if (!entry.entryName.startsWith('META-INF')) {
+            const entryName = entry.entryName.replace(/\\/g, '/').replace(/^\/+/, '')
 
-          if (!entryName || entryName.includes('..') || path_.isAbsolute(entryName)) {
-            console.warn(`[Security] Skipped unsafe native extraction: ${entry.entryName}`)
-            return
+            if (!entryName || entryName.includes('..') || path_.isAbsolute(entryName)) {
+              console.warn(`[Security] Skipped unsafe native extraction: ${entry.entryName}`)
+              return
+            }
+
+            const entryPath = path_.resolve(nativesFolder, entryName)
+            const relative = path_.relative(nativesFolder, entryPath)
+            const isSafe = relative && !relative.startsWith('..') && !path_.isAbsolute(relative)
+
+            if (!isSafe) {
+              console.warn(`[Security] Skipped unsafe native extraction: ${entry.entryName}`)
+              return
+            }
+
+            if (entry.isDirectory && !existsSync(entryPath)) {
+              await fs.mkdir(entryPath, { recursive: true })
+            } else {
+              const parentDir = path_.dirname(entryPath)
+              if (!existsSync(parentDir)) await fs.mkdir(parentDir, { recursive: true })
+
+              const data = zip.readFile(entry)
+              if (data) await fs.writeFile(entryPath, data)
+            }
+
+            files.push({
+              name: path_.basename(entryName),
+              path: path_.join('bin', 'natives', path_.dirname(entryName), '/'),
+              url: '',
+              sha1: '',
+              size: entry.header.size,
+              type: entry.isDirectory ? 'FOLDER' : 'NATIVE'
+            })
           }
+        })
 
-          const entryPath = path_.resolve(nativesFolder, entryName)
-          const relative = path_.relative(nativesFolder, entryPath)
-          const isSafe = relative && !relative.startsWith('..') && !path_.isAbsolute(relative)
-
-          if (!isSafe) {
-            console.warn(`[Security] Skipped unsafe native extraction: ${entry.entryName}`)
-            return
-          }
-
-          if (entry.isDirectory && !existsSync(entryPath)) {
-            await fs.mkdir(entryPath, { recursive: true })
-          } else {
-            const parentDir = path_.dirname(entryPath)
-            if (!existsSync(parentDir)) await fs.mkdir(parentDir, { recursive: true })
-
-            const data = zip.readFile(entry)
-            if (data) await fs.writeFile(entryPath, data)
-          }
-
-          files.push({
-            name: path_.basename(entryName),
-            path: path_.join('bin', 'natives', path_.dirname(entryName), '/'),
-            url: '',
-            sha1: '',
-            size: entry.header.size,
-            type: entry.isDirectory ? 'FOLDER' : 'NATIVE'
-          })
-        }
-      })
-
-      await Promise.all(promisesInner)
+        await Promise.all(promisesInner)
+      } catch (err) {
+        throw new EMLLibError(ErrorType.FILE_ERROR, `Failed to extract natives from ${native.name}: ${err instanceof Error ? err.message : err}`)
+      }
 
       this.emit('extract_progress', { filename: native.name })
     })
@@ -339,3 +381,4 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
     return { files }
   }
 }
+

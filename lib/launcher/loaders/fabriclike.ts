@@ -3,16 +3,16 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
-import { FullConfig } from '../../../types/config'
-import { ExtraFile, File, ILoader } from '../../../types/file'
-import { MinecraftManifest } from '../../../types/manifest'
+import { FullConfig } from '../../../types/config.js'
+import { ExtraFile, File, ILoader } from '../../../types/file.js'
+import { MinecraftManifest } from '../../../types/manifest.js'
 import fs from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import path_ from 'node:path'
-import utils from '../../utils/utils'
-import EventEmitter from '../../utils/events'
-import { FilesManagerEvents } from '../../../types/events'
-import { EMLLibError, ErrorType } from '../../../types/errors'
+import utils from '../../utils/utils.js'
+import EventEmitter from '../../utils/events.js'
+import { FilesManagerEvents } from '../../../types/events.js'
+import { EMLLibError, ErrorType } from '../../../types/errors.js'
 
 export default class FabricLikeLoader extends EventEmitter<FilesManagerEvents> {
   private readonly config: FullConfig

@@ -1,0 +1,9 @@
+services:
+  drasl:
+    image: unmojang/drasl:latest
+    container_name: yggdrasil-server
+    ports:
+      - "127.0.0.1:25585:25585"
+    volumes:
+      - ./drasl-config:/etc/drasl
+      - ./drasl-data:/var/lib/drasl

@@ -3,16 +3,14 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
-import { Account } from '../../types/account'
-import { EMLLibError, ErrorType } from '../../types/errors'
+import { Account } from '../../types/account.js'
+import { EMLLibError, ErrorType } from '../../types/errors.js'
 
-/**
- * Authenticate a user with [Azuriom](https://azuriom.com/).
- */
 export default class AzAuth {
   private readonly url: string
 
   /**
+   * Authenticate a user with [Azuriom](https://azuriom.com/).
    * @param url The URL of your Azuriom website.
    */
   constructor(url: string) {
@@ -142,3 +140,4 @@ export default class AzAuth {
     }
   }
 }
+

@@ -1,5 +1,6 @@
 node_modules/
 dist/
+test/drasl-*
 .DS_STORE
 
 .env

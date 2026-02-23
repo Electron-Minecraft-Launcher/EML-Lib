@@ -1,14 +1,15 @@
 {
   "name": "eml-lib",
-  "version": "2.0.0-beta.20",
+  "version": "2.0.0",
   "description": "Create your Electron Minecraft Launcher easily!",
   "author": "GoldFrite",
   "license": "MIT",
   "main": "index.js",
   "types": "index.d.ts",
+  "type": "module",
   "scripts": {
     "build": "tsc",
-    "test": "ts-node test/test.ts",
+    "test": "tsx test/test.ts",
     "test-electron": "npm run build && electron dist/test/test.js"
   },
   "repository": {
@@ -29,18 +30,14 @@
   "homepage": "https://github.com/Electron-Minecraft-Launcher/EML-Lib#readme",
   "dependencies": {
     "adm-zip": "^0.5.14",
-    "node-fetch": "^2.6.7",
-    "tslib": "^2.8.1",
-    "uuid": "^10.0.0"
+    "tslib": "^2.8.1"
   },
   "devDependencies": {
     "@types/adm-zip": "^0.5.5",
-    "@types/node-fetch": "^2.6.7",
-    "@types/uuid": "^10.0.0",
     "electron": "^39.0.0",
     "electron-updater": "^6.0.0",
     "prettier": "^3.3.1",
-    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.4.5"
   },
   "peerDependenciesMeta": {

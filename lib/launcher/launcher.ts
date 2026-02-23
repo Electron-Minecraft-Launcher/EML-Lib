@@ -3,30 +3,27 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
-import { CleanerEvents, DownloaderEvents, FilesManagerEvents, JavaEvents, LauncherEvents, PatcherEvents } from '../../types/events'
-import EventEmitter from '../utils/events'
-import manifests from '../utils/manifests'
-import utils from '../utils/utils'
-import { Config, FullConfig } from './../../types/config'
+import { CleanerEvents, DownloaderEvents, FilesManagerEvents, JavaEvents, LauncherEvents, PatcherEvents } from '../../types/events.js'
+import EventEmitter from '../utils/events.js'
+import manifests from '../utils/manifests.js'
+import utils from '../utils/utils.js'
+import { Config, FullConfig } from './../../types/config.js'
 import path_ from 'node:path'
-import FilesManager from './filesmanager'
-import Downloader from '../utils/downloader'
-import Cleaner from '../utils/cleaner'
-import Java from '../java/java'
-import LoaderManager from './loadermanager'
-import ArgumentsManager from './argumentsmanager'
+import FilesManager from './filesmanager.js'
+import Downloader from '../utils/downloader.js'
+import Cleaner from '../utils/cleaner.js'
+import Java from '../java/java.js'
+import LoaderManager from './loadermanager.js'
+import ArgumentsManager from './argumentsmanager.js'
 import { spawn } from 'node:child_process'
 
-/**
- * Launch Minecraft.
- * @workInProgress
- */
 export default class Launcher extends EventEmitter<
   LauncherEvents & DownloaderEvents & CleanerEvents & FilesManagerEvents & JavaEvents & PatcherEvents
 > {
   private readonly config: FullConfig
 
   /**
+   * Launch Minecraft.
    * @param config The configuration of the Launcher.
    */
   constructor(config: Config) {
@@ -103,18 +100,21 @@ export default class Launcher extends EventEmitter<
     const modpackFiles = await filesManager.getModpack()
     const librariesFiles = await filesManager.getLibraries()
     const assetsFiles = await filesManager.getAssets()
+    const injectorFiles = await filesManager.getInjector()
     const log4jFiles = await filesManager.getLog4j()
 
     const javaFilesToDownload = await downloader.getFilesToDownload(javaFiles.java)
     const modpackFilesToDownload = await downloader.getFilesToDownload(modpackFiles.modpack)
     const librariesFilesToDownload = await downloader.getFilesToDownload(librariesFiles.libraries)
     const assetsFilesToDownload = await downloader.getFilesToDownload(assetsFiles.assets)
+    const injectorFilesToDownload = await downloader.getFilesToDownload(injectorFiles.injector)
     const log4jFilesToDownload = await downloader.getFilesToDownload(log4jFiles.log4j)
     const filesToDownload = [
       ...javaFilesToDownload,
       ...modpackFilesToDownload,
       ...librariesFilesToDownload,
       ...assetsFilesToDownload,
+      ...injectorFilesToDownload,
       ...log4jFilesToDownload
     ]
 
@@ -125,6 +125,7 @@ export default class Launcher extends EventEmitter<
     await downloader.download(modpackFilesToDownload, true)
     await downloader.download(librariesFilesToDownload, true)
     await downloader.download(assetsFilesToDownload, true)
+    await downloader.download(injectorFilesToDownload, true)
     await downloader.download(log4jFilesToDownload, true)
 
     //* Install loader
@@ -162,6 +163,7 @@ export default class Launcher extends EventEmitter<
       ...modpackFiles.files,
       ...librariesFiles.files,
       ...assetsFiles.files,
+      ...injectorFiles.files,
       ...log4jFiles.files,
       ...extractedNatives.files,
       ...copiedAssets.files,
@@ -173,7 +175,14 @@ export default class Launcher extends EventEmitter<
     //* Launch
     this.emit('launch_launch', { version: manifest.id, type: loader.type, loaderVersion: loader.loaderVersion })
 
-    const args = argumentsManager.getArgs([...loaderFiles.libraries, ...librariesFiles.libraries], loader, loaderFiles.loaderManifest)
+    const customAuth =
+      this.config.account.meta.type === 'yggdrasil' && injectorFiles.injector[0]
+        ? {
+            injectorPath: injectorFiles.injector[0].path + injectorFiles.injector[0].name,
+            authServerUrl: this.config.account.meta.url!
+          }
+        : undefined
+    const args = argumentsManager.getArgs([...loaderFiles.libraries, ...librariesFiles.libraries], loader, loaderFiles.loaderManifest, customAuth)
 
     const blindArgs = args.map((arg, i) => (i === args.findIndex((p) => p === '--accessToken') + 1 ? '**********' : arg))
     this.emit('launch_debug', `Launching Minecraft with args: ${blindArgs.join(' ')}`)
@@ -188,3 +197,4 @@ export default class Launcher extends EventEmitter<
     minecraft.on('close', (code) => this.emit('launch_close', code ?? 0))
   }
 }
+
