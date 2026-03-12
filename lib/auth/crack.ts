@@ -14,7 +14,7 @@ export default class CrackAuth {
    * @returns The account information.
    * @deprecated This auth method is not secure, use it only for testing purposes or for local servers!
    */
-  auth(username: string) {
+  auth(username: string): Account {
     if (/^[a-zA-Z0-9_]+$/gm.test(username) && username.length > 2) {
       const uuid = this.getOfflineUUID(username)
       return {

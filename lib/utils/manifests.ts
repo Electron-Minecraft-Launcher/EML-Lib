@@ -25,7 +25,7 @@ class Manifests {
    * Minecraft.
    * @param url The URL of the EML AdminTool website, to get the loader info from the EML AdminTool.
    */
-  async getLoaderInfo(minecraftVersion: string | null, url?: string) {
+  async getLoaderInfo(minecraftVersion: string | null, url?: string): Promise<ILoader> {
     if (!minecraftVersion && !url) return { type: 'VANILLA', minecraftVersion: 'latest_release', loaderVersion: 'latest_release' } as ILoader
     if (minecraftVersion) return { type: 'VANILLA', minecraftVersion, loaderVersion: minecraftVersion } as ILoader
 
@@ -54,7 +54,7 @@ class Manifests {
    * @param url The URL of the EML AdminTool website, to get the version from the EML AdminTool.
    * @returns The manifest of the Minecraft version.
    */
-  async getMinecraftManifest(minecraftVersion: string | null = 'latest_release', url?: string) {
+  async getMinecraftManifest(minecraftVersion: string | null = 'latest_release', url?: string): Promise<MinecraftManifest> {
     try {
       if (!minecraftVersion && url) {
         minecraftVersion = (await this.getLoaderInfo(null, url)).minecraftVersion
@@ -81,7 +81,7 @@ class Manifests {
    * @param minecraftVersion The version of Minecraft you want to get the manifest URL for.
    * @returns The manifest URL of the Minecraft version.
    */
-  async getMinecraftManifestUrl(minecraftVersion: string | null = null) {
+  async getMinecraftManifestUrl(minecraftVersion: string | null = null): Promise<string> {
     try {
       const req = await fetch(MINECRAFT_MANIFEST_URL)
 
@@ -109,7 +109,7 @@ class Manifests {
     }
   }
 
-  async getJavaManifest(javaVersion: JavaVersion, jreV: string) {
+  async getJavaManifest(javaVersion: JavaVersion, jreV: string): Promise<{ files: any }> {
     try {
       const url = await this.getJavaManifestUrl(javaVersion, jreV)
 
@@ -134,7 +134,7 @@ class Manifests {
    * @param jreV The major version of Java Runtime Environment (JRE) you want to get the manifest for (fallback if `javaVersion` is not found).
    * @returns The manifest URL of the Java version.
    */
-  async getJavaManifestUrl(javaVersion: JavaVersion, jreV: string) {
+  async getJavaManifestUrl(javaVersion: JavaVersion, jreV: string): Promise<string> {
     const archMapping = {
       win32: { x64: 'windows-x64', ia32: 'windows-x86', arm64: 'windows-arm64' },
       darwin: { x64: 'mac-os', arm64: 'mac-os-arm64' },
@@ -185,3 +185,4 @@ class Manifests {
 }
 
 export default new Manifests()
+

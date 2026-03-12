@@ -50,7 +50,7 @@ export default class ServerStatus {
    * Get the status of the Minecraft server.
    * @returns The Server status.
    */
-  async getStatus() {
+  async getStatus(): Promise<IServerStatus> {
     return new Promise<IServerStatus>((resolve, reject) => {
       const bufWriter = new BufferWriter()
       const start = Date.now()
@@ -196,3 +196,4 @@ export default class ServerStatus {
     })
   }
 }
+

@@ -29,7 +29,7 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
     this.installProfile = installProfile
   }
 
-  async patch() {
+  async patch(): Promise<File[]> {
     const files = await this.isPatched()
     let i = 0
 

@@ -32,7 +32,12 @@ export default class ForgeLikeLoader extends EventEmitter<FilesManagerEvents> {
    * @returns `loaderManifest`: Loader manifest; `installProfile`: Install profile; `libraries`: libraries
    * to download; `files`: all files created by this method or that will be created (including `libraries`)
    */
-  async setup() {
+  async setup(): Promise<{
+    loaderManifest: MinecraftManifest | null
+    installProfile: any
+    libraries: ExtraFile[]
+    files: File[]
+  }> {
     try {
       const loaderPath = path_.join(this.config.root, this.loader.file.path)
       const minecraftPath = path_.join(this.config.root, 'versions', this.manifest.id)

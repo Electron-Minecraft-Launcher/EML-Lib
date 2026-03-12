@@ -38,7 +38,12 @@ export default class FabricLikeLoader extends EventEmitter<FilesManagerEvents> {
    * @returns `loaderManifest`: Loader manifest; `installProfile`: null (Fabric n'en a pas); `libraries`: libraries
    * to download; `files`: all files created by this method or that will be created (including `libraries`)
    */
-  async setup() {
+  async setup(): Promise<{
+    loaderManifest: MinecraftManifest | null
+    installProfile: null
+    libraries: ExtraFile[]
+    files: File[]
+  }> {
     const loaderId = this.loader.type.toLowerCase()
     const versionPath = path_.join(this.config.root, 'versions', `${loaderId}-${this.loader.loaderVersion}`)
     const jsonName = `${this.loader.minecraftVersion}-${loaderId}-${this.loader.loaderVersion}.json`

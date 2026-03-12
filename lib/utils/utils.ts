@@ -16,7 +16,7 @@ class Utils {
    * Get the current operating system code.
    * @returns The operating system code (`'win'`, `'mac'` or `'lin'`).
    */
-  getOS() {
+  getOS(): 'win' | 'mac' | 'lin' {
     if (process.platform === 'win32') return 'win'
     if (process.platform === 'darwin') return 'mac'
     if (process.platform === 'linux') return 'lin'
@@ -27,7 +27,7 @@ class Utils {
    * Get the current operating system Minecraft-code.
    * @returns The operating system code (`'windows'`, `'osx'` or `'linux'`).
    */
-  getOS_MCCode() {
+  getOS_MCCode(): 'windows' | 'osx' | 'linux' {
     if (process.platform === 'win32') return 'windows'
     if (process.platform === 'darwin') return 'osx'
     if (process.platform === 'linux') return 'linux'
@@ -38,7 +38,7 @@ class Utils {
    * Get the current architecture.
    * @returns The architecture (`'64'` or `'32'`).
    */
-  getArch() {
+  getArch(): '64' | '32' {
     if (process.arch.includes('64')) return '64'
     if (process.arch.includes('32')) return '32'
     throw new EMLLibError(ErrorType.UNKNOWN_OS, 'Unknown architecture')
@@ -48,12 +48,12 @@ class Utils {
    * Get the current architecture Minecraft-code.
    * @returns The architecture (`'x64'` or `'x86'`).
    */
-  getArch_MCCode() {
+  getArch_MCCode(): 'x64' | 'x86' {
     if (process.arch.includes('x')) return 'x86'
     return 'x64'
   }
 
-  getOSVersion() {
+  getOSVersion(): string {
     return os.release()
   }
 
@@ -61,7 +61,7 @@ class Utils {
    * Get the path to the application data folder, depending on the operating system.
    * @returns The path to the application data folder (e.g. `'C:\Users\user\AppData\Roaming'`).
    */
-  getAppDataFolder() {
+  getAppDataFolder(): string {
     return this.getOS() === 'win'
       ? process.env.APPDATA + ''
       : this.getOS() === 'mac'
@@ -74,7 +74,7 @@ class Utils {
    * @param serverId Your Minecraft server ID (e.g. `'minecraft'`).
    * @returns The path to the server folder (e.g. `'C:\Users\user\AppData\Roaming\.minecraft'`).
    */
-  getServerFolder(serverId: string) {
+  getServerFolder(serverId: string): string {
     serverId = serverId.replace(/[^a-z0-9]/gi, '_').toLowerCase()
     serverId = this.getOS() === 'mac' ? serverId : `.${serverId}`
     return path_.join(this.getAppDataFolder(), serverId)
@@ -84,7 +84,7 @@ class Utils {
    * Get the path of the temp folder, depending on the operating system.
    * @returns The path to the temp folder (e.g. `'C:\Users\user\AppData\Local\Temp'`).
    */
-  getTempFolder() {
+  getTempFolder(): string {
     return this.getOS() === 'win' ? process.env.TEMP + '' : '/tmp'
   }
 
@@ -93,7 +93,7 @@ class Utils {
    * @param filePath Path of the file.
    * @returns The hash of the file.
    */
-  async getFileHash(filePath: string) {
+  async getFileHash(filePath: string): Promise<string> {
     try {
       const hash = createHash('sha1')
       const input = fs.createReadStream(filePath)
@@ -109,7 +109,7 @@ class Utils {
    * @param lib The library to check.
    * @returns `true` if the library is allowed, `false` otherwise.
    */
-  isLibAllowed(lib: any) {
+  isLibAllowed(lib: any): boolean {
     if (lib.rules) {
       if (lib.rules.length > 1) {
         if (lib.rules[0].action === 'allow' && lib.rules[1].action === 'disallow') {
@@ -131,7 +131,7 @@ class Utils {
    * @param arg The argument to check.
    * @returns `true` if the argument is allowed, `false` otherwise.
    */
-  isArgAllowed(arg: any) {
+  isArgAllowed(arg: any): boolean {
     if (arg.rules) {
       if (arg.rules.length > 1) {
         if (arg.rules[0].action === 'allow' && arg.rules[1].action === 'disallow') {
@@ -161,7 +161,7 @@ class Utils {
    * @param libName The name of the library (e.g. `'com.mojang:authlib:1.5.25'`).
    * @returns The name of the library.
    */
-  getLibraryName(libName: string) {
+  getLibraryName(libName: string): string {
     if (libName.includes('@')) {
       const parts = libName.split(':')
 
@@ -193,7 +193,7 @@ class Utils {
    * @param path [Optional] Additional path to add to the library path.
    * @returns The path of the library.
    */
-  getLibraryPath(libName: string, ...path: string[]) {
+  getLibraryPath(libName: string, ...path: string[]): string {
     const l = libName.replace(/@([a-z]*)$/, '').split(':')
     return path_.join(...path, `${l[0].replace(/\./g, '/')}/${l[1]}/${l[2]}/`)
   }
@@ -205,7 +205,7 @@ class Utils {
    * @returns `true` if `checkVersion` is newer than `refVersion`, `false` if `checkVersion` is older than
    * `refVersion`, `null` if the versions are the same.
    */
-  isNewer(ref: ExtraFile, check: ExtraFile) {
+  isNewer(ref: ExtraFile, check: ExtraFile): boolean | null {
     if (ref.sha1 === check.sha1) return null // Identiques
 
     const normalize = (p: string) => p.replace(/\\/g, '/').replace(/\/$/, '')
@@ -234,40 +234,7 @@ class Utils {
       .split('.')
       .map((n) => parseInt(n) || 0)
   }
-  // isNewer(ref: ExtraFile, check: ExtraFile) {
-  //   if (ref.sha1 === check.sha1) return null // Same file, so same version
-
-  //   if (ref.name.split('-').pop() !== check.name.split('-').pop()) return false // Different libraries, so keep both of them (always return false)
-
-  //   // Parse version from path
-  //   const vRef = path_
-  //     .join(ref.path, '/')
-  //     .replaceAll('/', '\\')
-  //     .replace(/\\$/, '')
-  //     .split('\\')
-  //     .slice(0, -1)
-  //     .pop()!
-  //     .split('.')
-  //     .map((v) => +v.split('-').shift()!)
-  //   const vCheck = path_
-  //     .join(check.path, '/')
-  //     .replaceAll('/', '\\')
-  //     .replace(/\\$/, '')
-  //     .split('\\')
-  //     .slice(0, -1)
-  //     .pop()!
-  //     .split('.')
-  //     .map((v) => +v.split('-').shift()!)
-
-  //   for (let i = 0; i < vRef.length; i++) {
-  //     if (!vCheck[i] + '' && vRef[i]) vCheck.push(0)
-  //     if (vCheck[i] + '' && !vRef[i]) vRef.push(0)
-  //     if (vCheck[i] > vRef[i]) return true
-  //     if (vCheck[i] < vRef[i]) return false
-  //   }
-
-  //   return false
-  // }
 }
 
 export default new Utils()
+

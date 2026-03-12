@@ -28,7 +28,7 @@ export default class Cleaner extends EventEmitter<CleanerEvents> {
    * @param ignore List of files to ignore (don't delete them).
    * @param skipClean [Optional: default is `false`] Skip the cleaning process (skip this method).
    */
-  async clean(files: File[], ignore: string[] = [], skipClean: boolean = false) {
+  async clean(files: File[], ignore: string[] = [], skipClean: boolean = false): Promise<void> {
     if (skipClean) return
 
     const validFilesSet = new Set(files.map((f) => path_.normalize(path_.join(this.dest, f.path, f.name))))
@@ -39,12 +39,12 @@ export default class Cleaner extends EventEmitter<CleanerEvents> {
     let i = 0
     this.browsed = []
     await this.browse(this.dest)
-    
+
     for (const file of this.browsed) {
       const fullPath = path_.normalize(path_.join(file.path, file.name))
       const isFileValid = validFilesSet.has(fullPath)
       const isIgnored = ignoredPaths.some((ig) => fullPath.startsWith(ig))
-      
+
       if (!isFileValid && !isIgnored) {
         deletePromises.push(
           fs
@@ -59,7 +59,7 @@ export default class Cleaner extends EventEmitter<CleanerEvents> {
         )
       }
 
-      // Can't check hash for performance reasons
+      // can't check hash for performance reasons
     }
 
     await Promise.all(deletePromises)
@@ -89,3 +89,4 @@ export default class Cleaner extends EventEmitter<CleanerEvents> {
     await Promise.all(promises)
   }
 }
+

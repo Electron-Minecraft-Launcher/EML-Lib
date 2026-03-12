@@ -29,7 +29,12 @@ export default class LoaderManager extends EventEmitter<FilesManagerEvents & Pat
    * @returns `loaderManifest`: Loader manifest; `installProfile`: Install profile; `libraries`: libraries
    * files; `files`: all files created by the method or that will be created (including `libraries`).
    */
-  async setupLoader() {
+  async setupLoader(): Promise<{
+    loaderManifest: MinecraftManifest | null
+    installProfile: any
+    libraries: ExtraFile[]
+    files: File[]
+  }> {
     let setup = { loaderManifest: null as null | MinecraftManifest, installProfile: null as any, libraries: [] as ExtraFile[], files: [] as File[] }
 
     if (this.loader.type === 'FORGE' || this.loader.type === 'NEOFORGE') {
@@ -50,7 +55,7 @@ export default class LoaderManager extends EventEmitter<FilesManagerEvents & Pat
    * @param installProfile The install profile from `LoaderManager.setupLoader()`.
    * @returns `files`: all files created by the method.
    */
-  async patchLoader(installProfile: any) {
+  async patchLoader(installProfile: any): Promise<{ files: File[] }> {
     if ((this.loader.type === 'FORGE' || this.loader.type === 'NEOFORGE') && installProfile) {
       const patcher = new Patcher(this.config, this.manifest, this.loader, installProfile)
       patcher.forwardEvents(this)
@@ -60,3 +65,4 @@ export default class LoaderManager extends EventEmitter<FilesManagerEvents & Pat
     return { files: [] }
   }
 }
+

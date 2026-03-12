@@ -28,7 +28,7 @@ export default class YggdrasilAuth {
    * @param password The password of the user.
    * @returns The account information.
    */
-  async auth(username: string, password: string) {
+  async auth(username: string, password: string): Promise<Account | MultipleProfiles> {
     try {
       const req = await fetch(`${this.url}/authenticate`, {
         method: 'POST',
@@ -84,7 +84,7 @@ export default class YggdrasilAuth {
    * @param select The profile to select, either by ID or name. If both are provided, ID will be used.
    * @return The account information with the selected profile.
    */
-  selectProfile(profiles: MultipleProfiles, select: { id?: string; name?: string }) {
+  selectProfile(profiles: MultipleProfiles, select: { id?: string; name?: string }): Account {
     if (!select.id && !select.name) {
       throw new EMLLibError(ErrorType.AUTH_ERROR, 'Yggdrasil profile selection failed: no profile ID or name provided')
     }
@@ -117,7 +117,7 @@ export default class YggdrasilAuth {
    * @param user The user account to validate.
    * @returns `true` if the token is valid, `false` otherwise (then you should call `YggdrasilAuth.refresh`).
    */
-  async validate(user: Account) {
+  async validate(user: Account): Promise<boolean> {
     try {
       const req = await fetch(`${this.url}/validate`, {
         method: 'POST',
@@ -139,7 +139,7 @@ export default class YggdrasilAuth {
    * @param user The user account or credentials to refresh.
    * @returns The renewed account information.
    */
-  async refresh(user: Account) {
+  async refresh(user: Account): Promise<Account> {
     try {
       const req = await fetch(`${this.url}/refresh`, {
         method: 'POST',
@@ -198,7 +198,7 @@ export default class YggdrasilAuth {
    * all sessions and `invalidate` invalidates only the current one.
    * @param user The user account to logout.
    */
-  async logout(user: Account) {
+  async logout(user: Account): Promise<void> {
     try {
       const req = await fetch(`${this.url}/invalidate`, {
         method: 'POST',

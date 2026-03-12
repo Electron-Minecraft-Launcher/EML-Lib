@@ -39,7 +39,7 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
    * @param skipCheck [Optional: default is `false`] Skip files that already exist in the
    * destination folder (force to download all files).
    */
-  async download(files: File[], skipCheck: boolean = false) {
+  async download(files: File[], skipCheck: boolean = false): Promise<void> {
     const filesToDownload: File[] = !skipCheck ? await this.getFilesToDownload(files) : files
 
     this.size = filesToDownload.reduce((acc, curr) => acc + (curr.size ?? 0), 0)
@@ -78,7 +78,7 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
    * @param files List of files to check.
    * @returns List of files to download.
    */
-  async getFilesToDownload(files: File[]) {
+  async getFilesToDownload(files: File[]): Promise<File[]> {
     let filesToDownload: File[] = []
 
     const promises = files.map(async (file) => {

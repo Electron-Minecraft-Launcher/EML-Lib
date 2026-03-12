@@ -34,7 +34,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
    * @returns `java`: Java files; `files`: all files created by the method or that will be created
    * (including `java`).
    */
-  async getJava() {
+  async getJava(): Promise<{ java: File[]; files: File[] }> {
     if (this.config.java.install === 'auto') {
       const java = await new Java(this.manifest.id, this.config.serverId).getFiles(this.manifest)
       return { java: java, files: java }
@@ -48,7 +48,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
    * @returns `modpack`: Modpack files; `files`: all files created by this method or that will be
    * created (including `modpack`).
    */
-  async getModpack() {
+  async getModpack(): Promise<{ modpack: File[]; files: File[] }> {
     if (!this.config.url) return { modpack: [], files: [] }
 
     try {
@@ -74,7 +74,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
    * @returns `libraries`: Libraries files; `files`: all files created by this method or that will
    * be created (including `libraries`).
    */
-  async getLibraries() {
+  async getLibraries(): Promise<{ libraries: ExtraFile[]; files: File[] }> {
     let files: File[] = []
     let libraries: ExtraFile[] = []
 
@@ -149,7 +149,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
    * @returns `assets`: Assets files; `files`: all files created by this method or that will be
    * created (including `assets`).
    */
-  async getAssets() {
+  async getAssets(): Promise<{ assets: File[]; files: File[] }> {
     try {
       let files: File[] = []
       let assets: File[] = []
@@ -194,7 +194,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
    * Get authlib-injector file.
    * @returns `injector`: The injector file object; `files`: array containing the injector.
    */
-  async getInjector() {
+  async getInjector(): Promise<{ injector: File[]; files: File[] }> {
     if (this.config.account.meta.type !== 'yggdrasil') return { injector: [], files: [] }
 
     const url = 'https://github.com/yushijinhun/authlib-injector/releases/download/v1.2.7/authlib-injector-1.2.7.jar'
@@ -234,7 +234,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
    * created (including `log4j`).
    * @see [help.minecraft.net](https://help.minecraft.net/hc/en-us/articles/4416199399693-Security-Vulnerability-in-Minecraft-Java-Edition)
    */
-  async getLog4j() {
+  async getLog4j(): Promise<{ log4j: File[]; files: File[] }> {
     let log4j: File[] = []
     if (+this.manifest.id.split('.')[1] <= 16 && +this.manifest.id.split('.')[1] >= 12) {
       log4j.push({
@@ -264,7 +264,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
    * @param libraries Libraries to extract natives from.
    * @returns `files`: all files created by this method.
    */
-  async extractNatives(libraries: File[]) {
+  async extractNatives(libraries: File[]): Promise<{ files: File[] }> {
     const natives = libraries.filter((lib) => lib.type === 'NATIVE')
     const nativesFolder = path_.resolve(this.config.root, 'bin', 'natives')
     let files: File[] = []
@@ -336,7 +336,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
    * Copy assets from the assets folder to the resources folder.
    * @returns `files`: all files created by this method.
    */
-  async copyAssets() {
+  async copyAssets(): Promise<{ files: File[] }> {
     let files: File[] = []
 
     if (this.manifest.assets === 'legacy' || this.manifest.assets === 'pre-1.6') {

@@ -74,7 +74,7 @@ export default class Launcher extends EventEmitter<
    *
    * This method will patch the [Log4j vulnerability](https://help.minecraft.net/hc/en-us/articles/4416199399693-Security-Vulnerability-in-Minecraft-Java-Edition).
    */
-  async launch() {
+  async launch(): Promise<void> {
     //* Init launch
     const manifest = await manifests.getMinecraftManifest(this.config.minecraft.version, this.config.url)
     const loader = await manifests.getLoaderInfo(this.config.minecraft.version, this.config.url)
