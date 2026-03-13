@@ -131,7 +131,7 @@ export default class Launcher extends EventEmitter<
     //* Install loader
     this.emit('launch_install_loader', loader)
 
-    await new Promise((r) => setTimeout(r, 1000)) // Avoid "Error: ADM-ZIP: Invalid or unsupported zip format. No END header found" error
+    await new Promise((r) => setTimeout(r, 1000)) // avoid "Error: ADM-ZIP: Invalid or unsupported zip format. No END header found" error
     const loaderFiles = await loaderManager.setupLoader()
     await downloader.download(loaderFiles.libraries)
 

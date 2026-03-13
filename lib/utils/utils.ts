@@ -206,7 +206,7 @@ class Utils {
    * `refVersion`, `null` if the versions are the same.
    */
   isNewer(ref: ExtraFile, check: ExtraFile): boolean | null {
-    if (ref.sha1 === check.sha1) return null // Identiques
+    if (ref.sha1 === check.sha1) return null
 
     const normalize = (p: string) => p.replace(/\\/g, '/').replace(/\/$/, '')
     const refArtifact = path_.dirname(normalize(ref.path))
