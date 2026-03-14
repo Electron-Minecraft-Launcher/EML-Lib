@@ -23,7 +23,7 @@ export default class News {
    * Get all the news from the EML AdminTool.
    * @returns The list of News.
    */
-  async getNews() {
+  async getNews(): Promise<INews[]> {
     try {
       const req = await fetch(`${this.url}/news`)
 
@@ -44,7 +44,7 @@ export default class News {
    * Get all the News categories from the EML AdminTool.
    * @returns The list of News categories.
    */
-  async getCategories() {
+  async getCategories(): Promise<INewsCategory[]> {
     try {
       const req = await fetch(`${this.url}/news/categories`)
 
@@ -70,7 +70,7 @@ export default class News {
    * @returns The News if the category.
    * @deprecated Returns an empty array — Currently not used in the EML AdminTool, but may be used in the future. Please use `News.getNews().filter(...)` instead.
    */
-  async getNewsByCategory(categoryId: number) {
+  async getNewsByCategory(categoryId: number): Promise<INews[]> {
     return [] as INews[] // Currently not used in the EML AdminTool, but may be used in the future.
     // let res = await fetch(`${this.url}/news/categories/${categoryId}`)
     //   .then((res) => res.json())
@@ -83,3 +83,4 @@ export default class News {
     // return res.data as INews[]
   }
 }
+

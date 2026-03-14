@@ -5,5 +5,3 @@ test/drasl-*
 
 .env
 .env.*
-
-*.js

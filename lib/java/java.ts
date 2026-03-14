@@ -48,7 +48,7 @@ export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
    * @param manifest The manifest of the Minecraft version. If not provided, the manifest will be fetched.
    * @returns The files of the Java version.
    */
-  async getFiles(manifest?: MinecraftManifest) {
+  async getFiles(manifest?: MinecraftManifest): Promise<File[]> {
     manifest = manifest ?? (await manifests.getMinecraftManifest(this.minecraftVersion, this.url))
     const jreVersion = (manifest.javaVersion?.component ?? 'jre-legacy') as
       | 'java-runtime-alpha'
@@ -93,7 +93,7 @@ export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
   /**
    * Download Java for the Minecraft version.
    */
-  async download() {
+  async download(): Promise<void> {
     const files = await this.getFiles()
 
     const downloader = new Downloader(utils.getServerFolder(this.serverId))
@@ -113,7 +113,7 @@ export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
   async check(
     absolutePath: string = path_.join(utils.getServerFolder(this.serverId), 'runtime', 'jre-${X}', 'bin', 'java'),
     majorVersion: number = 8
-  ) {
+  ): Promise<{ version: string; arch: '64-bit' | '32-bit' }> {
     return new Promise((resolve, reject) => {
       const javaExec = absolutePath.replace('${X}', majorVersion + '')
       const process = spawn(javaExec, ['-version'])
@@ -161,3 +161,4 @@ export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
     return path_.join('runtime', `jre-${jreV}`, path_.dirname(filePath), '/')
   }
 }
+

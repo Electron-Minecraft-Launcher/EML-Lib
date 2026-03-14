@@ -24,7 +24,7 @@ export default class Maintenance {
    * @returns `null` if there is no maintenance, otherwise it will return the maintenance status.
    * You can check the `startTime` and `endTime` properties to see if the maintenance is active.
    */
-  async getMaintenance() {
+  async getMaintenance(): Promise<IMaintenance | null> {
     try {
       const req = await fetch(`${this.url}/maintenance`)
 
@@ -42,3 +42,4 @@ export default class Maintenance {
     }
   }
 }
+

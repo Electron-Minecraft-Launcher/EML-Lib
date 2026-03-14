@@ -74,7 +74,7 @@ export default class Launcher extends EventEmitter<
    *
    * This method will patch the [Log4j vulnerability](https://help.minecraft.net/hc/en-us/articles/4416199399693-Security-Vulnerability-in-Minecraft-Java-Edition).
    */
-  async launch() {
+  async launch(): Promise<void> {
     //* Init launch
     const manifest = await manifests.getMinecraftManifest(this.config.minecraft.version, this.config.url)
     const loader = await manifests.getLoaderInfo(this.config.minecraft.version, this.config.url)
@@ -131,7 +131,6 @@ export default class Launcher extends EventEmitter<
     //* Install loader
     this.emit('launch_install_loader', loader)
 
-    await new Promise((r) => setTimeout(r, 1000)) // Avoid "Error: ADM-ZIP: Invalid or unsupported zip format. No END header found" error
     const loaderFiles = await loaderManager.setupLoader()
     await downloader.download(loaderFiles.libraries)
 
@@ -187,14 +186,21 @@ export default class Launcher extends EventEmitter<
     const blindArgs = args.map((arg, i) => (i === args.findIndex((p) => p === '--accessToken') + 1 ? '**********' : arg))
     this.emit('launch_debug', `Launching Minecraft with args: ${blindArgs.join(' ')}`)
 
-    this.run(this.config.java.absolutePath.replace('${X}', manifest.javaVersion?.majorVersion.toString() ?? '8'), args)
+    await this.run(this.config.java.absolutePath.replace('${X}', manifest.javaVersion?.majorVersion.toString() ?? '8'), args)
   }
 
   private async run(javaPath: string, args: string[]) {
-    const minecraft = spawn(javaPath, args, { cwd: this.config.root, detached: true })
-    minecraft.stdout.on('data', (data: Buffer) => this.emit('launch_data', data.toString('utf8').replace(/\n$/, '')))
-    minecraft.stderr.on('data', (data: Buffer) => this.emit('launch_data', data.toString('utf8').replace(/\n$/, '')))
-    minecraft.on('close', (code) => this.emit('launch_close', code ?? 0))
+    return new Promise<void>((resolve, reject) => {
+      const minecraft = spawn(javaPath, args, { cwd: this.config.root, detached: true })
+      minecraft.stdout.on('data', (data: Buffer) => this.emit('launch_data', data.toString('utf8').replace(/\n$/, '')))
+      minecraft.stderr.on('data', (data: Buffer) => this.emit('launch_data', data.toString('utf8').replace(/\n$/, '')))
+      minecraft.on('error', reject)
+      minecraft.on('close', (code) => {
+        this.emit('launch_close', code ?? -1)
+        resolve()
+      })
+    })
   }
 }
+
 

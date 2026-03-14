@@ -13,7 +13,7 @@ export default class BufferReader {
     this.offset = 0
   }
 
-  readVarInt() {
+  readVarInt(): number {
     let result = 0
     let count = 0
 
@@ -29,7 +29,7 @@ export default class BufferReader {
     return result
   }
 
-  readString() {
+  readString(): string {
     const length = this.readVarInt()
     const result = this.buffer.toString('utf8', this.offset, this.offset + length)
 
@@ -38,7 +38,7 @@ export default class BufferReader {
     return result
   }
 
-  readStringUTF16BE() {
+  readStringUTF16BE(): string {
     const length = this.readVarInt() * 2
     const val = Buffer.from(this.buffer.subarray(this.offset + 1, this.offset + length))
 
@@ -54,13 +54,13 @@ export default class BufferReader {
     return result
   }
 
-  readShort() {
+  readShort(): number {
     const result = this.buffer.readUInt16BE(this.offset)
     this.offset += 2
     return result
   }
 
-  readStringUTF16BE_Old() {
+  readStringUTF16BE_Old(): string {
     this.offset += 1
     const length = this.readShort() * 2
 
@@ -78,7 +78,8 @@ export default class BufferReader {
     return result
   }
 
-  getOffset() {
+  getOffset(): number {
     return this.offset
   }
 }
+

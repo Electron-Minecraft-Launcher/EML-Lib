@@ -31,7 +31,7 @@ export default class Bootstraps extends EventEmitter<DownloaderEvents & Bootstra
    * Check for updates.
    * @returns The update result object if an update is available, null otherwise.
    */
-  async checkForUpdate() {
+  async checkForUpdate(): Promise<IBootstraps> {
     try {
       const updater = await this.getUpdater()
       const result = await updater.checkForUpdates()
@@ -64,7 +64,7 @@ export default class Bootstraps extends EventEmitter<DownloaderEvents & Bootstra
    * Download the update found by checkForUpdate.
    * @returns The path to the downloaded update.
    */
-  async download() {
+  async download(): Promise<string> {
     try {
       const updater = await this.getUpdater()
       const downloadedFiles = await updater.downloadUpdate()
@@ -80,7 +80,7 @@ export default class Bootstraps extends EventEmitter<DownloaderEvents & Bootstra
    * Quit the application and install the update.
    * @param silent [Optional: default if `false`] (Windows-only) Runs the installer in silent mode.
    */
-  async runUpdate(silent = false) {
+  async runUpdate(silent = false): Promise<void> {
     try {
       const updater = await this.getUpdater()
       updater.quitAndInstall(silent, true)

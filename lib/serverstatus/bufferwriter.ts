@@ -5,25 +5,25 @@
  */
 
 export default class BufferWriter {
-  writeByte(val: number) {
+  writeByte(val: number): Buffer {
     const buffer = Buffer.alloc(1)
     buffer.writeUInt8(val)
     return buffer
   }
 
-  writeShort(val: number) {
+  writeShort(val: number): Buffer {
     const buffer = Buffer.alloc(2)
     buffer.writeUInt16BE(val)
     return buffer
   }
 
-  writeInt(val: number) {
+  writeInt(val: number): Buffer {
     const buffer = Buffer.alloc(4)
     buffer.writeUInt32BE(val)
     return buffer
   }
 
-  writeVarInt(int: number) {
+  writeVarInt(int: number): Buffer {
     const buf = Buffer.alloc(5)
     let i = 0
 
@@ -40,15 +40,15 @@ export default class BufferWriter {
     return buf.subarray(0, i)
   }
 
-  writeString(str: string) {
+  writeString(str: string): Buffer {
     return Buffer.from(str, 'utf8')
   }
 
-  writeUShort(short: number) {
+  writeUShort(short: number): Buffer {
     return Buffer.from([short >> 8, short & 0xff])
   }
 
-  writeStringUTF16BE(str: string) {
+  writeStringUTF16BE(str: string): Buffer {
     const utf16leBuffer = Buffer.from(str, 'utf16le')
 
     const utf16beBuffer = Buffer.alloc(utf16leBuffer.length)
@@ -60,7 +60,7 @@ export default class BufferWriter {
     return Buffer.concat([utf16beBuffer])
   }
 
-  concat(bufs: Buffer[]) {
+  concat(bufs: Buffer[]): Buffer {
     let length = 0
 
     for (let i = 0; i < bufs.length; i++) {
@@ -70,3 +70,4 @@ export default class BufferWriter {
     return Buffer.concat([this.writeVarInt(length), ...bufs])
   }
 }
+

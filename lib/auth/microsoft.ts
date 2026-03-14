@@ -28,7 +28,7 @@ export default class MicrosoftAuth {
    * Authenticate a user with Microsoft. This method will open a child window to login.
    * @returns The account information.
    */
-  async auth() {
+  async auth(): Promise<Account> {
     try {
       const userCode = await new MicrosoftAuthGui(this.mainWindow, this.clientId).openWindow()
       if (userCode == 'cancel') throw new EMLLibError(ErrorType.AUTH_CANCELLED, 'User cancelled the login')
@@ -57,7 +57,7 @@ export default class MicrosoftAuth {
    * @param user The user account to validate.
    * @returns `true` if the token is valid, `false` otherwise (then you should call `MicrosoftAuth.refresh`).
    */
-  async validate(user: Account) {
+  async validate(user: Account): Promise<boolean> {
     try {
       const req = await fetch('https://api.minecraftservices.com/minecraft/profile', {
         method: 'GET',
@@ -77,7 +77,7 @@ export default class MicrosoftAuth {
    * @param user The user account to refresh.
    * @returns The refreshed account information.
    */
-  async refresh(user: Account) {
+  async refresh(user: Account): Promise<Account> {
     try {
       const req = await fetch('https://login.live.com/oauth20_token.srf', {
         method: 'POST',
@@ -98,7 +98,7 @@ export default class MicrosoftAuth {
     }
   }
 
-  private async getAccount(authInfo: any) {
+  private async getAccount(authInfo: any): Promise<Account> {
     try {
       const xblReq = await fetch('https://user.auth.xboxlive.com/user/authenticate', {
         method: 'POST',

@@ -25,7 +25,7 @@ export default class AzAuth {
    * @param twoFACode [Optional] The 2FA code if the user has 2FA enabled.
    * @returns The account information.
    */
-  async auth(username: string, password: string, twoFACode?: string) {
+  async auth(username: string, password: string, twoFACode?: string): Promise<Account> {
     try {
       const req = await fetch(`${this.url}/authenticate`, {
         method: 'POST',
@@ -75,7 +75,7 @@ export default class AzAuth {
    * @param user The user account to verify.
    * @returns The renewed account information.
    */
-  async verify(user: Account) {
+  async verify(user: Account): Promise<Account> {
     try {
       const req = await fetch(`${this.url}/verify`, {
         method: 'POST',
@@ -118,7 +118,7 @@ export default class AzAuth {
    * Logout a user from Azuriom.
    * @param user The user account to logout.
    */
-  async logout(user: Account) {
+  async logout(user: Account): Promise<void> {
     try {
       const req = await fetch(`${this.url}/logout`, {
         method: 'POST',
