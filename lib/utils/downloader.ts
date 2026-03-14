@@ -65,12 +65,8 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
         }
       })
 
-    try {
-      await Promise.all(workers)
-      this.emit('download_end', { downloaded: this.downloaded })
-    } catch (err) {
-      throw err
-    }
+    await Promise.all(workers)
+    this.emit('download_end', { downloaded: this.downloaded })
   }
 
   /**
@@ -146,6 +142,7 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
       const errorText = await req.text()
       throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching ${file.name}: HTTP ${req.status} ${errorText}`)
     }
+
     const fileStream = fsSync.createWriteStream(filePath)
     const nodeStream = Readable.fromWeb(req.body as any)
 
@@ -155,9 +152,8 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
         fileStream.removeAllListeners()
         fileStream.destroy()
       }
-      nodeStream.on('data', (chunk: Buffer) => {
-        fileStream.write(chunk)
 
+      nodeStream.on('data', (chunk: Buffer) => {
         bytesDownloadedThisAttempt += chunk.length
         this.downloaded.size += chunk.length
 
@@ -167,7 +163,6 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
         if (diffTime > 500) {
           const diffSize = this.downloaded.size - this.lastSize
           this.speed = diffSize / (diffTime / 1000)
-
           this.lastTime = now
           this.lastSize = this.downloaded.size
         }
@@ -178,10 +173,6 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
           speed: Math.floor(this.speed),
           type: file.type
         })
-      })
-
-      nodeStream.on('end', () => {
-        fileStream.end()
       })
 
       nodeStream.on('error', (err) => {
@@ -206,6 +197,8 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
         cleanup()
         reject(err)
       })
+
+      nodeStream.pipe(fileStream)
     })
   }
 

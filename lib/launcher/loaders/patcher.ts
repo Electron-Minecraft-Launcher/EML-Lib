@@ -53,7 +53,7 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
       const classpath = (processor.classpath as string[]).map(
         (cp) => `"${path_.join(this.config.root, 'libraries', utils.getLibraryPath(cp), utils.getLibraryName(cp))}"`
       )
-      const mainClass = await this.getJarMain(jarExtractPathName)!
+      const mainClass = await this.getJarMain(jarExtractPathName)
 
       if (!mainClass) {
         console.warn(`[Patcher] Could not find Main-Class for processor ${processor.jar}`)
@@ -139,15 +139,18 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
         zipfile.on('entry', (entry: yauzl.Entry) => {
           if (entry.fileName === 'META-INF/MANIFEST.MF') {
             zipfile.openReadStream(entry, (err, readStream) => {
-              if (err || !readStream) return resolve(null)
+              if (err || !readStream) {
+                zipfile.close()
+                return resolve(null)
+              }
 
               let data = ''
-              readStream.on('data', (chunk) => (data += chunk))
+              readStream.on('data', (chunk: Buffer) => (data += chunk.toString('utf8')))
               readStream.on('end', () => {
                 zipfile.close()
-                
+
                 try {
-                  const mainClass = data.split('Main-Class: ')[1].split('\r\n')[0]
+                  const mainClass = data.split('Main-Class: ')[1].split(/\r?\n/)[0].trim()
                   resolve(mainClass)
                 } catch {
                   resolve(null)
@@ -209,4 +212,5 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
     return arg
   }
 }
+
 

@@ -10,7 +10,8 @@
   "scripts": {
     "build": "tsc",
     "test": "tsx test/test.ts",
-    "test-electron": "npm run build && electron dist/test/test.js"
+    "test-electron": "npm run build && electron dist/test/test.js",
+    "release": "node .github/release.js"
   },
   "repository": {
     "type": "git",

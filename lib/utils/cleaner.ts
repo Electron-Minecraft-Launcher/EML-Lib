@@ -12,7 +12,7 @@ import { File } from '../../types/file.js'
 
 export default class Cleaner extends EventEmitter<CleanerEvents> {
   private readonly dest: string = ''
-  private browsed: { name: string; path: string }[] = []
+  // private browsed: { name: string; path: string }[] = []
 
   /**
    * @param dest Destination folder.
@@ -33,14 +33,13 @@ export default class Cleaner extends EventEmitter<CleanerEvents> {
 
     const validFilesSet = new Set(files.map((f) => path_.normalize(path_.join(this.dest, f.path, f.name))))
     const ignoredPaths = ignore.map((ig) => path_.normalize(path_.join(this.dest, ig)))
-
     const deletePromises: Promise<void>[] = []
-
     let i = 0
-    this.browsed = []
-    await this.browse(this.dest)
 
-    for (const file of this.browsed) {
+    const browsed: { name: string; path: string }[] = []
+    await this.browse(this.dest, browsed)
+
+    for (const file of browsed) {
       const fullPath = path_.normalize(path_.join(file.path, file.name))
       const isFileValid = validFilesSet.has(fullPath)
       const isIgnored = ignoredPaths.some((ig) => fullPath.startsWith(ig))
@@ -67,7 +66,7 @@ export default class Cleaner extends EventEmitter<CleanerEvents> {
     this.emit('clean_end', { amount: i })
   }
 
-  private async browse(dir: string) {
+  private async browse(dir: string, browsed: { name: string; path: string }[] = []) {
     if (!existsSync(dir)) return
 
     const files = await fs.readdir(dir)
@@ -77,9 +76,9 @@ export default class Cleaner extends EventEmitter<CleanerEvents> {
       const stats = await fs.stat(fullPath)
 
       if (stats.isDirectory()) {
-        await this.browse(fullPath)
+        await this.browse(fullPath, browsed)
       } else {
-        this.browsed.push({
+        browsed.push({
           name: file,
           path: `${dir}/`.split('\\').join('/').replace(/^\/+/, '')
         })
@@ -89,4 +88,6 @@ export default class Cleaner extends EventEmitter<CleanerEvents> {
     await Promise.all(promises)
   }
 }
+
+
 

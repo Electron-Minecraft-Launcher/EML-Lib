@@ -66,44 +66,49 @@ export default class ForgeLikeLoader extends EventEmitter<FilesManagerEvents> {
     const { zipfile: vanillaZip, entries: vanillaEntries } = await this.openZip(vanillaJarPath)
     const { zipfile: forgeZip, entries: forgeEntries } = await this.openZip(forgeZipPath)
 
-    const yazlZip = new yazl.ZipFile()
-    const writeStream = createWriteStream(patchedJarPath)
-    yazlZip.outputStream.pipe(writeStream)
+    try {
+      const yazlZip = new yazl.ZipFile()
+      const writeStream = createWriteStream(patchedJarPath)
+      const forgeFileNames = new Set(forgeEntries.map((e) => e.fileName))
 
-    for (const entry of vanillaEntries) {
-      if (entry.fileName.startsWith('META-INF/')) continue
-      if (entry.fileName.endsWith('/')) continue
-      await this.pipeEntryToYazl(vanillaZip, entry, yazlZip)
+      yazlZip.outputStream.pipe(writeStream)
+
+      for (const entry of vanillaEntries) {
+        if (entry.fileName.startsWith('META-INF/')) continue
+        if (entry.fileName.endsWith('/')) continue
+        if (forgeFileNames.has(entry.fileName)) continue
+        await this.pipeEntryToYazl(vanillaZip, entry, yazlZip)
+      }
+
+      for (const entry of forgeEntries) {
+        if (entry.fileName.endsWith('/')) continue
+        await this.pipeEntryToYazl(forgeZip, entry, yazlZip)
+        i++
+        this.emit('extract_progress', { filename: path_.basename(entry.fileName) })
+      }
+
+      yazlZip.end()
+
+      await new Promise<void>((resolve, reject) => {
+        writeStream.on('close', resolve)
+        writeStream.on('error', reject)
+      })
+
+      await fs.unlink(vanillaJarPath)
+      await fs.rename(patchedJarPath, vanillaJarPath)
+
+      const loaderManifest = { ...this.manifest, id: `${loaderId}-${this.loader.loaderVersion}`, libraries: [] }
+
+      files.push({ name: `${loaderManifest.id}.json`, path: this.loader.file!.path, url: '', type: 'OTHER' })
+      await fs.writeFile(path_.join(loaderPath, `${loaderManifest.id}.json`), JSON.stringify(loaderManifest, null, 2))
+
+      this.emit('extract_end', { amount: i })
+
+      return { loaderManifest, installProfile: null, libraries: [], files }
+    } finally {
+      vanillaZip.close()
+      forgeZip.close()
     }
-
-    for (const entry of forgeEntries) {
-      if (entry.fileName.endsWith('/')) continue
-      await this.pipeEntryToYazl(forgeZip, entry, yazlZip)
-      i++
-      this.emit('extract_progress', { filename: path_.basename(entry.fileName) })
-    }
-
-    yazlZip.end()
-
-    await new Promise<void>((resolve, reject) => {
-      writeStream.on('close', resolve)
-      writeStream.on('error', reject)
-    })
-
-    vanillaZip.close()
-    forgeZip.close()
-
-    await fs.unlink(vanillaJarPath)
-    await fs.rename(patchedJarPath, vanillaJarPath)
-
-    const loaderManifest = { ...this.manifest, id: `${loaderId}-${this.loader.loaderVersion}`, libraries: [] }
-
-    files.push({ name: `${loaderManifest.id}.json`, path: this.loader.file!.path, url: '', type: 'OTHER' })
-    await fs.writeFile(path_.join(loaderPath, `${loaderManifest.id}.json`), JSON.stringify(loaderManifest, null, 2))
-
-    this.emit('extract_end', { amount: i })
-
-    return { loaderManifest, installProfile: null, libraries: [], files }
   }
 
   private async extractJar(loaderPath: string) {
@@ -116,124 +121,127 @@ export default class ForgeLikeLoader extends EventEmitter<FilesManagerEvents> {
 
     const { zipfile, entries } = await this.openZip(forgeZipPath)
 
-    const installProfileEntry = entries.find((e) => e.fileName === 'install_profile.json')
-    if (!installProfileEntry) throw new Error('install_profile.json not found in loader installer')
+    try {
+      const installProfileEntry = entries.find((e) => e.fileName === 'install_profile.json')
+      if (!installProfileEntry) throw new Error('install_profile.json not found in loader installer')
 
-    const installProfileBuf = await this.readEntryData(zipfile, installProfileEntry)
-    let installProfile = JSON.parse(installProfileBuf.toString('utf8'))
-    let loaderManifest: MinecraftManifest
+      const installProfileBuf = await this.readEntryData(zipfile, installProfileEntry)
+      let installProfile = JSON.parse(installProfileBuf.toString('utf8'))
+      let loaderManifest: MinecraftManifest
 
-    if (installProfile.install) {
-      loaderManifest = installProfile.versionInfo
-      installProfile = installProfile.install
-    } else {
-      const jsonEntryName = path_.basename(installProfile.json)
-      const jsonEntry = entries.find((e) => e.fileName === jsonEntryName)
-      if (!jsonEntry) throw new Error(`${jsonEntryName} not found in loader installer`)
-      const manifestBuf = await this.readEntryData(zipfile, jsonEntry)
-      loaderManifest = JSON.parse(manifestBuf.toString('utf8'))
-    }
-
-    const jsonName = `${loaderId}-${this.loader.loaderVersion}.json`
-    await fs.writeFile(path_.join(loaderPath, jsonName), JSON.stringify(loaderManifest, null, 2))
-    files.push({ name: jsonName, path: this.loader.file!.path, url: '', type: 'OTHER' })
-
-    i++
-    this.emit('extract_progress', { filename: 'install_profile.json' })
-
-    if (installProfile.filePath) {
-      const universalName = utils.getLibraryName(installProfile.path)
-      const universalPath = utils.getLibraryPath(installProfile.path)
-      const universalExtractPath = path_.join(this.config.root, 'libraries', universalPath)
-
-      if (!existsSync(universalExtractPath)) await fs.mkdir(universalExtractPath, { recursive: true })
-
-      const universalEntry = entries.find((e) => e.fileName === installProfile.filePath)
-      if (universalEntry) {
-        await this.extractEntryToFile(zipfile, universalEntry, path_.join(universalExtractPath, universalName))
-        libraries.push({ name: universalName, path: path_.join('libraries', universalPath), url: '', type: 'LIBRARY', extra: 'INSTALL' })
-        i++
-        this.emit('extract_progress', { filename: installProfile.filePath })
+      if (installProfile.install) {
+        loaderManifest = installProfile.versionInfo
+        installProfile = installProfile.install
+      } else {
+        const jsonEntryName = path_.basename(installProfile.json)
+        const jsonEntry = entries.find((e) => e.fileName === jsonEntryName)
+        if (!jsonEntry) throw new Error(`${jsonEntryName} not found in loader installer`)
+        const manifestBuf = await this.readEntryData(zipfile, jsonEntry)
+        loaderManifest = JSON.parse(manifestBuf.toString('utf8'))
       }
-    } else if (installProfile.path) {
-      const universalPath = utils.getLibraryPath(installProfile.path)
-      const universalExtractPath = path_.join(this.config.root, 'libraries', universalPath)
 
-      if (!existsSync(universalExtractPath)) await fs.mkdir(universalExtractPath, { recursive: true })
+      const jsonName = `${loaderId}-${this.loader.loaderVersion}.json`
+      await fs.writeFile(path_.join(loaderPath, jsonName), JSON.stringify(loaderManifest, null, 2))
+      files.push({ name: jsonName, path: this.loader.file!.path, url: '', type: 'OTHER' })
 
-      const mavenPath = path_.join('maven', universalPath).replace(/\\/g, '/')
-      const entriesToExtract = entries.filter((e) => e.fileName.includes(mavenPath) && e.fileName.endsWith('.jar'))
+      i++
+      this.emit('extract_progress', { filename: 'install_profile.json' })
 
-      const promises = entriesToExtract.map(async (entry) => {
-        await this.extractEntryToFile(zipfile, entry, path_.join(universalExtractPath, path_.basename(entry.fileName)))
-        libraries.push({
-          name: path_.basename(entry.fileName),
-          path: path_.join('libraries', universalPath),
-          url: '',
-          type: 'LIBRARY',
-          extra: 'INSTALL'
+      if (installProfile.filePath) {
+        const universalName = utils.getLibraryName(installProfile.path)
+        const universalPath = utils.getLibraryPath(installProfile.path)
+        const universalExtractPath = path_.join(this.config.root, 'libraries', universalPath)
+
+        if (!existsSync(universalExtractPath)) await fs.mkdir(universalExtractPath, { recursive: true })
+
+        const universalEntry = entries.find((e) => e.fileName === installProfile.filePath)
+        if (universalEntry) {
+          await this.extractEntryToFile(zipfile, universalEntry, path_.join(universalExtractPath, universalName))
+          libraries.push({ name: universalName, path: path_.join('libraries', universalPath), url: '', type: 'LIBRARY', extra: 'INSTALL' })
+          i++
+          this.emit('extract_progress', { filename: installProfile.filePath })
+        }
+      } else if (installProfile.path) {
+        const universalPath = utils.getLibraryPath(installProfile.path)
+        const universalExtractPath = path_.join(this.config.root, 'libraries', universalPath)
+
+        if (!existsSync(universalExtractPath)) await fs.mkdir(universalExtractPath, { recursive: true })
+
+        const mavenPath = path_.join('maven', universalPath).replace(/\\/g, '/')
+        const entriesToExtract = entries.filter((e) => e.fileName.includes(mavenPath) && e.fileName.endsWith('.jar'))
+
+        const promises = entriesToExtract.map(async (entry) => {
+          await this.extractEntryToFile(zipfile, entry, path_.join(universalExtractPath, path_.basename(entry.fileName)))
+          libraries.push({
+            name: path_.basename(entry.fileName),
+            path: path_.join('libraries', universalPath),
+            url: '',
+            type: 'LIBRARY',
+            extra: 'INSTALL'
+          })
+          i++
+          this.emit('extract_progress', { filename: path_.basename(entry.fileName) })
         })
-        i++
-        this.emit('extract_progress', { filename: path_.basename(entry.fileName) })
-      })
 
-      await Promise.all(promises)
-    }
-
-    if (installProfile.processors && installProfile.processors.length > 0) {
-      const universalMaven = installProfile.libraries.find(
-        (lib: any) => (lib.name + '').startsWith('net.minecraftforge:forge:') || (lib.name + '').startsWith('net.neoforged:neoforge:')
-      )
-
-      const clientDataName = utils.getLibraryName(installProfile.path ?? universalMaven.name).replace('.jar', '-clientdata.lzma')
-      const clientDataPath = utils.getLibraryPath(installProfile.path ?? universalMaven.name)
-      const clientDataExtractPath = path_.join(this.config.root, 'libraries', clientDataPath)
-
-      const clientDataEntry = entries.find((e) => e.fileName === 'data/client.lzma')
-
-      if (clientDataEntry) {
-        if (!existsSync(clientDataExtractPath)) await fs.mkdir(clientDataExtractPath, { recursive: true })
-        await this.extractEntryToFile(zipfile, clientDataEntry, path_.join(clientDataExtractPath, clientDataName))
-        files.push({ name: clientDataName, path: path_.join('libraries', clientDataPath), url: '', type: 'LIBRARY' })
-        i++
-        this.emit('extract_progress', { filename: clientDataName })
+        await Promise.all(promises)
       }
-    }
 
-    if (installProfile.data?.PATCHED) {
-      const entry = installProfile.data.PATCHED
-      const rawValue = entry.client || entry.path || (typeof entry === 'string' ? entry : '')
+      if (installProfile.processors && installProfile.processors.length > 0) {
+        const universalMaven = installProfile.libraries.find(
+          (lib: any) => (lib.name + '').startsWith('net.minecraftforge:forge:') || (lib.name + '').startsWith('net.neoforged:neoforge:')
+        )
 
-      if (rawValue && rawValue.startsWith('[')) {
-        const cleanLib = rawValue.replace('[', '').replace(']', '')
-        const patchName = utils.getLibraryName(cleanLib)
-        const patchPath = utils.getLibraryPath(cleanLib)
+        const clientDataName = utils.getLibraryName(installProfile.path ?? universalMaven.name).replace('.jar', '-clientdata.lzma')
+        const clientDataPath = utils.getLibraryPath(installProfile.path ?? universalMaven.name)
+        const clientDataExtractPath = path_.join(this.config.root, 'libraries', clientDataPath)
 
-        libraries.push({
-          name: patchName,
-          path: path_.join('libraries', patchPath),
-          url: '',
-          sha1: '',
-          size: 0,
-          type: 'LIBRARY',
-          extra: 'INSTALL'
-        })
+        const clientDataEntry = entries.find((e) => e.fileName === 'data/client.lzma')
+
+        if (clientDataEntry) {
+          if (!existsSync(clientDataExtractPath)) await fs.mkdir(clientDataExtractPath, { recursive: true })
+          await this.extractEntryToFile(zipfile, clientDataEntry, path_.join(clientDataExtractPath, clientDataName))
+          files.push({ name: clientDataName, path: path_.join('libraries', clientDataPath), url: '', type: 'LIBRARY' })
+          i++
+          this.emit('extract_progress', { filename: clientDataName })
+        }
       }
+
+      if (installProfile.data?.PATCHED) {
+        const entry = installProfile.data.PATCHED
+        const rawValue = entry.client || entry.path || (typeof entry === 'string' ? entry : '')
+
+        if (rawValue && rawValue.startsWith('[')) {
+          const cleanLib = rawValue.replace('[', '').replace(']', '')
+          const patchName = utils.getLibraryName(cleanLib)
+          const patchPath = utils.getLibraryPath(cleanLib)
+
+          libraries.push({
+            name: patchName,
+            path: path_.join('libraries', patchPath),
+            url: '',
+            sha1: '',
+            size: 0,
+            type: 'LIBRARY',
+            extra: 'INSTALL'
+          })
+        }
+      }
+
+      const [libsLoader, libsInstall] = await Promise.all([
+        this.formatLibraries(loaderManifest.libraries, 'LOADER', installProfile),
+        installProfile.libraries ? this.formatLibraries(installProfile.libraries, 'INSTALL', installProfile) : Promise.resolve([])
+      ])
+
+      libraries.push(...libsLoader)
+      libraries.push(...libsInstall)
+      files.push(...libraries)
+
+      this.emit('extract_end', { amount: i })
+
+      return { loaderManifest, installProfile, libraries, files }
+    } finally {
+      zipfile.close()
     }
-
-    const [libsLoader, libsInstall] = await Promise.all([
-      this.formatLibraries(loaderManifest.libraries, 'LOADER', installProfile),
-      installProfile.libraries ? this.formatLibraries(installProfile.libraries, 'INSTALL', installProfile) : Promise.resolve([])
-    ])
-
-    libraries.push(...libsLoader)
-    libraries.push(...libsInstall)
-    files.push(...libraries)
-
-    zipfile.close()
-    this.emit('extract_end', { amount: i })
-
-    return { loaderManifest, installProfile, libraries, files }
   }
 
   private async getMirrorUrl(lib: any) {
@@ -315,7 +323,9 @@ export default class ForgeLikeLoader extends EventEmitter<FilesManagerEvents> {
   private openZip(zipPath: string): Promise<{ zipfile: yauzl.ZipFile; entries: yauzl.Entry[] }> {
     return new Promise((resolve, reject) => {
       yauzl.open(zipPath, { lazyEntries: false, autoClose: false }, (err, zipfile) => {
-        if (err || !zipfile) return reject(err)
+        if (err || !zipfile) {
+          return reject(err ?? new EMLLibError(ErrorType.FILE_ERROR, `Failed to open ${zipPath}`))
+        }
         const entries: yauzl.Entry[] = []
         zipfile.on('entry', (entry) => entries.push(entry))
         zipfile.on('end', () => resolve({ zipfile, entries }))
@@ -327,7 +337,9 @@ export default class ForgeLikeLoader extends EventEmitter<FilesManagerEvents> {
   private readEntryData(zipfile: yauzl.ZipFile, entry: yauzl.Entry): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       zipfile.openReadStream(entry, (err, readStream) => {
-        if (err || !readStream) return reject(err)
+        if (err || !readStream) {
+          return reject(err ?? new EMLLibError(ErrorType.FILE_ERROR, `Failed to open read stream for ${entry.fileName}`))
+        }
         const chunks: Buffer[] = []
         readStream.on('data', (chunk) => chunks.push(chunk))
         readStream.on('end', () => resolve(Buffer.concat(chunks)))
@@ -339,11 +351,15 @@ export default class ForgeLikeLoader extends EventEmitter<FilesManagerEvents> {
   private extractEntryToFile(zipfile: yauzl.ZipFile, entry: yauzl.Entry, destPath: string): Promise<void> {
     return new Promise((resolve, reject) => {
       zipfile.openReadStream(entry, (err, readStream) => {
-        if (err || !readStream) return reject(err)
+        if (err || !readStream) {
+          return reject(err ?? new EMLLibError(ErrorType.FILE_ERROR, `Failed to open read stream for ${entry.fileName}`))
+        }
         const writeStream = createWriteStream(destPath)
         readStream.pipe(writeStream)
+
         writeStream.on('close', resolve)
         writeStream.on('error', reject)
+        readStream.on('error', reject)
       })
     })
   }
@@ -351,7 +367,9 @@ export default class ForgeLikeLoader extends EventEmitter<FilesManagerEvents> {
   private pipeEntryToYazl(sourceZip: yauzl.ZipFile, entry: yauzl.Entry, destZip: yazl.ZipFile): Promise<void> {
     return new Promise((resolve, reject) => {
       sourceZip.openReadStream(entry, (err, readStream) => {
-        if (err || !readStream) return reject(err)
+        if (err || !readStream) {
+          return reject(err ?? new EMLLibError(ErrorType.FILE_ERROR, `Failed to open read stream for ${entry.fileName}`))
+        }
         destZip.addReadStream(readStream, entry.fileName)
         readStream.on('end', resolve)
         readStream.on('error', reject)
@@ -359,5 +377,4 @@ export default class ForgeLikeLoader extends EventEmitter<FilesManagerEvents> {
     })
   }
 }
-
 

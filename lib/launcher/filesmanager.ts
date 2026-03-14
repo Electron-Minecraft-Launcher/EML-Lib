@@ -280,7 +280,9 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
         if (!existsSync(zipPath)) return resolve()
 
         yauzl.open(zipPath, { lazyEntries: true }, (err, zipfile) => {
-          if (err || !zipfile) return reject(new EMLLibError(ErrorType.FILE_ERROR, `Failed to open ${native.name}`))
+          if (err || !zipfile) {
+            return reject(new EMLLibError(ErrorType.FILE_ERROR, `Failed to open ${native.name}`))
+          }
 
           zipfile.readEntry()
           zipfile.on('entry', (entry: yauzl.Entry) => {
@@ -298,29 +300,39 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
               return zipfile.readEntry()
             }
 
-            files.push({
+            const tmpFile = {
               name: path_.basename(entryName),
               path: path_.join('bin', 'natives', path_.dirname(entryName), '/'),
               url: '',
               sha1: '',
-              size: entry.uncompressedSize,
-              type: entry.fileName.endsWith('/') ? 'FOLDER' : 'NATIVE'
-            })
+              size: entry.uncompressedSize
+            }
 
             if (entry.fileName.endsWith('/')) {
-              fs.mkdir(entryPath, { recursive: true }).then(() => zipfile.readEntry())
+              files.push({ ...tmpFile, type: 'FOLDER' })
+              fs.mkdir(entryPath, { recursive: true })
+                .then(() => zipfile.readEntry())
+                .catch(reject)
             } else {
-              fs.mkdir(path_.dirname(entryPath), { recursive: true }).then(() => {
-                zipfile.openReadStream(entry, (err, readStream) => {
-                  if (err || !readStream) return reject(err)
+              fs.mkdir(path_.dirname(entryPath), { recursive: true })
+                .then(() => {
+                  zipfile.openReadStream(entry, (err, readStream) => {
+                    if (err || !readStream) {
+                      return reject(new EMLLibError(ErrorType.FILE_ERROR, `Failed to open read stream for ${entry.fileName}`))
+                    }
 
-                  const writeStream = createWriteStream(entryPath)
-                  readStream.pipe(writeStream)
+                    const writeStream = createWriteStream(entryPath)
+                    readStream.pipe(writeStream)
 
-                  writeStream.on('close', () => zipfile.readEntry())
-                  writeStream.on('error', reject)
+                    writeStream.on('close', () => {
+                      files.push({ ...tmpFile, type: 'NATIVE' })
+                      zipfile.readEntry()
+                    })
+                    writeStream.on('error', reject)
+                    readStream.on('error', reject)
+                  })
                 })
-              })
+                .catch(reject)
             }
           })
 
@@ -363,7 +375,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
           await fs.mkdir(path_.join(this.config.root, assetLegacyPath), { recursive: true })
         }
 
-        if (!existsSync(path_.join(assetLegacyPath, assetLegacyName))) {
+        if (!existsSync(path_.join(this.config.root, assetLegacyPath, assetLegacyName))) {
           await fs.copyFile(
             path_.join(this.config.root, 'assets', 'objects', hash.substring(0, 2), hash),
             path_.join(this.config.root, assetLegacyPath, assetLegacyName)
