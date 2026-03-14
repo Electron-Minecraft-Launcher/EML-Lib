@@ -12,6 +12,7 @@ jobs:
     name: Build, publish Release and NPM package
     runs-on: ubuntu-latest
     permissions:
+      id-token: write
       contents: write
       packages: write
 
@@ -60,8 +61,6 @@ jobs:
       - name: Publish to npm
         working-directory: dist
         run: npm publish --tag latest
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
