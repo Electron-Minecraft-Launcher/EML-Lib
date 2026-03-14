@@ -11,8 +11,9 @@ import { Artifact, MinecraftManifest, Assets } from '../../types/manifest.js'
 import utils from '../utils/utils.js'
 import path_ from 'node:path'
 import fs from 'node:fs/promises'
+import { createWriteStream } from 'node:fs'
 import { existsSync } from 'node:fs'
-import AdmZip from 'adm-zip'
+import yauzl from 'yauzl'
 import EventEmitter from '../utils/events.js'
 import { FilesManagerEvents } from '../../types/events.js'
 import Java from '../java/java.js'
@@ -273,56 +274,75 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
       await fs.mkdir(nativesFolder, { recursive: true })
     }
 
-    const promises = natives.map(async (native) => {
-      if (!existsSync(path_.join(this.config.root, native.path, native.name))) return
+    const promises = natives.map((native) => {
+      return new Promise<void>((resolve, reject) => {
+        const zipPath = path_.join(this.config.root, native.path, native.name)
+        if (!existsSync(zipPath)) return resolve()
 
-      try {
-        const zip = new AdmZip(path_.join(this.config.root, native.path, native.name))
-        const promisesInner = zip.getEntries().map(async (entry) => {
-          if (!entry.entryName.startsWith('META-INF')) {
-            const entryName = entry.entryName.replace(/\\/g, '/').replace(/^\/+/, '')
+        yauzl.open(zipPath, { lazyEntries: true }, (err, zipfile) => {
+          if (err || !zipfile) {
+            return reject(new EMLLibError(ErrorType.FILE_ERROR, `Failed to open ${native.name}`))
+          }
 
-            if (!entryName || entryName.includes('..') || path_.isAbsolute(entryName)) {
-              console.warn(`[Security] Skipped unsafe native extraction: ${entry.entryName}`)
-              return
+          zipfile.readEntry()
+          zipfile.on('entry', (entry: yauzl.Entry) => {
+            if (entry.fileName.startsWith('META-INF')) {
+              return zipfile.readEntry()
             }
 
+            const entryName = entry.fileName.replace(/\\/g, '/').replace(/^\/+/, '')
             const entryPath = path_.resolve(nativesFolder, entryName)
             const relative = path_.relative(nativesFolder, entryPath)
             const isSafe = relative && !relative.startsWith('..') && !path_.isAbsolute(relative)
 
-            if (!isSafe) {
-              console.warn(`[Security] Skipped unsafe native extraction: ${entry.entryName}`)
-              return
+            if (!isSafe || !entryName) {
+              console.warn(`[Security] Skipped unsafe native extraction: ${entry.fileName}`)
+              return zipfile.readEntry()
             }
 
-            if (entry.isDirectory && !existsSync(entryPath)) {
-              await fs.mkdir(entryPath, { recursive: true })
-            } else {
-              const parentDir = path_.dirname(entryPath)
-              if (!existsSync(parentDir)) await fs.mkdir(parentDir, { recursive: true })
-
-              const data = zip.readFile(entry)
-              if (data) await fs.writeFile(entryPath, data)
-            }
-
-            files.push({
+            const tmpFile = {
               name: path_.basename(entryName),
               path: path_.join('bin', 'natives', path_.dirname(entryName), '/'),
               url: '',
               sha1: '',
-              size: entry.header.size,
-              type: entry.isDirectory ? 'FOLDER' : 'NATIVE'
-            })
-          }
+              size: entry.uncompressedSize
+            }
+
+            if (entry.fileName.endsWith('/')) {
+              files.push({ ...tmpFile, type: 'FOLDER' })
+              fs.mkdir(entryPath, { recursive: true })
+                .then(() => zipfile.readEntry())
+                .catch(reject)
+            } else {
+              fs.mkdir(path_.dirname(entryPath), { recursive: true })
+                .then(() => {
+                  zipfile.openReadStream(entry, (err, readStream) => {
+                    if (err || !readStream) {
+                      return reject(new EMLLibError(ErrorType.FILE_ERROR, `Failed to open read stream for ${entry.fileName}`))
+                    }
+
+                    const writeStream = createWriteStream(entryPath)
+                    readStream.pipe(writeStream)
+
+                    writeStream.on('close', () => {
+                      files.push({ ...tmpFile, type: 'NATIVE' })
+                      zipfile.readEntry()
+                    })
+                    writeStream.on('error', reject)
+                    readStream.on('error', reject)
+                  })
+                })
+                .catch(reject)
+            }
+          })
+
+          zipfile.on('end', () => {
+            this.emit('extract_progress', { filename: native.name })
+            resolve()
+          })
+          zipfile.on('error', reject)
         })
-
-        await Promise.all(promisesInner)
-      } catch (err) {
-        throw new EMLLibError(ErrorType.FILE_ERROR, `Failed to extract natives from ${native.name}: ${err instanceof Error ? err.message : err}`)
-      }
-
-      this.emit('extract_progress', { filename: native.name })
+      })
     })
 
     await Promise.all(promises)
@@ -355,7 +375,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
           await fs.mkdir(path_.join(this.config.root, assetLegacyPath), { recursive: true })
         }
 
-        if (!existsSync(path_.join(assetLegacyPath, assetLegacyName))) {
+        if (!existsSync(path_.join(this.config.root, assetLegacyPath, assetLegacyName))) {
           await fs.copyFile(
             path_.join(this.config.root, 'assets', 'objects', hash.substring(0, 2), hash),
             path_.join(this.config.root, assetLegacyPath, assetLegacyName)

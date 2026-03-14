@@ -48,11 +48,15 @@ class Utils {
    * Get the current architecture Minecraft-code.
    * @returns The architecture (`'x64'` or `'x86'`).
    */
-  getArch_MCCode(): 'x64' | 'x86' {
-    if (process.arch.includes('x')) return 'x86'
-    return 'x64'
+  getArch_MCCode() {
+    if (process.arch === 'x64' || process.arch === 'arm64') return 'x64'
+    return 'x86'
   }
 
+  /**
+   * Get the current operating system version.
+   * @returns The operating system version (e.g. `10.0.19042`).
+   */
   getOSVersion(): string {
     return os.release()
   }
@@ -206,7 +210,7 @@ class Utils {
    * `refVersion`, `null` if the versions are the same.
    */
   isNewer(ref: ExtraFile, check: ExtraFile): boolean | null {
-    if (ref.sha1 === check.sha1) return null // Identiques
+    if (ref.sha1 === check.sha1) return null
 
     const normalize = (p: string) => p.replace(/\\/g, '/').replace(/\/$/, '')
     const refArtifact = path_.dirname(normalize(ref.path))
@@ -237,4 +241,5 @@ class Utils {
 }
 
 export default new Utils()
+
 

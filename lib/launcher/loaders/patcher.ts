@@ -3,7 +3,7 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
-import AdmZip from 'adm-zip'
+import yauzl from 'yauzl'
 import { FullConfig } from '../../../types/config.js'
 import { ILoader, File } from '../../../types/file.js'
 import { MinecraftManifest } from '../../../types/manifest.js'
@@ -53,7 +53,7 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
       const classpath = (processor.classpath as string[]).map(
         (cp) => `"${path_.join(this.config.root, 'libraries', utils.getLibraryPath(cp), utils.getLibraryName(cp))}"`
       )
-      const mainClass = this.getJarMain(jarExtractPathName)!
+      const mainClass = await this.getJarMain(jarExtractPathName)
 
       if (!mainClass) {
         console.warn(`[Patcher] Could not find Main-Class for processor ${processor.jar}`)
@@ -61,7 +61,6 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
       }
 
       await new Promise((resolve) => {
-        // console.debug(args.join(', '))
         const patch = spawn(
           `"${this.config.java.absolutePath.replace('${X}', this.manifest.javaVersion?.majorVersion + '' || '8')}"`,
           ['-Xmx2G', '-classpath', [`"${jarExtractPathName}"`, ...classpath].join(path_.delimiter), mainClass, ...args],
@@ -129,16 +128,44 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
     return { patched, files }
   }
 
-  private getJarMain(jarPath: string) {
-    if (!existsSync(jarPath)) return null
-    try {
-      const manifest = new AdmZip(jarPath).getEntry('META-INF/MANIFEST.MF')?.getData()
-      if (!manifest) return null
-      return manifest.toString('utf8').split('Main-Class: ')[1].split('\r\n')[0]
-    } catch (err) {
-      console.warn(`Failed to read manifest from ${jarPath}:`, err)
-      return null
-    }
+  private async getJarMain(jarPath: string) {
+    return new Promise<string | null>((resolve) => {
+      if (!existsSync(jarPath)) return resolve(null)
+
+      yauzl.open(jarPath, { lazyEntries: true }, (err, zipfile) => {
+        if (err || !zipfile) return resolve(null)
+
+        zipfile.readEntry()
+        zipfile.on('entry', (entry: yauzl.Entry) => {
+          if (entry.fileName === 'META-INF/MANIFEST.MF') {
+            zipfile.openReadStream(entry, (err, readStream) => {
+              if (err || !readStream) {
+                zipfile.close()
+                return resolve(null)
+              }
+
+              let data = ''
+              readStream.on('data', (chunk: Buffer) => (data += chunk.toString('utf8')))
+              readStream.on('end', () => {
+                zipfile.close()
+
+                try {
+                  const mainClass = data.split('Main-Class: ')[1].split(/\r?\n/)[0].trim()
+                  resolve(mainClass)
+                } catch {
+                  resolve(null)
+                }
+              })
+            })
+          } else {
+            zipfile.readEntry()
+          }
+        })
+
+        zipfile.on('end', () => resolve(null))
+        zipfile.on('error', () => resolve(null))
+      })
+    })
   }
 
   private mapArg(arg: string) {
@@ -180,10 +207,10 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
         utils.getLibraryPath(arg.replace(/[\[\]]/g, '')),
         utils.getLibraryName(arg.replace(/[\[\]]/g, ''))
       )}"`
-      // console.log('    MAPPED:', result)
       return result
     }
-    // console.log('NOT MAPPED:', arg)
     return arg
   }
 }
+
+

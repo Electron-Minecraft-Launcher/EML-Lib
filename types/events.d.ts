@@ -26,7 +26,7 @@ export interface LauncherEvents {
   launch_clean: []
   launch_launch: [{ version: string; type: 'VANILLA' | 'FORGE' |'NEOFORGE' | 'FABRIC' | 'QUILT'; loaderVersion: string | null }]
   launch_data: [string]
-  launch_close: [number]
+  launch_close: [number | null]
   launch_debug: [string]
 }
 

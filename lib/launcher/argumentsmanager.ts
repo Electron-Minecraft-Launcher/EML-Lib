@@ -51,7 +51,7 @@ export default class ArgumentsManager {
     const libraryDirectory = path_.join(this.config.root, 'libraries').replaceAll('\\', '/')
     const classpath = this.getClasspath(libraries)
 
-    let args: string[] = this.config.java?.args || []
+    let args = [...(this.config.java?.args || [])]
 
     if (customAuth) {
       args.push('-Djava.net.preferIPv4Stack=true')
@@ -59,7 +59,7 @@ export default class ArgumentsManager {
     }
 
     if (this.manifest.arguments?.jvm) {
-      ;[...this.manifest.arguments.jvm, ...(this.loaderManifest?.arguments!.jvm || [])].forEach((arg) => {
+      ;[...this.manifest.arguments.jvm, ...(this.loaderManifest?.arguments?.jvm || [])].forEach((arg) => {
         if (typeof arg === 'string') {
           args.push(arg)
         } else if (arg.rules && utils.isArgAllowed(arg)) {
@@ -77,7 +77,10 @@ export default class ArgumentsManager {
       args.push('-Dminecraft.client.jar=${jar_path}')
       args.push('-cp')
       args.push('${classpath}')
-      if (utils.getOS() === 'win' && +utils.getOSVersion().split('.')[0] >= 10) args.push('-Dos.name=Windows 10 -Dos.version=10.0')
+      if (utils.getOS() === 'win' && +utils.getOSVersion().split('.')[0] >= 10) {
+        args.push('-Dos.name=Windows 10')
+        args.push('-Dos.version=10.0')
+      }
       if (utils.getOS() === 'win') args.push('-XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump')
       if (utils.getOS() === 'mac') args.push('-XstartOnFirstThread')
       if (utils.getArch() === '32') args.push('-Xss1M')
@@ -125,13 +128,13 @@ export default class ArgumentsManager {
     const gameDirectory = path_.join(this.config.root).replaceAll('\\', '/')
     const assetsDirectory =
       this.manifest.assets === 'legacy' || this.manifest.assets === 'pre-1.6'
-        ? path_.join(this.config.root, 'ressources').replaceAll('\\', '/')
+        ? path_.join(this.config.root, 'resources').replaceAll('\\', '/')
         : path_.join(this.config.root, 'assets').replaceAll('\\', '/')
 
-    let args: string[] = this.config.minecraft?.args || []
+    let args = [...(this.config.minecraft?.args || [])]
 
     if (this.manifest.arguments?.game) {
-      ;[...this.manifest.arguments.game, ...(this.loaderManifest?.arguments!.game || [])].forEach((arg) => {
+      ;[...this.manifest.arguments.game, ...(this.loaderManifest?.arguments?.game || [])].forEach((arg) => {
         if (typeof arg === 'string') {
           args.push(arg)
         } else if (arg.rules && utils.isArgAllowed(arg)) {
@@ -155,7 +158,25 @@ export default class ArgumentsManager {
       args.push('${resolution_height}')
     }
 
-    return [...new Set(args)].map(
+    const deduped: string[] = []
+    const seen = new Set<string>()
+    for (let i = 0; i < args.length; i++) {
+      const arg = args[i]
+      const next = args[i + 1]
+      const isFlag = arg.startsWith('--') || arg.startsWith('-D')
+      const key = isFlag && next && !next.startsWith('-') ? `${arg}=${next}` : arg
+
+      if (!seen.has(key)) {
+        seen.add(key)
+        deduped.push(arg)
+        if (isFlag && next && !next.startsWith('-')) {
+          deduped.push(next)
+          i++
+        }
+      }
+    }
+
+    return deduped.map(
       (arg) =>
         arg
           .replaceAll('${clientid}', this.config.account.clientToken || this.config.account.accessToken)
@@ -214,4 +235,5 @@ export default class ArgumentsManager {
     return this.loaderManifest?.mainClass ?? this.manifest.mainClass
   }
 }
+
 
