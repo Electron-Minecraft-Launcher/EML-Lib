@@ -77,7 +77,7 @@ Please refer to the [docs](https://emlproject.pages.dev/docs/set-up-environment)
 | Others                     | Not officially | -                          |
 
 > [!WARNING]
-> Mac with Apple Silicon (M1, M2, etc.) is supported only for Minecraft 1.19 and above.
+> Mac with Apple Silicon (M1, M2, etc.) is supported only for Minecraft 1.13 and above.
 
 > [!WARNING]
 > No support will be provided for older versions of Windows, macOS and Linux, or for other operating systems.
@@ -87,7 +87,7 @@ Please refer to the [docs](https://emlproject.pages.dev/docs/set-up-environment)
 The library has been tested on Windows 11 and macOS Tahoe (M3) with Node.js 22, on multiple Minecraft versions, from 1.0 to the Minecraft 26.1-snapshot, and with multiple loaders (Vanilla, Forge, NeoForge, Fabric and Quilt).
 
 > [!WARNING]
-> Mac with Apple Silicon (M1, M2, etc.) is supported only for Minecraft 1.19 and above.
+> Mac with Apple Silicon (M1, M2, etc.) is supported only for Minecraft 1.13 and above.
 
 > [!WARNING]
 > Forge is supported only for Minecraft 1.6 and above.
