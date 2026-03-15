@@ -147,6 +147,7 @@ class Manifests {
     if (platform !== 'win32' && platform !== 'darwin' && platform !== 'linux') {
       throw new EMLLibError(ErrorType.UNKNOWN_OS, `Unsupported platform: ${platform}`)
     }
+
     if (
       (platform === 'win32' && arch !== 'x64' && arch !== 'ia32' && arch !== 'arm64') ||
       (platform === 'darwin' && arch !== 'x64' && arch !== 'arm64') ||
@@ -164,16 +165,23 @@ class Manifests {
       }
       const data = await req.json()
 
-      if (data[archMapping[platform][arch]][javaVersion][0]?.manifest) {
-        return data[archMapping[platform][arch]][javaVersion][0].manifest.url as string
+      let archKey = archMapping[platform][arch]
+      if (platform === 'darwin' && arch === 'arm64') {
+        const arm64Entries = data[archKey]?.[javaVersion]
+        if (!arm64Entries || arm64Entries.length === 0) {
+          archKey = 'mac-os'
+        }
       }
 
-      const fallbackJavaVersion = Object.keys(data[archMapping[platform][arch]]).find(
-        (version) => data[archMapping[platform][arch]][version][0]?.version.name.split('.')[0] === jreV
-      )
+      if (data[archKey][javaVersion][0]?.manifest) {
+        console.log(javaVersion)
+        return data[archKey][javaVersion][0].manifest.url as string
+      }
+
+      const fallbackJavaVersion = Object.keys(data[archKey]).find((version) => data[archKey][version][0]?.version.name.split('.')[0] === jreV)
 
       if (fallbackJavaVersion) {
-        return data[archMapping[platform][arch]][fallbackJavaVersion][0].manifest.url as string
+        return data[archKey][fallbackJavaVersion][0].manifest.url as string
       }
 
       throw new EMLLibError(ErrorType.JAVA_ERROR, `Java version ${javaVersion} not found in manifest`)
