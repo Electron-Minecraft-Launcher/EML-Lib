@@ -192,6 +192,7 @@ export default class Launcher extends EventEmitter<
   private async run(javaPath: string, args: string[]) {
     return new Promise<void>((resolve, reject) => {
       const minecraft = spawn(javaPath, args, { cwd: this.config.root, detached: true })
+      minecraft.unref()
       minecraft.stdout.on('data', (data: Buffer) => this.emit('launch_data', data.toString('utf8').replace(/\n$/, '')))
       minecraft.stderr.on('data', (data: Buffer) => this.emit('launch_data', data.toString('utf8').replace(/\n$/, '')))
       minecraft.on('error', reject)

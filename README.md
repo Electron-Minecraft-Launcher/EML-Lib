@@ -4,7 +4,7 @@
 
 [<img src="https://img.shields.io/badge/Discord-EML-5561e6?&style=for-the-badge">](https://discord.gg/YVB4k6HzAY)
 [<img src="https://img.shields.io/badge/platforms-Windows%2C%20macOS%2C%20Linux-0077DA?style=for-the-badge&color=0077DA">](#platforms)
-[<img src="https://img.shields.io/badge/version-2.0.1-orangered?style=for-the-badge&color=orangered">](package.json)
+[<img src="https://img.shields.io/badge/version-2.0.2-orangered?style=for-the-badge&color=orangered">](package.json)
 
 <p>
 <center>
@@ -77,7 +77,7 @@ Please refer to the [docs](https://emlproject.pages.dev/docs/set-up-environment)
 | Others                     | Not officially | -                          |
 
 > [!WARNING]
-> Mac with Apple Silicon (M1, M2, etc.) is supported only for Minecraft 1.19 and above.
+> Mac with Apple Silicon (M1, M2, etc.) is supported only for Minecraft 1.13 and above.
 
 > [!WARNING]
 > No support will be provided for older versions of Windows, macOS and Linux, or for other operating systems.
@@ -87,7 +87,7 @@ Please refer to the [docs](https://emlproject.pages.dev/docs/set-up-environment)
 The library has been tested on Windows 11 and macOS Tahoe (M3) with Node.js 22, on multiple Minecraft versions, from 1.0 to the Minecraft 26.1-snapshot, and with multiple loaders (Vanilla, Forge, NeoForge, Fabric and Quilt).
 
 > [!WARNING]
-> Mac with Apple Silicon (M1, M2, etc.) is supported only for Minecraft 1.19 and above.
+> Mac with Apple Silicon (M1, M2, etc.) is supported only for Minecraft 1.13 and above.
 
 > [!WARNING]
 > Forge is supported only for Minecraft 1.6 and above.
