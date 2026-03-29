@@ -10,6 +10,7 @@ import os from 'node:os'
 import { createHash } from 'node:crypto'
 import { pipeline } from 'node:stream/promises'
 import { ExtraFile } from '../../types/file.js'
+import { Config, FullConfig } from '../../types/config.js'
 
 class Utils {
   /**
@@ -74,6 +75,19 @@ class Utils {
   }
 
   /**
+   * Get the path to the root folder.
+   * @param serverId Your Minecraft server ID (e.g. `'minecraft'`).
+   * @returns The path to the root folder (e.g. `'C:\Users\user\AppData\Roaming\.minecraft'`).
+   */
+  getRootFolder(config: (Config | FullConfig) & { root: string }): string {
+    if (config.profile && config.storageMode === 'isolated') {
+      const slug = this.sanitizeSlug(config.profile.slug)
+      return path_.join(this.getServerFolder(config.root), slug)
+    }
+    return this.getServerFolder(config.root)
+  }
+
+  /**
    * Get the path to the server folder.
    * @param serverId Your Minecraft server ID (e.g. `'minecraft'`).
    * @returns The path to the server folder (e.g. `'C:\Users\user\AppData\Roaming\.minecraft'`).
@@ -82,6 +96,18 @@ class Utils {
     serverId = serverId.replace(/[^a-z0-9]/gi, '_').toLowerCase()
     serverId = this.getOS() === 'mac' ? serverId : `.${serverId}`
     return path_.join(this.getAppDataFolder(), serverId)
+  }
+
+  /**
+   * Sanitize a slug (e.g. a profile slug) by replacing spaces with dashes and removing special characters.
+   * @param slug The slug to sanitize.
+   * @returns The sanitized slug (e.g. `'my-profile'`).
+   */
+  sanitizeSlug(slug: string): string {
+    return slug
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9\-]/g, '')
   }
 
   /**
@@ -241,5 +267,4 @@ class Utils {
 }
 
 export default new Utils()
-
 

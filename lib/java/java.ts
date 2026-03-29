@@ -16,7 +16,7 @@ import { MinecraftManifest } from '../../types/manifest.js'
 
 export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
   private readonly minecraftVersion: string | null
-  private readonly serverId: string
+  private readonly root: string
   private readonly url?: string
 
   /**
@@ -28,16 +28,16 @@ export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
    * `null` to get the version from the EML AdminTool. Set to `latest_release` to get the latest
    * release version of Minecraft. Set to `latest_snapshot` to get the latest snapshot version of
    * Minecraft.
-   * @param serverId Your Minecraft server ID (e.g. `'minecraft'`). This will be used to
-   * create the server folder (e.g. `.minecraft`). Java will be installed in the `runtime/jre-X`
-   * folder, where `X` is the major version of Java. If you don't want to install Java in the
-   * game folder, you must install Java by yourself.
+   * @param root The name of the game folder, **without the dot** (e.g. `'minecraft'`). This will 
+   * be used to create the server folder (e.g. `.minecraft`). Java will be installed in the 
+   * `runtime/jre-X` folder, where `X` is the major version of Java. If you don't want to install 
+   * Java in the game folder, you must install Java by yourself.
    * @param url The URL of the EML AdminTool website, to get the version from the EML AdminTool.
    */
-  constructor(minecraftVersion: string | null, serverId: string, url?: string) {
+  constructor(minecraftVersion: string | null, root: string, url?: string) {
     super()
     this.minecraftVersion = minecraftVersion
-    this.serverId = serverId
+    this.root = root
     this.url = url
   }
 
@@ -96,7 +96,7 @@ export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
   async download(): Promise<void> {
     const files = await this.getFiles()
 
-    const downloader = new Downloader(utils.getServerFolder(this.serverId))
+    const downloader = new Downloader(utils.getServerFolder(this.root))
     downloader.forwardEvents(this)
 
     await downloader.download(files)
@@ -104,14 +104,14 @@ export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
 
   /**
    * Check if Java is correctly installed.
-   * @param absolutePath [Optional: default is `path.join(utils.getServerFolder(this.serverId), 'runtime',
+   * @param absolutePath [Optional: default is `path.join(utils.getServerFolder(this.root), 'runtime',
    * 'jre-${X}', 'bin', 'java')`] Absolute path to the Java executable. You can use `${X}` to replace it
    * with the major version of Java.
    * @param majorVersion [Optional: default is `8`] Major version of Java to check.
    * @returns The version and architecture of Java.
    */
   async check(
-    absolutePath: string = path_.join(utils.getServerFolder(this.serverId), 'runtime', 'jre-${X}', 'bin', 'java'),
+    absolutePath: string = path_.join(utils.getServerFolder(this.root), 'runtime', 'jre-${X}', 'bin', 'java'),
     majorVersion: number = 8
   ): Promise<{ version: string; arch: '64-bit' | '32-bit' }> {
     return new Promise((resolve, reject) => {
@@ -161,4 +161,5 @@ export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
     return path_.join('runtime', `jre-${jreV}`, path_.dirname(filePath), '/')
   }
 }
+
 

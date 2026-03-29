@@ -47,7 +47,7 @@ export default class ArgumentsManager {
   }
 
   private getJvmArgs(libraries: ExtraFile[], customAuth?: { injectorPath: string; authServerUrl: string }) {
-    const nativeDirectory = path_.join(this.config.root, 'bin', 'natives').replaceAll('\\', '/')
+    const nativeDirectory = path_.join(this.config.root, 'bin', this.manifest.id).replaceAll('\\', '/')
     const libraryDirectory = path_.join(this.config.root, 'libraries').replaceAll('\\', '/')
     const classpath = this.getClasspath(libraries)
 
@@ -95,7 +95,7 @@ export default class ArgumentsManager {
       arg
         .replaceAll('${natives_directory}', nativeDirectory)
         .replaceAll('${library_directory}', libraryDirectory)
-        .replaceAll('${launcher_name}', `${this.config.serverId}-launcher`)
+        .replaceAll('${launcher_name}', `${this.config.root}-launcher`)
         .replaceAll('${launcher_version}', '2')
         .replaceAll('${version_name}', this.manifest.id)
         .replaceAll('${jar_path}', path_.join(this.config.root, 'versions', this.manifest.id, `${this.manifest.id}.jar`).replaceAll('\\', '/'))
@@ -125,7 +125,8 @@ export default class ArgumentsManager {
   }
 
   private getMinecraftArgs(): string[] {
-    const gameDirectory = path_.join(this.config.root).replaceAll('\\', '/')
+    const slug = utils.sanitizeSlug(this.config.storageMode === 'shared' && this.config.profile ? this.config.profile.slug : '')
+    const gameDirectory = path_.join(this.config.root, slug).replaceAll('\\', '/')
     const assetsDirectory =
       this.manifest.assets === 'legacy' || this.manifest.assets === 'pre-1.6'
         ? path_.join(this.config.root, 'resources').replaceAll('\\', '/')

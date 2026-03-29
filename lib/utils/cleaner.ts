@@ -12,7 +12,6 @@ import { File } from '../../types/file.js'
 
 export default class Cleaner extends EventEmitter<CleanerEvents> {
   private readonly dest: string = ''
-  // private browsed: { name: string; path: string }[] = []
 
   /**
    * @param dest Destination folder.
@@ -31,19 +30,17 @@ export default class Cleaner extends EventEmitter<CleanerEvents> {
   async clean(files: File[], ignore: string[] = [], skipClean: boolean = false): Promise<void> {
     if (skipClean) return
 
-    const validFilesSet = new Set(files.map((f) => path_.normalize(path_.join(this.dest, f.path, f.name))))
-    const ignoredPaths = ignore.map((ig) => path_.normalize(path_.join(this.dest, ig)))
+    const validFilesSet = new Set(files.map((f) => path_.resolve('/', this.dest, f.path, f.name).replace(/\\/g, '/')))
+    const ignoredPaths = ignore.map((ig) => path_.resolve(this.dest, ig))
     const deletePromises: Promise<void>[] = []
     let i = 0
 
     const browsed: { name: string; path: string }[] = []
     await this.browse(this.dest, browsed)
-
     for (const file of browsed) {
-      const fullPath = path_.normalize(path_.join(file.path, file.name))
+      const fullPath = path_.resolve('/', file.path, file.name).replace(/\\/g, '/')
       const isFileValid = validFilesSet.has(fullPath)
       const isIgnored = ignoredPaths.some((ig) => fullPath.startsWith(ig))
-
       if (!isFileValid && !isIgnored) {
         deletePromises.push(
           fs
@@ -88,6 +85,5 @@ export default class Cleaner extends EventEmitter<CleanerEvents> {
     await Promise.all(promises)
   }
 }
-
 
 
