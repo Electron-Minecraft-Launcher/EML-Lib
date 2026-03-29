@@ -28,9 +28,13 @@ async function mainWithElectron() {
 }
 
 async function main() {
+  const profiles = await new EMLLib.Profiles('http://localhost:5173').getProfiles()
+  const dp = profiles.find((p) => p.slug === 'mineplex')!
   const launcher = new EMLLib.Launcher({
     url: 'http://localhost:5173',
-    serverId: 'goldfrite',
+    profile: dp,
+    storageMode: 'shared',
+    root: 'goldfrite',
     account: new EMLLib.CrackAuth().auth('Goldfrite'),
     cleaning: {
       clean: true
@@ -83,8 +87,11 @@ async function main() {
 }
 
 async function featureTest() {
-  const status = await new EMLLib.ServerStatus('play.vanillahaven.net', 25565, 'beta1.8-1.3').getStatus()
-  console.log(status)
+  const profiles = await new EMLLib.Profiles('http://localhost:5173').getProfiles()
+  const background = await new EMLLib.Background('http://localhost:5173').getBackground()
+
+  console.log(background)
+  console.log(profiles)
 }
 
 main()

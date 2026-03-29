@@ -14,6 +14,7 @@ import Background from './lib/background/background.js'
 import ServerStatus from './lib/serverstatus/serverstatus.js'
 import Java from './lib/java/java.js'
 import Launcher from './lib/launcher/launcher.js'
+import Profile from './lib/profiles/profiles.js'
 
 export type * from './types/account.js'
 export type * from './types/background.js'
@@ -82,6 +83,13 @@ export { News }
  * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
  */
 export { Background }
+
+/**
+ * Get the profiles from the EML AdminTool.
+ *
+ * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
+ */
+export { Profile }
 
 /**
  * Get the status of a Minecraft server.
@@ -188,6 +196,13 @@ const EMLLib = {
    * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    */
   Background,
+
+  /**
+   * Get the profiles from the EML AdminTool.
+   *
+   * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
+   */
+  Profiles: Profile,
 
   /**
    * Get the status of a Minecraft server.

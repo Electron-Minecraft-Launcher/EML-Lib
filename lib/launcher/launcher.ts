@@ -16,6 +16,7 @@ import Java from '../java/java.js'
 import LoaderManager from './loadermanager.js'
 import ArgumentsManager from './argumentsmanager.js'
 import { spawn } from 'node:child_process'
+import { EMLLibError, ErrorType } from '../../types/errors.js'
 
 export default class Launcher extends EventEmitter<
   LauncherEvents & DownloaderEvents & CleanerEvents & FilesManagerEvents & JavaEvents & PatcherEvents
@@ -29,10 +30,16 @@ export default class Launcher extends EventEmitter<
   constructor(config: Config) {
     super()
 
+    if (config.profile && (!config.profile.slug || config.profile.slug === '' || config.profile.slug !== utils.sanitizeSlug(config.profile.slug))) {
+      throw new EMLLibError(
+        ErrorType.CONFIG_ERROR,
+        'Invalid profile slug. The slug must be a non-empty string and must be URL-friendly (lowercase, no spaces, no special characters).'
+      )
+    }
+
     config.cleaning = {
-      clean: config.cleaning?.clean === true,
+      enabled: config.cleaning?.enabled ?? config.cleaning?.clean ?? true,
       ignored: config.cleaning?.ignored || [
-        'runtime/',
         'crash-reports/',
         'logs/',
         'resourcepacks/',
@@ -47,37 +54,46 @@ export default class Launcher extends EventEmitter<
       version: config.minecraft?.version ? config.minecraft?.version : config.url ? null : 'latest_release',
       args: config.minecraft?.args || []
     }
+    config.storageMode = config.storageMode === 'shared' ? 'shared' : 'isolated'
+    config.root = config.root || config.serverId // backwards compatibility
+    if (!config.root) throw new EMLLibError(ErrorType.CONFIG_ERROR, 'You must provide a root in the config to set the game folder.')
     config.java = {
-      install: config.java?.install || 'auto',
+      install: config.java?.install === 'manual' ? 'manual' : 'auto',
       absolutePath: config.java?.absolutePath
         ? config.java.absolutePath
         : config.java?.relativePath
-          ? path_.join(utils.getServerFolder(config.serverId), config.java.relativePath, '/')
-          : path_.join(utils.getServerFolder(config.serverId), 'runtime', 'jre-${X}', 'bin', 'java'),
+          ? path_.join(utils.getRootFolder(config as Config & { root: string }), config.java.relativePath, '/')
+          : path_.join(utils.getRootFolder(config as Config & { root: string }), 'runtime', 'jre-${X}', 'bin', 'java'),
       args: config.java?.args || []
     }
     config.window = {
-      width: config.window?.width || 854,
-      height: config.window?.height || 480,
-      fullscreen: config.window?.fullscreen || false
+      width: Number(config.window?.width) || 854,
+      height: Number(config.window?.height) || 480,
+      fullscreen: config.window?.fullscreen ? true : false
     }
     config.memory = {
-      min: config.memory?.min || 512,
-      max: config.memory?.max && config.memory.max > (config.memory.min || 512) ? config.memory.max : 1023
+      min: Number(config.memory?.min) || 512,
+      max: config.memory?.max && Number(config.memory?.max) > (Number(config.memory.min) || 512) ? Number(config.memory.max) : 1023
     }
 
-    this.config = { ...(config as FullConfig), root: utils.getServerFolder(config.serverId) }
+    this.config = { ...(config as FullConfig), root: utils.getRootFolder(config as Config & { root: string }) }
+
+    if (this.config.storageMode === 'shared' && this.config.cleaning.enabled) {
+      console.warn(
+        'Warning: You are using shared storage mode with cleaning enabled. This may cause issues as the launcher will delete shared assets and libraries when launching different profiles. It is recommended to disable cleaning when using shared storage mode.'
+      )
+    }
   }
 
   /**
    * Launch Minecraft.
    *
-   * This method will patch the [Log4j vulnerability](https://help.minecraft.net/hc/en-us/articles/4416199399693-Security-Vulnerability-in-Minecraft-Java-Edition).
+   * _This method will patch the [Log4j vulnerability](https://help.minecraft.net/hc/en-us/articles/4416199399693-Security-Vulnerability-in-Minecraft-Java-Edition)._
    */
   async launch(): Promise<void> {
     //* Init launch
-    const manifest = await manifests.getMinecraftManifest(this.config.minecraft.version, this.config.url)
-    const loader = await manifests.getLoaderInfo(this.config.minecraft.version, this.config.url)
+    const manifest = await manifests.getMinecraftManifest(this.config.minecraft.version, this.config.url, this.config.profile)
+    const loader = await manifests.getLoaderInfo(this.config.minecraft.version, this.config.url, this.config.profile)
     this.config.minecraft.version = manifest.id
 
     const filesManager = new FilesManager(this.config, manifest, loader)
@@ -85,7 +101,7 @@ export default class Launcher extends EventEmitter<
     const argumentsManager = new ArgumentsManager(this.config, manifest)
     const downloader = new Downloader(this.config.root)
     const cleaner = new Cleaner(this.config.root)
-    const java = new Java(manifest.id, this.config.serverId)
+    const java = new Java(manifest.id, this.config.root)
 
     filesManager.forwardEvents(this)
     loaderManager.forwardEvents(this)
@@ -169,7 +185,7 @@ export default class Launcher extends EventEmitter<
       ...loaderFiles.files,
       ...patchedFiles.files
     ]
-    await cleaner.clean(files, this.config.cleaning.ignored, !this.config.cleaning.clean)
+    await cleaner.clean(files, this.config.cleaning.ignored, !this.config.cleaning.enabled)
 
     //* Launch
     this.emit('launch_launch', { version: manifest.id, type: loader.type, loaderVersion: loader.loaderVersion })
@@ -203,5 +219,4 @@ export default class Launcher extends EventEmitter<
     })
   }
 }
-
 

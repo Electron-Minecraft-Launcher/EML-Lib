@@ -31,7 +31,8 @@ export const ErrorType = {
   EXEC_ERROR: 'EXEC_ERROR',
   JAVA_ERROR: 'JAVA_ERROR',
   PATCHER_ERROR: 'PATCHER_ERROR',
-  MINECRAFT_ERROR: 'MINECRAFT_ERROR'
+  MINECRAFT_ERROR: 'MINECRAFT_ERROR',
+  CONFIG_ERROR: 'CONFIG_ERROR'
 } as const
 
 export type ErrorCode =
@@ -50,4 +51,5 @@ export type ErrorCode =
   | typeof ErrorType.JAVA_ERROR
   | typeof ErrorType.PATCHER_ERROR
   | typeof ErrorType.MINECRAFT_ERROR
+  | typeof ErrorType.CONFIG_ERROR
 
