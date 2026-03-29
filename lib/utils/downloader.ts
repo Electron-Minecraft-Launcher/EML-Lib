@@ -79,6 +79,12 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
 
     const promises = files.map(async (file) => {
       const filePath = path_.join(this.dest, file.path, file.name)
+      const relative = path_.relative(this.dest, filePath)
+      const isSafe = relative && !relative.startsWith('..') && !path_.isAbsolute(relative)
+      if (!isSafe) {
+        this.emit('download_error', { filename: file.name, type: file.type, message: 'Unsafe file path detected, skipping.' })
+        return
+      }
 
       if (file.type === 'FOLDER') {
         try {
@@ -208,4 +214,5 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
     }
   }
 }
+
 

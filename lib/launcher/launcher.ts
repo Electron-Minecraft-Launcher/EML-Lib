@@ -30,6 +30,13 @@ export default class Launcher extends EventEmitter<
   constructor(config: Config) {
     super()
 
+    if (config.profile && (!config.profile.slug || config.profile.slug === '' || config.profile.slug !== utils.sanitizeSlug(config.profile.slug))) {
+      throw new EMLLibError(
+        ErrorType.CONFIG_ERROR,
+        'Invalid profile slug. The slug must be a non-empty string and must be URL-friendly (lowercase, no spaces, no special characters).'
+      )
+    }
+
     config.cleaning = {
       enabled: config.cleaning?.enabled ?? config.cleaning?.clean ?? true,
       ignored: config.cleaning?.ignored || [
