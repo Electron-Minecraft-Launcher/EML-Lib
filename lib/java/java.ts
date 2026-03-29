@@ -13,7 +13,6 @@ import utils from '../utils/utils.js'
 import { spawn } from 'node:child_process'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
 import { MinecraftManifest } from '../../types/manifest.js'
-import { IProfile } from '../../types/profile.js'
 
 export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
   private readonly minecraftVersion: string | null
