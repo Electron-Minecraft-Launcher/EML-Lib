@@ -7,6 +7,7 @@ import { MinecraftManifest } from './../../types/manifest.js'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
 import { JAVA_RUNTIME_URL, MINECRAFT_MANIFEST_URL } from './consts.js'
 import { ILoader } from '../../types/file.js'
+import { IProfile } from '../../types/profile.js'
 
 type JavaVersion =
   | 'java-runtime-alpha'
@@ -25,12 +26,13 @@ class Manifests {
    * Minecraft.
    * @param url The URL of the EML AdminTool website, to get the loader info from the EML AdminTool.
    */
-  async getLoaderInfo(minecraftVersion: string | null, url?: string): Promise<ILoader> {
+  async getLoaderInfo(minecraftVersion: string | null, url?: string, profile?: IProfile): Promise<ILoader> {
     if (!minecraftVersion && !url) return { type: 'VANILLA', minecraftVersion: 'latest_release', loaderVersion: 'latest_release' } as ILoader
     if (minecraftVersion) return { type: 'VANILLA', minecraftVersion, loaderVersion: minecraftVersion } as ILoader
 
     try {
-      const req = await fetch(`${url}/api/loader`)
+      const slug = profile ? profile.slug : ''
+      const req = await fetch(`${url}/api/loader/${slug}`)
 
       if (!req.ok) {
         const errorText = await req.text()
@@ -54,10 +56,10 @@ class Manifests {
    * @param url The URL of the EML AdminTool website, to get the version from the EML AdminTool.
    * @returns The manifest of the Minecraft version.
    */
-  async getMinecraftManifest(minecraftVersion: string | null = 'latest_release', url?: string): Promise<MinecraftManifest> {
+  async getMinecraftManifest(minecraftVersion: string | null = 'latest_release', url?: string, profile?: IProfile): Promise<MinecraftManifest> {
     try {
       if (!minecraftVersion && url) {
-        minecraftVersion = (await this.getLoaderInfo(null, url)).minecraftVersion
+        minecraftVersion = (await this.getLoaderInfo(null, url, profile)).minecraftVersion
       }
 
       const manifestUrl = await this.getMinecraftManifestUrl(minecraftVersion)
@@ -174,7 +176,6 @@ class Manifests {
       }
 
       if (data[archKey][javaVersion][0]?.manifest) {
-        console.log(javaVersion)
         return data[archKey][javaVersion][0].manifest.url as string
       }
 

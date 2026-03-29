@@ -36,11 +36,11 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
    * (including `java`).
    */
   async getJava(): Promise<{ java: File[]; files: File[] }> {
+    const java = await new Java(this.manifest.id, this.config.root).getFiles(this.manifest)
     if (this.config.java.install === 'auto') {
-      const java = await new Java(this.manifest.id, this.config.serverId).getFiles(this.manifest)
       return { java: java, files: java }
     } else {
-      return { java: [], files: [] }
+      return { java: [], files: java }
     }
   }
 
@@ -53,15 +53,15 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
     if (!this.config.url) return { modpack: [], files: [] }
 
     try {
-      const req = await fetch(`${this.config.url}/api/files-updater`)
+      const slug = this.config.profile ? this.config.profile.slug : ''
+      const req = await fetch(`${this.config.url}/api/files-updater/${slug}`)
 
       if (!req.ok) {
         const errorText = await req.text()
         throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch modpack files: HTTP ${req.status} ${errorText}`)
       }
       const data = await req.json()
-
-      const modpack = data.files as File[]
+      const modpack = this.mapFiles(data.files as File[])
 
       return { modpack: modpack, files: modpack }
     } catch (err: unknown) {
@@ -267,7 +267,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
    */
   async extractNatives(libraries: File[]): Promise<{ files: File[] }> {
     const natives = libraries.filter((lib) => lib.type === 'NATIVE')
-    const nativesFolder = path_.resolve(this.config.root, 'bin', 'natives')
+    const nativesFolder = path_.resolve(this.config.root, 'bin', this.manifest.id)
     let files: File[] = []
 
     if (!existsSync(nativesFolder)) {
@@ -302,7 +302,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
 
             const tmpFile = {
               name: path_.basename(entryName),
-              path: path_.join('bin', 'natives', path_.dirname(entryName), '/'),
+              path: path_.join('bin', this.manifest.id, path_.dirname(entryName), '/'),
               url: '',
               sha1: '',
               size: entry.uncompressedSize
@@ -399,6 +399,19 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
 
     this.emit('copy_end', { amount: files.length })
     return { files }
+  }
+
+  private mapFiles(files: File[]) {
+    const slug = utils.sanitizeSlug(this.config.profile ? this.config.profile.slug : '')
+    if (this.config.storageMode === 'shared') {
+      return files.map((file) => {
+        return {
+          ...file,
+          path: path_.join(slug, file.path)
+        }
+      })
+    }
+    return files
   }
 }
 
