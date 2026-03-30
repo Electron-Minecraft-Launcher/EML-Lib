@@ -26,7 +26,7 @@ export interface Config {
    * `cleaning.enabled: false`) to avoid deleting the shared assets and libraries when launching 
    * different profiles.
    */
-  storageMode?: 'isolated' | 'shared'
+  storageMode?: 'isolated' | 'shared' // TODO: replace with storage instead of storageMode
   /**
    * Your Minecraft server ID (e.g. `'minecraft'`). This will be used to create the
    * server folder (e.g. `.minecraft`).
