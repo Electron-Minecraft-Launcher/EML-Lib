@@ -21,7 +21,10 @@ import { EMLLibError, ErrorType } from '../../types/errors.js'
 export default class Launcher extends EventEmitter<
   LauncherEvents & DownloaderEvents & CleanerEvents & FilesManagerEvents & JavaEvents & PatcherEvents
 > {
-  private readonly config: FullConfig
+  /**
+   * The configuration of the launcher.
+   */
+  readonly config: FullConfig
 
   /**
    * Launch Minecraft.
@@ -30,59 +33,18 @@ export default class Launcher extends EventEmitter<
   constructor(config: Config) {
     super()
 
-    if (config.profile && (!config.profile.slug || config.profile.slug === '' || config.profile.slug !== utils.sanitizeSlug(config.profile.slug))) {
-      throw new EMLLibError(
-        ErrorType.CONFIG_ERROR,
-        'Invalid profile slug. The slug must be a non-empty string and must be URL-friendly (lowercase, no spaces, no special characters).'
-      )
-    }
+    config.url = this.setUrl(config)
+    config.profile = this.setProfile(config)
+    config.storage = this.setStorage(config)
+    config.root = this.setRoot(config)
+    config.minecraft = this.setMinecraft(config)
+    config.cleaning = this.setCleaning(config)
+    config.account = this.setAccount(config)
+    config.java = this.setJava(config)
+    config.window = this.setWindow(config)
+    config.memory = this.setMemory(config)
 
-    config.cleaning = {
-      enabled: config.cleaning?.enabled ?? config.cleaning?.clean ?? true,
-      ignored: config.cleaning?.ignored || [
-        'crash-reports/',
-        'logs/',
-        'resourcepacks/',
-        'resources/',
-        'saves/',
-        'shaderpacks/',
-        'options.txt',
-        'optionsof.txt'
-      ]
-    }
-    config.minecraft = {
-      version: config.minecraft?.version ? config.minecraft?.version : config.url ? null : 'latest_release',
-      args: config.minecraft?.args || []
-    }
-    config.storageMode = config.storageMode === 'shared' ? 'shared' : 'isolated'
-    config.root = config.root || config.serverId // backwards compatibility
-    if (!config.root) throw new EMLLibError(ErrorType.CONFIG_ERROR, 'You must provide a root in the config to set the game folder.')
-    config.java = {
-      install: config.java?.install === 'manual' ? 'manual' : 'auto',
-      absolutePath: config.java?.absolutePath
-        ? config.java.absolutePath
-        : config.java?.relativePath
-          ? path_.join(utils.getRootFolder(config as Config & { root: string }), config.java.relativePath, '/')
-          : path_.join(utils.getRootFolder(config as Config & { root: string }), 'runtime', 'jre-${X}', 'bin', 'java'),
-      args: config.java?.args || []
-    }
-    config.window = {
-      width: Number(config.window?.width) || 854,
-      height: Number(config.window?.height) || 480,
-      fullscreen: config.window?.fullscreen ? true : false
-    }
-    config.memory = {
-      min: Number(config.memory?.min) || 512,
-      max: config.memory?.max && Number(config.memory?.max) > (Number(config.memory.min) || 512) ? Number(config.memory.max) : 1023
-    }
-
-    this.config = { ...(config as FullConfig), root: utils.getRootFolder(config as Config & { root: string }) }
-
-    if (this.config.storageMode === 'shared' && this.config.cleaning.enabled) {
-      console.warn(
-        'Warning: You are using shared storage mode with cleaning enabled. This may cause issues as the launcher will delete shared assets and libraries when launching different profiles. It is recommended to disable cleaning when using shared storage mode.'
-      )
-    }
+    this.config = config as FullConfig
   }
 
   /**
@@ -203,6 +165,195 @@ export default class Launcher extends EventEmitter<
     this.emit('launch_debug', `Launching Minecraft with args: ${blindArgs.join(' ')}`)
 
     await this.run(this.config.java.absolutePath.replace('${X}', manifest.javaVersion?.majorVersion.toString() ?? '8'), args)
+  }
+
+  private setUrl(config: Config) {
+    if (config.minecraft?.version) {
+      return undefined
+    }
+    if (config.url) {
+      return config.url
+    }
+    return undefined
+  }
+
+  private setProfile(config: Config) {
+    if (
+      config.profile &&
+      (!config.profile.slug ||
+        typeof config.profile.slug !== 'string' ||
+        config.profile.slug === '' ||
+        config.profile.slug !== utils.sanitizeSlug(config.profile.slug))
+    ) {
+      console.warn('Warning: Invalid profile. Launching without profile.')
+      return undefined
+    }
+    if (config.profile) {
+      return config.profile
+    }
+    return undefined
+  }
+
+  private setStorage(config: Config) {
+    if (config.storage === 'shared') {
+      return 'shared'
+    }
+    if (config.storage === 'isolated') {
+      return 'isolated'
+    }
+    if (config.storageMode === 'shared') {
+      return 'shared' // backwards compatibility
+    }
+    return 'isolated'
+  }
+
+  private setRoot(config: Config) {
+    if (!config.root && !config.serverId) {
+      throw new EMLLibError(ErrorType.CONFIG_ERROR, 'You must provide a root in the config to set the game folder.')
+    }
+    if (!config.root) {
+      config.root = config.serverId // backwards compatibility
+    }
+    return utils.getRootFolder(config as Config & { root: string })
+  }
+
+  private setMinecraft(config: Config) {
+    let version: string | undefined = undefined
+    let loader: { loader: 'vanilla' | 'forge' | 'neoforge' | 'fabric' | 'quilt'; version: string } | undefined = undefined
+    let modpackUrl: string | undefined = undefined
+    let args: string[] = []
+
+    if (config.minecraft?.version) {
+      version = config.minecraft.version
+    } else if (!config.url) {
+      version = 'latest_release'
+    }
+
+    if (config.minecraft?.args) {
+      args = config.minecraft.args
+    }
+
+    if (version) {
+      if (!config.minecraft?.loader) {
+        loader = { loader: 'vanilla', version: version }
+      } else if (config.minecraft.loader.loader === 'vanilla') {
+        loader = { loader: 'vanilla', version: version }
+      } else if (config.minecraft.loader.version) {
+        loader = { loader: config.minecraft.loader.loader, version: config.minecraft.loader.version }
+      } else {
+        throw new EMLLibError(ErrorType.CONFIG_ERROR, `You must provide a loader version in the config when using a loader different from vanilla.`)
+      }
+
+      if (config.minecraft?.modpackUrl) {
+        modpackUrl = config.minecraft.modpackUrl
+      }
+
+      return { version, loader, modpackUrl, args }
+    }
+
+    return {
+      version: version,
+      loader: undefined,
+      modpackUrl: undefined,
+      args: args
+    }
+  }
+
+  private setCleaning(config: Config) {
+    const DEFAULT_IGNORED = ['crash-reports/', 'logs/', 'resourcepacks/', 'resources/', 'saves/', 'shaderpacks/', 'options.txt', 'optionsof.txt']
+    let enabled = true
+    let ignored: string[] = DEFAULT_IGNORED
+
+    if (config.cleaning?.enabled !== undefined) {
+      enabled = config.cleaning.enabled
+    } else if (config.cleaning?.clean !== undefined) {
+      enabled = config.cleaning.clean // backwards compatibility
+    } else {
+      enabled = true
+    }
+
+    if (config.storage === 'shared' && enabled) {
+      console.warn(
+        'Warning: You are using shared storage mode with cleaning enabled. This may cause issues as the launcher will delete shared assets and libraries when launching different profiles. It is recommended to disable cleaning when using shared storage mode.'
+      )
+    }
+
+    if (config.cleaning?.ignored) {
+      ignored = config.cleaning.ignored
+    }
+
+    return { enabled, ignored }
+  }
+
+  private setAccount(config: Config) {
+    if (config.account?.meta.type === 'crack') {
+      console.warn(
+        'Warning: You are using a cracked account (offline mode). This authentication method is not secure and is not recommended. Use it only for testing purposes.'
+      )
+    }
+
+    return config.account
+  }
+
+  private setJava(config: Config) {
+    let install: 'auto' | 'manual' = 'auto'
+    let absolutePath: string
+    let args: string[] = []
+
+    if (config.java?.install === 'manual') {
+      install = 'manual'
+      if (config.java.absolutePath) {
+        absolutePath = config.java.absolutePath
+      } else if (config.java.relativePath) {
+        absolutePath = path_.join(config.root!, config.java.relativePath)
+      } else {
+        absolutePath = 'java'
+      }
+    } else {
+      install = 'auto'
+      absolutePath = path_.join(config.root!, 'runtime', 'jre-${X}', 'bin', 'java')
+    }
+
+    if (config.java?.args) {
+      args = config.java.args
+    }
+
+    return { install, absolutePath, args }
+  }
+
+  private setWindow(config: Config) {
+    let width = 854
+    let height = 480
+    let fullscreen = false
+
+    if (config.window?.width && config.window.width > 100) {
+      width = config.window.width
+    }
+
+    if (config.window?.height && config.window.height > 100) {
+      height = config.window.height
+    }
+
+    if (config.window?.fullscreen) {
+      fullscreen = config.window.fullscreen
+    }
+
+    return { width, height, fullscreen }
+  }
+
+  private setMemory(config: Config) {
+    let min = 512
+    let max = 1023
+
+    if (config.memory?.min && config.memory.min > 128) {
+      min = config.memory.min
+    }
+
+    if (config.memory?.max && config.memory.max > min) {
+      max = config.memory.max
+    }
+
+    return { min, max }
   }
 
   private async run(javaPath: string, args: string[]) {

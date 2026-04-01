@@ -125,7 +125,7 @@ export default class ArgumentsManager {
   }
 
   private getMinecraftArgs(): string[] {
-    const slug = utils.sanitizeSlug(this.config.storageMode === 'shared' && this.config.profile ? this.config.profile.slug : '')
+    const slug = utils.sanitizeSlug(this.config.storage === 'shared' && this.config.profile ? this.config.profile.slug : '')
     const gameDirectory = path_.join(this.config.root, slug).replaceAll('\\', '/')
     const assetsDirectory =
       this.manifest.assets === 'legacy' || this.manifest.assets === 'pre-1.6'

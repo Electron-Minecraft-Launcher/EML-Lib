@@ -33,7 +33,7 @@ async function main() {
   const launcher = new EMLLib.Launcher({
     url: 'http://localhost:5173',
     profile: dp,
-    storageMode: 'shared',
+    storage: 'shared',
     root: 'goldfrite',
     account: new EMLLib.CrackAuth().auth('Goldfrite'),
     cleaning: {

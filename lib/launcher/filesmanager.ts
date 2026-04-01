@@ -403,7 +403,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
 
   private mapFiles(files: File[]) {
     const slug = utils.sanitizeSlug(this.config.profile ? this.config.profile.slug : '')
-    if (this.config.storageMode === 'shared') {
+    if (this.config.storage === 'shared') {
       return files.map((file) => {
         return {
           ...file,

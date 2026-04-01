@@ -80,7 +80,7 @@ class Utils {
    * @returns The path to the root folder (e.g. `'C:\Users\user\AppData\Roaming\.minecraft'`).
    */
   getRootFolder(config: (Config | FullConfig) & { root: string }): string {
-    if (config.profile && config.storageMode === 'isolated') {
+    if (config.profile && config.storage === 'isolated') {
       const slug = this.sanitizeSlug(config.profile.slug)
       return path_.join(this.getServerFolder(config.root), slug)
     }

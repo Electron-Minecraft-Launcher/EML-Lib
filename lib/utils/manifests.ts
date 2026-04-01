@@ -21,12 +21,12 @@ class Manifests {
   /**
    * Get the loader info from the EML AdminTool.
    * @param minecraftVersion The version of Minecraft you want to get the loader info for. Set to
-   * `null` to get the version from the EML AdminTool. Set to `latest_release` to get the latest
+   * `undefined` to get the version from the EML AdminTool. Set to `latest_release` to get the latest
    * release version of Minecraft. Set to `latest_snapshot` to get the latest snapshot version of
    * Minecraft.
    * @param url The URL of the EML AdminTool website, to get the loader info from the EML AdminTool.
    */
-  async getLoaderInfo(minecraftVersion: string | null, url?: string, profile?: IProfile): Promise<ILoader> {
+  async getLoaderInfo(minecraftVersion?: string, url?: string, profile?: IProfile): Promise<ILoader> {
     if (!minecraftVersion && !url) return { type: 'VANILLA', minecraftVersion: 'latest_release', loaderVersion: 'latest_release' } as ILoader
     if (minecraftVersion) return { type: 'VANILLA', minecraftVersion, loaderVersion: minecraftVersion } as ILoader
 
@@ -50,16 +50,16 @@ class Manifests {
   /**
    * Get the manifest of the Minecraft version.
    * @param minecraftVersion The version of Minecraft you want to get the manifest for. Set to
-   * `null` to get the version from the EML AdminTool. Set to `latest_release` to get the latest
+   * `undefined` to get the version from the EML AdminTool. Set to `latest_release` to get the latest
    * release version of Minecraft. Set to `latest_snapshot` to get the latest snapshot version of
    * Minecraft.
    * @param url The URL of the EML AdminTool website, to get the version from the EML AdminTool.
    * @returns The manifest of the Minecraft version.
    */
-  async getMinecraftManifest(minecraftVersion: string | null = 'latest_release', url?: string, profile?: IProfile): Promise<MinecraftManifest> {
+  async getMinecraftManifest(minecraftVersion?: string, url?: string, profile?: IProfile): Promise<MinecraftManifest> {
     try {
       if (!minecraftVersion && url) {
-        minecraftVersion = (await this.getLoaderInfo(null, url, profile)).minecraftVersion
+        minecraftVersion = (await this.getLoaderInfo(undefined, url, profile)).minecraftVersion
       }
 
       const manifestUrl = await this.getMinecraftManifestUrl(minecraftVersion)
@@ -83,7 +83,7 @@ class Manifests {
    * @param minecraftVersion The version of Minecraft you want to get the manifest URL for.
    * @returns The manifest URL of the Minecraft version.
    */
-  async getMinecraftManifestUrl(minecraftVersion: string | null = null): Promise<string> {
+  async getMinecraftManifestUrl(minecraftVersion?: string): Promise<string> {
     try {
       const req = await fetch(MINECRAFT_MANIFEST_URL)
 
