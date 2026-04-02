@@ -10,7 +10,7 @@ import os from 'node:os'
 import { createHash } from 'node:crypto'
 import { pipeline } from 'node:stream/promises'
 import { ExtraFile } from '../../types/file.js'
-import { Config, FullConfig } from '../../types/config.js'
+import { Config, ResolvedConfig } from '../../types/config.js'
 
 class Utils {
   /**
@@ -79,7 +79,7 @@ class Utils {
    * @param serverId Your Minecraft server ID (e.g. `'minecraft'`).
    * @returns The path to the root folder (e.g. `'C:\Users\user\AppData\Roaming\.minecraft'`).
    */
-  getRootFolder(config: (Config | FullConfig) & { root: string }): string {
+  getRootFolder(config: (Config | ResolvedConfig) & { root: string }): string {
     if (config.profile && config.storage === 'isolated') {
       const slug = this.sanitizeSlug(config.profile.slug)
       return path_.join(this.getServerFolder(config.root), slug)

@@ -3,19 +3,19 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
-import { FullConfig } from '../../types/config.js'
+import { ResolvedConfig } from '../../types/config.js'
 import { MinecraftManifest } from '../../types/manifest.js'
 import utils from '../utils/utils.js'
 import path_ from 'node:path'
 import { ExtraFile, ILoader } from '../../types/file.js'
 
 export default class ArgumentsManager {
-  private config: FullConfig
+  private config: ResolvedConfig
   private manifest: MinecraftManifest
   private loaderManifest: MinecraftManifest | null
   private loader: ILoader | null
 
-  constructor(config: FullConfig, manifest: MinecraftManifest) {
+  constructor(config: ResolvedConfig, manifest: MinecraftManifest) {
     this.config = config
     this.manifest = manifest
     this.loaderManifest = null

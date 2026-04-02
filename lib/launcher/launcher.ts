@@ -7,7 +7,7 @@ import { CleanerEvents, DownloaderEvents, FilesManagerEvents, JavaEvents, Launch
 import EventEmitter from '../utils/events.js'
 import manifests from '../utils/manifests.js'
 import utils from '../utils/utils.js'
-import { Config, FullConfig } from './../../types/config.js'
+import { Config, ResolvedConfig } from './../../types/config.js'
 import path_ from 'node:path'
 import FilesManager from './filesmanager.js'
 import Downloader from '../utils/downloader.js'
@@ -24,27 +24,41 @@ export default class Launcher extends EventEmitter<
   /**
    * The configuration of the launcher.
    */
-  readonly config: FullConfig
+  readonly config: ResolvedConfig
 
   /**
    * Launch Minecraft.
    * @param config The configuration of the Launcher.
+   * 
+   * _Need help? Try our [config generator](https://emlproject.pages.dev/resources/config-generator/)!_
    */
   constructor(config: Config) {
     super()
 
-    config.url = this.setUrl(config)
-    config.profile = this.setProfile(config)
-    config.storage = this.setStorage(config)
-    config.root = this.setRoot(config)
-    config.minecraft = this.setMinecraft(config)
-    config.cleaning = this.setCleaning(config)
-    config.account = this.setAccount(config)
-    config.java = this.setJava(config)
-    config.window = this.setWindow(config)
-    config.memory = this.setMemory(config)
+    let tmpConfig: Config & { slug?: string } = { ...config, slug: undefined }
+    tmpConfig.minecraft = this.setMinecraft(tmpConfig)
+    tmpConfig.slug = this.setSlug(tmpConfig)
+    tmpConfig.url = this.setUrl(tmpConfig)
+    tmpConfig.storage = this.setStorage(tmpConfig)
+    tmpConfig.root = this.setRoot(tmpConfig)
+    tmpConfig.cleaning = this.setCleaning(tmpConfig)
+    tmpConfig.account = this.setAccount(tmpConfig)
+    tmpConfig.java = this.setJava(tmpConfig)
+    tmpConfig.window = this.setWindow(tmpConfig)
+    tmpConfig.memory = this.setMemory(tmpConfig)
 
-    this.config = config as FullConfig
+    this.config = {
+      url: tmpConfig.url,
+      slug: tmpConfig.slug,
+      storage: tmpConfig.storage!,
+      root: tmpConfig.root!,
+      minecraft: tmpConfig.minecraft!,
+      cleaning: tmpConfig.cleaning!,
+      account: tmpConfig.account,
+      java: tmpConfig.java!,
+      window: tmpConfig.window!,
+      memory: tmpConfig.memory!
+    } as ResolvedConfig
   }
 
   /**
@@ -54,8 +68,8 @@ export default class Launcher extends EventEmitter<
    */
   async launch(): Promise<void> {
     //* Init launch
-    const manifest = await manifests.getMinecraftManifest(this.config.minecraft.version, this.config.url, this.config.profile)
-    const loader = await manifests.getLoaderInfo(this.config.minecraft.version, this.config.url, this.config.profile)
+    const manifest = await manifests.getMinecraftManifest(this.config.minecraft.version, this.config.url, this.config.slug)
+    const loader = await manifests.getLoaderInfo(this.config.minecraft.version, this.config.url, this.config.slug)
     this.config.minecraft.version = manifest.id
 
     const filesManager = new FilesManager(this.config, manifest, loader)
@@ -167,29 +181,79 @@ export default class Launcher extends EventEmitter<
     await this.run(this.config.java.absolutePath.replace('${X}', manifest.javaVersion?.majorVersion.toString() ?? '8'), args)
   }
 
+  private setMinecraft(config: Config) {
+    let version: string | undefined = undefined
+    let loader: { loader: 'vanilla' | 'forge' | 'neoforge' | 'fabric' | 'quilt'; version: string } | undefined = undefined
+    let modpackUrl: string | undefined = undefined
+    let args: string[] = []
+
+    const isValidProfile = config.profile?.slug && config.profile.slug !== '' && config.profile.slug === utils.sanitizeSlug(config.profile.slug)
+
+    if (isValidProfile && config.profile && config.profile.minecraft?.version) {
+      version = config.profile.minecraft.version
+      if (!config.profile.minecraft?.loader) {
+        loader = { loader: 'vanilla', version: version }
+      } else if (config.profile.minecraft.loader.loader === 'vanilla') {
+        loader = { loader: 'vanilla', version: version }
+      } else if (config.profile.minecraft.loader.version) {
+        loader = { loader: config.profile.minecraft.loader.loader, version: config.profile.minecraft.loader.version }
+      } else {
+        throw new EMLLibError(ErrorType.CONFIG_ERROR, `You must provide a loader version in the config when using a loader different from vanilla.`)
+      }
+      if (config.profile.minecraft?.modpackUrl) {
+        modpackUrl = config.profile.minecraft.modpackUrl
+      }
+    } else if (config.minecraft?.version) {
+      if (config.profile && !isValidProfile) {
+        console.warn('Warning: Invalid profile. Launching with Minecraft config.')
+      }
+      version = config.minecraft.version
+      if (!config.minecraft?.loader) {
+        loader = { loader: 'vanilla', version: version }
+      } else if (config.minecraft.loader.loader === 'vanilla') {
+        loader = { loader: 'vanilla', version: version }
+      } else if (config.minecraft.loader.version) {
+        loader = { loader: config.minecraft.loader.loader, version: config.minecraft.loader.version }
+      } else {
+        throw new EMLLibError(ErrorType.CONFIG_ERROR, `You must provide a loader version in the config when using a loader different from vanilla.`)
+      }
+      if (config.minecraft?.modpackUrl) {
+        modpackUrl = config.minecraft.modpackUrl
+      }
+    } else if (!config.url) {
+      if (config.profile && !isValidProfile) {
+        console.warn('Warning: Invalid profile. Launching with latest Minecraft version.')
+      }
+      version = 'latest_release'
+      loader = { loader: 'vanilla', version: version }
+    } else {
+      if (config.profile && !isValidProfile) {
+        console.warn('Warning: Invalid profile. Launching with EML AdminTool default profile.')
+      }
+    }
+
+    if (config.profile && isValidProfile && config.profile?.minecraft?.args) {
+      args = config.profile.minecraft.args
+    } else if (config.minecraft?.args) {
+      args = config.minecraft.args
+    }
+
+    return { version, loader, modpackUrl, args }
+  }
+
+  private setSlug(config: Config) {
+    if (config.profile?.slug && config.profile.slug !== '' && config.profile.slug === utils.sanitizeSlug(config.profile.slug)) {
+      return config.profile.slug
+    }
+    return undefined
+  }
+
   private setUrl(config: Config) {
     if (config.minecraft?.version) {
       return undefined
     }
     if (config.url) {
       return config.url
-    }
-    return undefined
-  }
-
-  private setProfile(config: Config) {
-    if (
-      config.profile &&
-      (!config.profile.slug ||
-        typeof config.profile.slug !== 'string' ||
-        config.profile.slug === '' ||
-        config.profile.slug !== utils.sanitizeSlug(config.profile.slug))
-    ) {
-      console.warn('Warning: Invalid profile. Launching without profile.')
-      return undefined
-    }
-    if (config.profile) {
-      return config.profile
     }
     return undefined
   }
@@ -215,48 +279,6 @@ export default class Launcher extends EventEmitter<
       config.root = config.serverId // backwards compatibility
     }
     return utils.getRootFolder(config as Config & { root: string })
-  }
-
-  private setMinecraft(config: Config) {
-    let version: string | undefined = undefined
-    let loader: { loader: 'vanilla' | 'forge' | 'neoforge' | 'fabric' | 'quilt'; version: string } | undefined = undefined
-    let modpackUrl: string | undefined = undefined
-    let args: string[] = []
-
-    if (config.minecraft?.version) {
-      version = config.minecraft.version
-    } else if (!config.url) {
-      version = 'latest_release'
-    }
-
-    if (config.minecraft?.args) {
-      args = config.minecraft.args
-    }
-
-    if (version) {
-      if (!config.minecraft?.loader) {
-        loader = { loader: 'vanilla', version: version }
-      } else if (config.minecraft.loader.loader === 'vanilla') {
-        loader = { loader: 'vanilla', version: version }
-      } else if (config.minecraft.loader.version) {
-        loader = { loader: config.minecraft.loader.loader, version: config.minecraft.loader.version }
-      } else {
-        throw new EMLLibError(ErrorType.CONFIG_ERROR, `You must provide a loader version in the config when using a loader different from vanilla.`)
-      }
-
-      if (config.minecraft?.modpackUrl) {
-        modpackUrl = config.minecraft.modpackUrl
-      }
-
-      return { version, loader, modpackUrl, args }
-    }
-
-    return {
-      version: version,
-      loader: undefined,
-      modpackUrl: undefined,
-      args: args
-    }
   }
 
   private setCleaning(config: Config) {

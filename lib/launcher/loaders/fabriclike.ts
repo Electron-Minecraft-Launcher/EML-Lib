@@ -3,7 +3,7 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
-import { FullConfig } from '../../../types/config.js'
+import { ResolvedConfig } from '../../../types/config.js'
 import { ExtraFile, File, ILoader } from '../../../types/file.js'
 import { MinecraftManifest } from '../../../types/manifest.js'
 import fs from 'node:fs/promises'
@@ -15,12 +15,12 @@ import { FilesManagerEvents } from '../../../types/events.js'
 import { EMLLibError, ErrorType } from '../../../types/errors.js'
 
 export default class FabricLikeLoader extends EventEmitter<FilesManagerEvents> {
-  private readonly config: FullConfig
+  private readonly config: ResolvedConfig
   private readonly manifest: MinecraftManifest
   private readonly loader: ILoader
   private readonly metaConfig: { name: string; url: string; apiVersion: string }
 
-  constructor(config: FullConfig, manifest: MinecraftManifest, loader: ILoader) {
+  constructor(config: ResolvedConfig, manifest: MinecraftManifest, loader: ILoader) {
     super()
     this.config = config
     this.manifest = manifest

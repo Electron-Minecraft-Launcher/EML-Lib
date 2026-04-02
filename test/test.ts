@@ -41,6 +41,8 @@ async function main() {
     }
   })
 
+  EMLLib.Launcher
+
   try {
     launcher.on('launch_compute_download', () => console.log('\nComputing download...'))
 

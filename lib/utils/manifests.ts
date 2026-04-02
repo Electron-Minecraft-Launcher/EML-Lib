@@ -7,7 +7,6 @@ import { MinecraftManifest } from './../../types/manifest.js'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
 import { JAVA_RUNTIME_URL, MINECRAFT_MANIFEST_URL } from './consts.js'
 import { ILoader } from '../../types/file.js'
-import { IProfile } from '../../types/profile.js'
 
 type JavaVersion =
   | 'java-runtime-alpha'
@@ -26,13 +25,12 @@ class Manifests {
    * Minecraft.
    * @param url The URL of the EML AdminTool website, to get the loader info from the EML AdminTool.
    */
-  async getLoaderInfo(minecraftVersion?: string, url?: string, profile?: IProfile): Promise<ILoader> {
+  async getLoaderInfo(minecraftVersion?: string, url?: string, slug?: string): Promise<ILoader> {
     if (!minecraftVersion && !url) return { type: 'VANILLA', minecraftVersion: 'latest_release', loaderVersion: 'latest_release' } as ILoader
     if (minecraftVersion) return { type: 'VANILLA', minecraftVersion, loaderVersion: minecraftVersion } as ILoader
 
     try {
-      const slug = profile ? profile.slug : ''
-      const req = await fetch(`${url}/api/loader/${slug}`)
+      const req = await fetch(`${url}/api/loader/${slug ?? ''}`)
 
       if (!req.ok) {
         const errorText = await req.text()
@@ -56,10 +54,10 @@ class Manifests {
    * @param url The URL of the EML AdminTool website, to get the version from the EML AdminTool.
    * @returns The manifest of the Minecraft version.
    */
-  async getMinecraftManifest(minecraftVersion?: string, url?: string, profile?: IProfile): Promise<MinecraftManifest> {
+  async getMinecraftManifest(minecraftVersion?: string, url?: string, slug?: string): Promise<MinecraftManifest> {
     try {
       if (!minecraftVersion && url) {
-        minecraftVersion = (await this.getLoaderInfo(undefined, url, profile)).minecraftVersion
+        minecraftVersion = (await this.getLoaderInfo(undefined, url, slug)).minecraftVersion
       }
 
       const manifestUrl = await this.getMinecraftManifestUrl(minecraftVersion)

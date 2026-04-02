@@ -4,7 +4,7 @@
  * @copyright Copyright (c) 2019, Pierce Harriz, from [Minecraft Launcher Core](https://github.com/Pierce01/MinecraftLauncher-core)
  */
 
-import { FullConfig } from '../../types/config.js'
+import { ResolvedConfig } from '../../types/config.js'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
 import { ExtraFile, File, ILoader } from '../../types/file.js'
 import { Artifact, MinecraftManifest, Assets } from '../../types/manifest.js'
@@ -19,11 +19,11 @@ import { FilesManagerEvents } from '../../types/events.js'
 import Java from '../java/java.js'
 
 export default class FilesManager extends EventEmitter<FilesManagerEvents> {
-  private config: FullConfig
+  private config: ResolvedConfig
   private manifest: MinecraftManifest
   private loader: ILoader
 
-  constructor(config: FullConfig, manifest: MinecraftManifest, loader: ILoader) {
+  constructor(config: ResolvedConfig, manifest: MinecraftManifest, loader: ILoader) {
     super()
     this.config = config
     this.manifest = manifest
