@@ -7,6 +7,7 @@ import { MinecraftManifest } from './../../types/manifest.js'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
 import { JAVA_RUNTIME_URL, MINECRAFT_MANIFEST_URL } from './consts.js'
 import { ILoader } from '../../types/file.js'
+import { ResolvedConfig } from '../../types/config.js'
 
 type JavaVersion =
   | 'java-runtime-alpha'
@@ -18,48 +19,18 @@ type JavaVersion =
 
 class Manifests {
   /**
-   * Get the loader info from the EML AdminTool.
-   * @param minecraftVersion The version of Minecraft you want to get the loader info for. Set to
-   * `undefined` to get the version from the EML AdminTool. Set to `latest_release` to get the latest
-   * release version of Minecraft. Set to `latest_snapshot` to get the latest snapshot version of
-   * Minecraft.
-   * @param url The URL of the EML AdminTool website, to get the loader info from the EML AdminTool.
-   */
-  async getLoaderInfo(minecraftVersion?: string, url?: string, slug?: string): Promise<ILoader> {
-    if (!minecraftVersion && !url) return { type: 'VANILLA', minecraftVersion: 'latest_release', loaderVersion: 'latest_release' } as ILoader
-    if (minecraftVersion) return { type: 'VANILLA', minecraftVersion, loaderVersion: minecraftVersion } as ILoader
-
-    try {
-      const req = await fetch(`${url}/api/loader/${slug ?? ''}`)
-
-      if (!req.ok) {
-        const errorText = await req.text()
-        throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch loader info: HTTP ${req.status} ${errorText}`)
-      }
-      const data: ILoader = await req.json()
-
-      return data
-    } catch (err: unknown) {
-      if (err instanceof EMLLibError) throw err
-      throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch loader info: ${err instanceof Error ? err.message : err}`)
-    }
-  }
-
-  /**
    * Get the manifest of the Minecraft version.
-   * @param minecraftVersion The version of Minecraft you want to get the manifest for. Set to
-   * `undefined` to get the version from the EML AdminTool. Set to `latest_release` to get the latest
-   * release version of Minecraft. Set to `latest_snapshot` to get the latest snapshot version of
-   * Minecraft.
-   * @param url The URL of the EML AdminTool website, to get the version from the EML AdminTool.
+   * @param config The resolved configuration.
+   * @param loader The loader information from `Loaders.getLoader()`.
    * @returns The manifest of the Minecraft version.
    */
-  async getMinecraftManifest(minecraftVersion?: string, url?: string, slug?: string): Promise<MinecraftManifest> {
-    try {
-      if (!minecraftVersion && url) {
-        minecraftVersion = (await this.getLoaderInfo(undefined, url, slug)).minecraftVersion
-      }
+  async getMinecraftManifest(config: ResolvedConfig, loader?: ILoader): Promise<MinecraftManifest> {
+    let minecraftVersion = config.minecraft.version ?? loader?.minecraftVersion
+    if (!minecraftVersion) {
+      throw new EMLLibError(ErrorType.MINECRAFT_ERROR, 'Minecraft version is not specified in the configuration or loader information')
+    }
 
+    try {
       const manifestUrl = await this.getMinecraftManifestUrl(minecraftVersion)
       const req = await fetch(manifestUrl)
 
@@ -77,11 +48,31 @@ class Manifests {
   }
 
   /**
-   * Get the manifest URL of the Minecraft version.
-   * @param minecraftVersion The version of Minecraft you want to get the manifest URL for.
-   * @returns The manifest URL of the Minecraft version.
+   * Get the manifest of the Java version.
+   * @param javaVersion The version of Java you want to get the manifest for.
+   * @param jreV The major version of Java Runtime Environment (JRE) you want to get the manifest for (fallback if `javaVersion` is not found).
+   * @returns The manifest of the Java version.
    */
-  async getMinecraftManifestUrl(minecraftVersion?: string): Promise<string> {
+  async getJavaManifest(javaVersion: JavaVersion, jreV: string): Promise<{ files: any }> {
+    try {
+      const url = await this.getJavaManifestUrl(javaVersion, jreV)
+
+      const req = await fetch(url)
+
+      if (!req.ok) {
+        const errorText = await req.text()
+        throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch Java manifest: HTTP ${req.status} ${errorText}`)
+      }
+      const data: { files: any } = await req.json()
+
+      return data
+    } catch (err: unknown) {
+      if (err instanceof EMLLibError) throw err
+      throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch Java manifest: ${err instanceof Error ? err.message : err}`)
+    }
+  }
+
+  private async getMinecraftManifestUrl(minecraftVersion?: string): Promise<string> {
     try {
       const req = await fetch(MINECRAFT_MANIFEST_URL)
 
@@ -109,32 +100,7 @@ class Manifests {
     }
   }
 
-  async getJavaManifest(javaVersion: JavaVersion, jreV: string): Promise<{ files: any }> {
-    try {
-      const url = await this.getJavaManifestUrl(javaVersion, jreV)
-
-      const req = await fetch(url)
-
-      if (!req.ok) {
-        const errorText = await req.text()
-        throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch Java manifest: HTTP ${req.status} ${errorText}`)
-      }
-      const data: { files: any } = await req.json()
-
-      return data
-    } catch (err: unknown) {
-      if (err instanceof EMLLibError) throw err
-      throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch Java manifest: ${err instanceof Error ? err.message : err}`)
-    }
-  }
-
-  /**
-   * Get the manifest URL of the Java version.
-   * @param javaVersion The version of Java you want to get the manifest for.
-   * @param jreV The major version of Java Runtime Environment (JRE) you want to get the manifest for (fallback if `javaVersion` is not found).
-   * @returns The manifest URL of the Java version.
-   */
-  async getJavaManifestUrl(javaVersion: JavaVersion, jreV: string): Promise<string> {
+  private async getJavaManifestUrl(javaVersion: JavaVersion, jreV: string): Promise<string> {
     const archMapping = {
       win32: { x64: 'windows-x64', ia32: 'windows-x86', arm64: 'windows-arm64' },
       darwin: { x64: 'mac-os', arm64: 'mac-os-arm64' },

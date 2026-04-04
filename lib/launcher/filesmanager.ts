@@ -36,7 +36,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
    * (including `java`).
    */
   async getJava(): Promise<{ java: File[]; files: File[] }> {
-    const java = await new Java(this.manifest.id, this.config.root).getFiles(this.manifest)
+    const java = await new Java(this.config).getFiles(this.manifest)
     if (this.config.java.install === 'auto') {
       return { java: java, files: java }
     } else {
@@ -50,11 +50,17 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
    * created (including `modpack`).
    */
   async getModpack(): Promise<{ modpack: File[]; files: File[] }> {
-    if (!this.config.url) return { modpack: [], files: [] }
+    const slug = utils.sanitizeSlug(this.config.storage === 'shared' && this.config.slug ? this.config.slug : '')
+    const gameDirectory = path_.join(this.config.root, slug).replaceAll('\\', '/')
+    if (!existsSync(gameDirectory)) {
+      await fs.mkdir(gameDirectory, { recursive: true })
+    }
+
+    if (!this.config.url && !this.config.minecraft.modpackUrl) return { modpack: [], files: [] }
 
     try {
-      const slug = this.config.profile ? this.config.profile.slug : ''
-      const req = await fetch(`${this.config.url}/api/files-updater/${slug}`)
+      const url = this.config.url ? `${this.config.url}/api/files-updater/${this.config.slug ?? ''}` : this.config.minecraft.modpackUrl!
+      const req = await fetch(url)
 
       if (!req.ok) {
         const errorText = await req.text()
@@ -199,21 +205,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
     if (this.config.account.meta.type !== 'yggdrasil') return { injector: [], files: [] }
 
     const url = 'https://github.com/yushijinhun/authlib-injector/releases/download/v1.2.7/authlib-injector-1.2.7.jar'
-
-    let size: number
-    try {
-      const req = await fetch(url, { method: 'HEAD' })
-
-      if (!req.ok) {
-        const errorText = await req.text()
-        throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch authlib-injector file info: HTTP ${req.status} ${errorText}`)
-      }
-
-      size = Number(req.headers.get('content-length')) || 0
-    } catch (err: unknown) {
-      if (err instanceof EMLLibError) throw err
-      throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch authlib-injector file info: ${err instanceof Error ? err.message : err}`)
-    }
+    const size = await utils.getRemoteFileSize(url, 'Failed to get authlib-injector file size')
 
     const injector: File[] = [
       {
@@ -402,7 +394,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
   }
 
   private mapFiles(files: File[]) {
-    const slug = utils.sanitizeSlug(this.config.profile ? this.config.profile.slug : '')
+    const slug = utils.sanitizeSlug(this.config.slug ?? '')
     if (this.config.storage === 'shared') {
       return files.map((file) => {
         return {

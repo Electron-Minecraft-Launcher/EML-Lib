@@ -1,4 +1,5 @@
 import EMLLib from '../index.js'
+import { IProfile } from '../types/profile.js'
 
 async function mainWithElectron() {
   const { app, BrowserWindow } = await import('electron')
@@ -28,20 +29,29 @@ async function mainWithElectron() {
 }
 
 async function main() {
-  const profiles = await new EMLLib.Profiles('http://localhost:5173').getProfiles()
-  const dp = profiles.find((p) => p.slug === 'mineplex')!
   const launcher = new EMLLib.Launcher({
     url: 'http://localhost:5173',
-    profile: dp,
+    // profile: {
+    //   name: 'Test Profile',
+    //   isDefault: false,
+    //   slug: 'test',
+    //   createdAt: new Date(),
+    //   updatedAt: new Date()
+    // },
     storage: 'shared',
     root: 'goldfrite',
     account: new EMLLib.CrackAuth().auth('Goldfrite'),
+    // minecraft: {
+    //   version: '1.21.11',
+    //   loader: {
+    //     loader: 'fabric',
+    //     version: '0.18.6'
+    //   }
+    // }
     cleaning: {
-      clean: true
+      enabled: false
     }
   })
-
-  EMLLib.Launcher
 
   try {
     launcher.on('launch_compute_download', () => console.log('\nComputing download...'))

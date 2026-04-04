@@ -107,20 +107,8 @@ export default class FabricLikeLoader extends EventEmitter<FilesManagerEvents> {
       const baseUrl = lib.url ?? defaultBaseUrl
       const url = `${baseUrl}${utils.getLibraryPath(lib.name).replaceAll('\\', '/')}${name}`
 
-      let size = 0
-      let sha1 = ''
-
-      try {
-        const sizeReq = await fetch(url, { method: 'HEAD' })
-        size = parseInt(sizeReq.headers.get('Content-Length') ?? '0', 10)
-
-        const sha1Req = await fetch(`${url}.sha1`)
-        if (sha1Req.ok) {
-          sha1 = await sha1Req.text()
-        }
-      } catch (e) {
-        console.warn(`Failed to fetch metadata for ${name}, downloading blindly.`)
-      }
+      const size = await utils.getRemoteFileSize(url, `Failed to get size for library ${name}`)
+      const sha1 = await utils.getRemoteFileSha1(url, `Failed to get SHA1 for library ${name}`)
 
       return {
         name: name,
