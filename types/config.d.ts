@@ -21,7 +21,7 @@ export interface Config {
    */
   profile?: IProfile & {
     /**
-     * [Optional: default is `{ version: undefined, args: [] }`]
+     * [Optional: defaults to `{ version: undefined, args: [] }`]
      * Instance-specific Minecraft configuration.
      *
      * **Attention!** If defined, this block takes precedence over the root
@@ -39,7 +39,7 @@ export interface Config {
        */
       version?: string
       /**
-       * [Optional: default is `{ loader: 'vanilla', version: undefined }` if
+       * [Optional: defaults to `{ loader: 'vanilla', version: undefined }` if
        * `profile.minecraft.version` is set, otherwise `undefined`]
        * The mod loader configuration for this profile.
        *
@@ -47,7 +47,7 @@ export interface Config {
        */
       loader?: {
         /**
-         * [Optional: default is `'vanilla'`]
+         * [Optional: defaults to `'vanilla'`]
          * The type of mod loader to utilize.
          */
         loader: 'vanilla' | 'forge' | 'neoforge' | 'fabric' | 'quilt'
@@ -68,7 +68,7 @@ export interface Config {
        */
       modpackUrl?: string
       /**
-       * [Optional: default is `[]`]
+       * [Optional: defaults to `[]`]
        * Custom Minecraft launch arguments.
        * **Use this option only if you know what you are doing!**
        */
@@ -81,7 +81,7 @@ export interface Config {
    */
   storageMode?: 'isolated' | 'shared'
   /**
-   * [Optional: default is `'isolated'`]
+   * [Optional: defaults to `'isolated'`]
    * Defines how game files are organized on the disk.
    * - `'isolated'`: Each profile has its own completely separate folder (e.g., `.root/slug/` if
    * you use the {@link profile `profile`} property, `.root/` otherwise).
@@ -103,7 +103,7 @@ export interface Config {
   root?: string
 
   /**
-   * [Optional: default is `{ version: undefined, args: [] }`]
+   * [Optional: defaults to `{ version: undefined, args: [] }`]
    * Global Minecraft configuration.
    *
    * **Attention!** This configuration is overridden if {@link profile `profile.minecraft`} is
@@ -121,7 +121,7 @@ export interface Config {
      */
     version?: string
     /**
-     * [Optional: default is `{ loader: 'vanilla', version: undefined }` if `minecraft.version` is
+     * [Optional: defaults to `{ loader: 'vanilla', version: undefined }` if `minecraft.version` is
      * set, otherwise `undefined`]
      * The mod loader configuration for this profile.
      *
@@ -129,7 +129,7 @@ export interface Config {
      */
     loader?: {
       /**
-       * [Optional: default is `'vanilla'`]
+       * [Optional: defaults to `'vanilla'`]
        * The loader to use for the Minecraft instance.
        */
       loader: 'vanilla' | 'forge' | 'neoforge' | 'fabric' | 'quilt'
@@ -150,7 +150,7 @@ export interface Config {
      */
     modpackUrl?: string
     /**
-     * Optional: default is `[]`]
+     * Optional: defaults to `[]`]
      * Custom Minecraft launch arguments.
      * **Use this option only if you know what you are doing!**
      */
@@ -158,7 +158,7 @@ export interface Config {
   }
 
   /**
-   * [Optional: default is `{ enabled: true, ignored: [...] }`]
+   * [Optional: defaults to `{ enabled: true, ignored: [...] }`]
    * Configuration for the directory cleaning process before launch.
    */
   cleaning?: {
@@ -167,15 +167,15 @@ export interface Config {
      */
     clean?: boolean
     /**
-     * [Optional: default is `true`]
+     * [Optional: defaults to `true`]
      * Whether the launcher should remove unrecognized files from the instance folder.
      *
      * **Attention!** Must be `false` when {@link storage `storage`} is set to 'shared'.
      */
     enabled?: boolean
     /**
-     * [Optional: default is `['crash-reports/', 'logs/', 'resourcepacks/', 'resources/', 'saves/',
-     * 'shaderpacks/', 'options.txt', 'optionsof.txt']`]
+     * [Optional: defaults to `['crash-reports/', 'logs/', 'resourcepacks/', 'resources/', 
+     * 'saves/', 'shaderpacks/', 'options.txt', 'optionsof.txt']`]
      * A list of relative paths or files to protect from the cleaning process.
      */
     ignored?: string[]
@@ -193,13 +193,13 @@ export interface Config {
    */
   java?: {
     /**
-     * [Optional: default is `'auto'`]
+     * [Optional: defaults to `'auto'`]
      * - `'auto'`: Automatically downloads and manages the required Java version.
      * - `'manual'`: Uses a pre-installed Java executable.
      */
     install?: 'auto' | 'manual'
     /**
-     * [Optional: default is `'java'` if `java.install` is set to `'manual'`, otherwise
+     * [Optional: defaults to `'java'` if `java.install` is set to `'manual'`, otherwise
      * `undefined`]
      * The absolute path to the Java executable. Required if `install` is `'manual'` and
      * `relativePath` is not provided.
@@ -208,14 +208,14 @@ export interface Config {
      */
     absolutePath?: string
     /**
-     * [Optional: default is `'runtime/jre-X/bin/java'` where `X` is the major version of Java]
+     * [Optional: defaults to `'runtime/jre-X/bin/java'` where `X` is the major version of Java]
      * The path to the Java executable relative to the game `root` or `root/slug`.
      *
      * **Attention!** Ignored if `install` is `'auto'` or `absolutePath` is set.
      */
     relativePath?: string
     /**
-     * [Optional: default is `[]`]
+     * [Optional: defaults to `[]`]
      * Custom JVM (Java Virtual Machine) arguments.
      * **Use this option only if you know what you are doing!**
      *
@@ -225,39 +225,39 @@ export interface Config {
   }
 
   /**
-   * [Optional: default is 854x480]
+   * [Optional: defaults to 854x480]
    * Configuration for the Minecraft game window.
    */
   window?: {
     /**
-     * [Optional: default is `854`]
+     * [Optional: defaults to `854`]
      * The width of the Minecraft window.
      */
     width?: number
     /**
-     * [Optional: default is `480`]
+     * [Optional: defaults to `480`]
      * The height of the Minecraft window.
      */
     height?: number
     /**
-     * [Optional: default is `false`]
+     * [Optional: defaults to `false`]
      * Should the Minecraft window be fullscreen?
      */
     fullscreen?: boolean
   }
 
   /**
-   * [Optional: default is `{ min: 512, max: 1023 }`]
+   * [Optional: defaults to `{ min: 512, max: 1023 }`]
    * RAM allocation for the Minecraft process (in MB).
    */
   memory?: {
     /**
-     * [Optional: default is `512`]
+     * [Optional: defaults to `512`]
      * The minimum memory (RAM), in **MB**, allocated to Minecraft.
      */
     min: number
     /**
-     * [Optional: default is `1023`]
+     * [Optional: defaults to `1023`]
      * The maximum memory (RAM), in **MB**, allocated to Minecraft.
      */
     max: number

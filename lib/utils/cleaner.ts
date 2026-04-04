@@ -26,7 +26,7 @@ export default class Cleaner extends EventEmitter<CleanerEvents> {
    * @param files List of files to check ('ok' files; files that should be in the destination 
    * folder).
    * @param ignore List of files to ignore (don't delete them).
-   * @param skipClean [Optional: default is `false`] Skip the cleaning process (skip this method).
+   * @param skipClean [Optional: defaults to `false`] Skip the cleaning process (skip this method).
    */
   async clean(files: File[], ignore: string[] = [], skipClean: boolean = false): Promise<void> {
     if (skipClean) return
