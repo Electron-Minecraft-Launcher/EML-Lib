@@ -77,6 +77,10 @@ npm i eml-lib
 
 `eml-lib` package includes TypeScript typings, so you don't need to install `@types/eml-lib`.
 
+### Template
+
+You can use the [EML Template](https://github.com/Electron-Minecraft-Launcher/EML-Template) to create a Minecraft launcher with EML Lib. It is an Electron application that uses EML Lib to launch Minecraft. It is a good starting point to create your own Minecraft launcher.
+
 ### Quick start
 
 Quick start using the [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool):
@@ -122,12 +126,7 @@ The library has been tested on Windows 11 and macOS Tahoe (M3) with Node.js 22, 
 
 ## Contributing
 
-Download the code and run the commands:
-
-```bash
-cd EML-Lib
-npm i
-```
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on how to contribute to this project.
 
 ## Important information
 
