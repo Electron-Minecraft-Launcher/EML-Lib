@@ -35,34 +35,25 @@ To use all the capacities of EML Lib, you should set up your [EML AdminTool](htt
 
 _Read the [docs](https://emlproject.pages.dev/docs/launch-settings)._
 
-### Bootstrap
+### Bootstrap [^1]
 
 _Bootstrap_ is a powerful feature that allows you to auto-update your launcher. It checks for updates on a specified URL and downloads and installs them automatically. This ensures that your launcher is always up to date with the latest features and bug fixes.
 
-> [!NOTE]
-> To use the Bootstrap feature, you need to set up your [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool) website.
-
 _Read the [docs](https://emlproject.pages.dev/docs/bootstrap)._
 
-### Maintenance mode
+### Maintenance mode [^1]
 
 _Maintenance_ mode is a feature that allows you to block the launcher during maintenance. When maintenance mode is enabled, users will see a message indicating that the launcher is under maintenance and will not be able to launch Minecraft until the maintenance is complete.
 
-> [!NOTE]
-> To use the Maintenance feature, you need to set up your [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool) website.
-
 _Read the [docs](https://emlproject.pages.dev/docs/maintenance-mode)._
 
-### Customization
+### Customization [^1]
 
 EML Lib allows you to customize the launcher with various features, including:
 
 - **News**: Displaying news on the launcher.
 - **Background**: Displaying a background image on the launcher.
 - **Server status**: Displaying server information on the launcher.
-
-> [!NOTE]
-> To use these features, you need to set up your [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool) website.
 
 _Read the [docs](https://emlproject.pages.dev/docs/customization)._
 
@@ -73,9 +64,7 @@ _Read the [docs](https://emlproject.pages.dev/docs/customization)._
 - Node.js 20 or higher: see [Node.js](https://nodejs.org/);
 - Electron 23 or higher: please install it with `npm i electron` _if you use Microsoft Authentication_.
 
-To get all the capacities of this Node.js library, you must set up your [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool) website! Without it, you can only use Minecraft Vanilla, and many features will be disabled (such as News, Bootstrap, etc.).
-
-If you don't want to use EML AdminTool, you should rather use the [Minecraft Launcher Core](https://npmjs.com/package/minecraft-launcher-core) library.
+To get all the capacities of this Node.js library, you should set up your [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool) website! Without it, some features will be unavailable (such as News, Bootstrap, etc.).
 
 ### EML Lib installation
 
@@ -146,3 +135,6 @@ npm i
 - This Node.js library is under the `MIT` license; to get more information, please read the file `LICENSE`. It is legally obligatory to respect this license.
 - If you need some help, you can join [this Discord](https://discord.gg/nfEHKtghPh).
 
+<br/>
+
+[^1]: These features require the use of the [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool)
