@@ -5,8 +5,8 @@ export interface LauncherEvents {
       /**
        * The total size/amount of files to download.
        *
-       * `total` parameter of `download_progress` event will be specific for each "type" of files:
-       * Java, modpack, libraries and natives, and finally assets.
+       * `total` parameter of `download_progress` event will be specific for each "type" of 
+       * files: Java, modpack, libraries and natives, and finally assets.
        */
       total: { amount: number; size: number }
     }

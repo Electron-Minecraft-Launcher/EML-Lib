@@ -31,8 +31,9 @@ export default class ForgeLikeLoader extends EventEmitter<FilesManagerEvents> {
 
   /**
    * Setup Forge or NeoForge loader.
-   * @returns `loaderManifest`: Loader manifest; `installProfile`: Install profile; `libraries`: libraries
-   * to download; `files`: all files created by this method or that will be created (including `libraries`)
+   * @returns `loaderManifest`: Loader manifest; `installProfile`: Install profile; `libraries`: 
+   * libraries to download; `files`: all files created by this method or that will be created 
+   * (including `libraries`)
    */
   async setup(): Promise<{
     loaderManifest: MinecraftManifest | null

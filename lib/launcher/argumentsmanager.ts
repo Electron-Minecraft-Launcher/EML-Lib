@@ -27,7 +27,8 @@ export default class ArgumentsManager {
    * @param libraries The libraries of the game (including loader libraries).
    * @param loader The loader used (can be null if no loader is used).
    * @param loaderManifest The manifest of the loader (can be null if no loader is used).
-   * @param customAuth [Optional] Custom authentication method (for advanced users, use with authlib-injector).
+   * @param customAuth [Optional] Custom authentication method (for advanced users, use with 
+   * authlib-injector).
    * @returns The arguments to launch the game.
    */
   getArgs(

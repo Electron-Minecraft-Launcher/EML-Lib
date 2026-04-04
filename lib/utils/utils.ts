@@ -99,7 +99,8 @@ class Utils {
   }
 
   /**
-   * Sanitize a slug (e.g. a profile slug) by replacing spaces with dashes and removing special characters.
+   * Sanitize a slug (e.g. a profile slug) by replacing spaces with dashes and removing special
+   * characters.
    * @param slug The slug to sanitize.
    * @returns The sanitized slug (e.g. `'my-profile'`).
    */
@@ -232,7 +233,8 @@ class Utils {
    * Check if a version is newer than another one.
    * @param refVersion Reference version.
    * @param checkVersion Version to check.
-   * @returns `true` if `checkVersion` is newer than `refVersion`, `false` if `checkVersion` is older than
+   * @returns `true` if `checkVersion` is newer than `refVersion`, `false` if `checkVersion` is
+   * older than
    * `refVersion`, `null` if the versions are the same.
    */
   isNewer(ref: ExtraFile, check: ExtraFile): boolean | null {
@@ -276,7 +278,8 @@ class Utils {
   }
 
   /**
-   * Get the SHA1 hash of a remote file by sending a GET request to the file URL and reading the response as text.
+   * Get the SHA1 hash of a remote file by sending a GET request to the file URL and reading the
+   * response as text.
    * @param url URL of the file.
    * @param errorMsg Error message to include in the error if the request fails.
    * @returns The SHA1 hash of the file as a string.

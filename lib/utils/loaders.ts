@@ -155,4 +155,3 @@ class Loaders {
 
 export default new Loaders()
 
-

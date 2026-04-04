@@ -16,7 +16,8 @@ export default class MicrosoftAuth {
    * Authenticate a user with Microsoft.
    *
    * **Attention!** Using this class requires Electron. Use `npm i electron` to install it.
-   * @param mainWindow Your Electron application's main window (to create a child window for the Microsoft login).
+   * @param mainWindow Your Electron application's main window (to create a child window for the 
+   * Microsoft login).
    * @param clientId [Optional] Your Microsoft application's client ID.
    */
   constructor(mainWindow: BrowserWindow, clientId?: string) {
@@ -55,7 +56,8 @@ export default class MicrosoftAuth {
   /**
    * Validate a user's access token with Microsoft. This method will check if the token is still valid.
    * @param user The user account to validate.
-   * @returns `true` if the token is valid, `false` otherwise (then you should call `MicrosoftAuth.refresh`).
+   * @returns `true` if the token is valid, `false` otherwise (then you should call 
+   * `MicrosoftAuth.refresh()`).
    */
   async validate(user: Account): Promise<boolean> {
     try {

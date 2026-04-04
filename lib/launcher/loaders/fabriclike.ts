@@ -35,8 +35,9 @@ export default class FabricLikeLoader extends EventEmitter<FilesManagerEvents> {
 
   /**
    * Setup Fabric or Quilt loader.
-   * @returns `loaderManifest`: Loader manifest; `installProfile`: null (Fabric n'en a pas); `libraries`: libraries
-   * to download; `files`: all files created by this method or that will be created (including `libraries`)
+   * @returns `loaderManifest`: Loader manifest; `installProfile`: null (Fabric n'en a pas); 
+   * `libraries`: libraries to download; `files`: all files created by this method or that will be
+   * created (including `libraries`)
    */
   async setup(): Promise<{
     loaderManifest: MinecraftManifest | null

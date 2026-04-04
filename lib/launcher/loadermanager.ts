@@ -26,8 +26,9 @@ export default class LoaderManager extends EventEmitter<FilesManagerEvents & Pat
 
   /**
    * Setup the loader.
-   * @returns `loaderManifest`: Loader manifest; `installProfile`: Install profile; `libraries`: libraries
-   * files; `files`: all files created by the method or that will be created (including `libraries`).
+   * @returns `loaderManifest`: Loader manifest; `installProfile`: Install profile; `libraries`: 
+   * libraries files; `files`: all files created by the method or that will be created (including
+   * `libraries`).
    */
   async setupLoader(): Promise<{
     loaderManifest: MinecraftManifest | null

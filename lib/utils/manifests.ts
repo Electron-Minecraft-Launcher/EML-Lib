@@ -50,7 +50,8 @@ class Manifests {
   /**
    * Get the manifest of the Java version.
    * @param javaVersion The version of Java you want to get the manifest for.
-   * @param jreV The major version of Java Runtime Environment (JRE) you want to get the manifest for (fallback if `javaVersion` is not found).
+   * @param jreV The major version of Java Runtime Environment (JRE) you want to get the manifest
+   * for (fallback if `javaVersion` is not found).
    * @returns The manifest of the Java version.
    */
   async getJavaManifest(javaVersion: JavaVersion, jreV: string): Promise<{ files: any }> {

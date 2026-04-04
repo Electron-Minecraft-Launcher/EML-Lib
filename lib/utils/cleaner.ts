@@ -23,7 +23,8 @@ export default class Cleaner extends EventEmitter<CleanerEvents> {
 
   /**
    * Clean the destination folder by removing files that are not in the list.
-   * @param files List of files to check ('ok' files; files that should be in the destination folder).
+   * @param files List of files to check ('ok' files; files that should be in the destination 
+   * folder).
    * @param ignore List of files to ignore (don't delete them).
    * @param skipClean [Optional: default is `false`] Skip the cleaning process (skip this method).
    */

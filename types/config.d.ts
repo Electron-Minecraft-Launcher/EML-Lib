@@ -3,35 +3,44 @@ import { IProfile } from './profile.js'
 
 export interface Config {
   /**
-   * [Optional] The URL of your EML AdminTool instance. This endpoint provides the modpack manifest, loader information, and server settings.
+   * [Optional] The URL of your EML AdminTool instance. This endpoint provides the modpack
+   * manifest, loader information, and server settings.
    *
-   * **Attention!** This property is ignored if a Minecraft version is explicitly defined (either in {@link minecraft `minecraft.version`} or {@link profile `profile.minecraft.version`}). If neither a URL nor a version is provided, the launcher defaults to the latest Vanilla release.
+   * **Attention!** This property is ignored if a Minecraft version is explicitly defined (either
+   * in {@link minecraft `minecraft.version`} or {@link profile `profile.minecraft.version`}). If
+   * neither a URL nor a version is provided, the launcher defaults to the latest Vanilla release.
    */
   url?: string
 
   /**
-   * [Optional] The specific profile to launch. It is recommended to retrieve this object via `Profiles.getProfiles()`.
+   * [Optional] The specific profile to launch. It is recommended to retrieve this object via
+   * `Profiles.getProfiles()`.
    *
-   * **Attention!** When you set a manual profile, you must ensure the profile contains a valid `slug`. This slug determines the name of the game instance folder.
+   * **Attention!** When you set a manual profile, you must ensure the profile contains a valid
+   * `slug`. This slug determines the name of the game instance folder.
    */
   profile?: IProfile & {
     /**
      * [Optional: default is `{ version: undefined, args: [] }`]
      * Instance-specific Minecraft configuration.
      *
-     * **Attention!** If defined, this block takes precedence over the root {@link minecraft `minecraft`} configuration and any data fetched from the EML AdminTool.
+     * **Attention!** If defined, this block takes precedence over the root
+     * {@link minecraft `minecraft`} configuration and any data fetched from the EML AdminTool.
      */
     minecraft?: {
       /**
-       * [Optional] The Minecraft version to install (e.g., `'1.20.1'`). Use `'latest_release'` or `'latest_snapshot'` for the most recent versions.
+       * [Optional] The Minecraft version to install (e.g., `'1.20.1'`). Use `'latest_release'` or
+       * `'latest_snapshot'` for the most recent versions.
        *
-       * **Attention!** Providing this value forces the launcher into to ignore the {@link url `url`} property.
+       * **Attention!** Providing this value forces the launcher into to ignore the
+       * {@link url `url`} property.
        *
        * @see [List of Minecraft versions](https://emlproject.pages.dev/resources/minecraft-versions/)
        */
       version?: string
       /**
-       * [Optional: default is `{ loader: 'vanilla', version: undefined }` if `profile.minecraft.version` is set, otherwise `undefined`]
+       * [Optional: default is `{ loader: 'vanilla', version: undefined }` if
+       * `profile.minecraft.version` is set, otherwise `undefined`]
        * The mod loader configuration for this profile.
        *
        * **Attention!** This property is ignored if `profile.minecraft.version` is not set.
@@ -43,7 +52,8 @@ export interface Config {
          */
         loader: 'vanilla' | 'forge' | 'neoforge' | 'fabric' | 'quilt'
         /**
-         * [Optional] The specific version of the loader. This is required for any loader other than `'vanilla'`.
+         * [Optional] The specific version of the loader. This is required for any loader other
+         * than `'vanilla'`.
          *
          * @see [List of loader versions](https://emlproject.pages.dev/resources/loader-versions/)
          */
@@ -73,8 +83,10 @@ export interface Config {
   /**
    * [Optional: default is `'isolated'`]
    * Defines how game files are organized on the disk.
-   * - `'isolated'`: Each profile has its own completely separate folder (e.g., `.root/slug/` if you use the {@link profile `profile`} property, `.root/` otherwise).
-   * - `'shared'`: Profiles share common assets and libraries, but keep `mods`, `config`, and `saves` in separate sub-folders.
+   * - `'isolated'`: Each profile has its own completely separate folder (e.g., `.root/slug/` if
+   * you use the {@link profile `profile`} property, `.root/` otherwise).
+   * - `'shared'`: Profiles share common assets and libraries, but keep `mods`, `config`, and
+   * `saves` in separate sub-folders.
    *
    * **Attention!** If you use `storage: 'shared'`, you should disable the {@link cleaning cleaning} (with `cleaning.enabled: false`) to avoid deleting the shared assets and libraries when launching different profiles.
    */
@@ -85,7 +97,8 @@ export interface Config {
    */
   serverId?: string
   /**
-   * The name of the root game directory (e.g., `'minecraft'`). The launcher will automatically prefix this with a dot (e.g., `'.minecraft'`) under Windows.
+   * The name of the root game directory (e.g., `'minecraft'`). The launcher will automatically
+   * prefix this with a dot (e.g., `'.minecraft'`) under Windows.
    */
   root?: string
 
@@ -93,19 +106,23 @@ export interface Config {
    * [Optional: default is `{ version: undefined, args: [] }`]
    * Global Minecraft configuration.
    *
-   * **Attention!** This configuration is overridden if {@link profile `profile.minecraft`} is defined with a valid version. Setting `minecraft.version` will bypass the EML AdminTool data.
+   * **Attention!** This configuration is overridden if {@link profile `profile.minecraft`} is
+   * defined with a valid version. Setting `minecraft.version` will bypass the EML AdminTool data.
    */
   minecraft?: {
     /**
-     * [Optional] The Minecraft version to install (e.g., `'1.20.1'`). Use `'latest_release'` or `'latest_snapshot'` for the most recent versions.
+     * [Optional] The Minecraft version to install (e.g., `'1.20.1'`). Use `'latest_release'` or
+     * `'latest_snapshot'` for the most recent versions.
      *
-     * **Attention!** Providing this value forces the launcher into to ignore the {@link url `url`} property.
+     * **Attention!** Providing this value forces the launcher into to ignore the {@link url `url`}
+     * property.
      *
      * @see [List of Minecraft versions](https://emlproject.pages.dev/resources/minecraft-versions/)
      */
     version?: string
     /**
-     * [Optional: default is `{ loader: 'vanilla', version: undefined }` if `minecraft.version` is set, otherwise `undefined`]
+     * [Optional: default is `{ loader: 'vanilla', version: undefined }` if `minecraft.version` is
+     * set, otherwise `undefined`]
      * The mod loader configuration for this profile.
      *
      * **Attention!** This property is ignored if you don't set `minecraft.version`.
@@ -117,7 +134,8 @@ export interface Config {
        */
       loader: 'vanilla' | 'forge' | 'neoforge' | 'fabric' | 'quilt'
       /**
-       * [Optional] The specific version of the loader. This is required for any loader other than `'vanilla'`.
+       * [Optional] The specific version of the loader. This is required for any loader other than
+       * `'vanilla'`.
        *
        * @see [List of loader versions](https://emlproject.pages.dev/resources/loader-versions/)
        */
@@ -156,14 +174,16 @@ export interface Config {
      */
     enabled?: boolean
     /**
-     * [Optional: default is `['crash-reports/', 'logs/', 'resourcepacks/', 'resources/', 'saves/', 'shaderpacks/', 'options.txt', 'optionsof.txt']`]
+     * [Optional: default is `['crash-reports/', 'logs/', 'resourcepacks/', 'resources/', 'saves/',
+     * 'shaderpacks/', 'options.txt', 'optionsof.txt']`]
      * A list of relative paths or files to protect from the cleaning process.
      */
     ignored?: string[]
   }
 
   /**
-   * The authenticated player account. Use `MicrosoftAuth`, `AzAuth`, `YggdrasilAuth`, or `CrackAuth` to generate this.
+   * The authenticated player account. Use `MicrosoftAuth`, `AzAuth`, `YggdrasilAuth`, or
+   * `CrackAuth` to generate this.
    */
   account: Account
 
@@ -179,8 +199,10 @@ export interface Config {
      */
     install?: 'auto' | 'manual'
     /**
-     * [Optional: default is `'java'` if `java.install` is set to `'manual'`, otherwise `undefined`]
-     * The absolute path to the Java executable. Required if `install` is `'manual'` and `relativePath` is not provided.
+     * [Optional: default is `'java'` if `java.install` is set to `'manual'`, otherwise
+     * `undefined`]
+     * The absolute path to the Java executable. Required if `install` is `'manual'` and
+     * `relativePath` is not provided.
      *
      * **Attention!** Overrides `java.relativePath`. Ignored if `install` is `'auto'`.
      */
@@ -276,20 +298,4 @@ export interface ResolvedConfig {
     max: number
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

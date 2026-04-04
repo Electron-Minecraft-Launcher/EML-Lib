@@ -215,4 +215,3 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
   }
 }
 
-

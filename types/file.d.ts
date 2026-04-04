@@ -4,7 +4,8 @@ export interface File {
    */
   name: string
   /**
-   * The path of the file, without the name and the leading slash, but with the trailing slash (e.g. `'path/to/file/'`).
+   * The path of the file, without the name and the leading slash, but with the trailing slash 
+   * (e.g. `'path/to/file/'`).
    */
   path: string
   /**

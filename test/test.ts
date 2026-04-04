@@ -30,27 +30,8 @@ async function mainWithElectron() {
 
 async function main() {
   const launcher = new EMLLib.Launcher({
-    url: 'http://localhost:5173',
-    // profile: {
-    //   name: 'Test Profile',
-    //   isDefault: false,
-    //   slug: 'test',
-    //   createdAt: new Date(),
-    //   updatedAt: new Date()
-    // },
-    storage: 'shared',
     root: 'goldfrite',
-    account: new EMLLib.CrackAuth().auth('Goldfrite'),
-    // minecraft: {
-    //   version: '1.21.11',
-    //   loader: {
-    //     loader: 'fabric',
-    //     version: '0.18.6'
-    //   }
-    // }
-    cleaning: {
-      enabled: false
-    }
+    account: new EMLLib.CrackAuth().auth('Goldfrite')
   })
 
   try {

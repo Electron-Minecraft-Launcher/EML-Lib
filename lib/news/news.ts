@@ -68,7 +68,8 @@ export default class News {
    * Get the News of a specific category.
    * @param id The ID of the category (got from `News.getCategories()`).
    * @returns The News if the category.
-   * @deprecated Returns an empty array — Currently not used in the EML AdminTool, but may be used in the future. Please use `News.getNews().filter(...)` instead.
+   * @deprecated Returns an empty array — Currently not used in the EML AdminTool, but may be used 
+   * in the future. Please use `News.getNews().filter(...)` instead.
    */
   async getNewsByCategory(categoryId: number): Promise<INews[]> {
     return [] as INews[] // Currently not used in the EML AdminTool, but may be used in the future.
