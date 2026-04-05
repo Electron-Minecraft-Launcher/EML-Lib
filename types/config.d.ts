@@ -55,7 +55,7 @@ export interface Config {
          * [Optional] The specific version of the loader. This is required for any loader other
          * than `'vanilla'`.
          *
-         * @see [List of loader versions](https://emlproject.pages.dev/resources/loader-versions/)
+         * @see [List of loader versions](https://emlproject.pages.dev/resources/minecraft-versions/)
          */
         version?: string
       }
@@ -137,7 +137,7 @@ export interface Config {
        * [Optional] The specific version of the loader. This is required for any loader other than
        * `'vanilla'`.
        *
-       * @see [List of loader versions](https://emlproject.pages.dev/resources/loader-versions/)
+       * @see [List of loader versions](https://emlproject.pages.dev/resources/minecraft-versions/)
        */
       version?: string
     }
