@@ -36,7 +36,7 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
   /**
    * Download files from the list.
    * @param files List of files to download. This list must include folders.
-   * @param skipCheck [Optional: default is `false`] Skip files that already exist in the
+   * @param skipCheck [Optional: defaults to `false`] Skip files that already exist in the
    * destination folder (force to download all files).
    */
   async download(files: File[], skipCheck: boolean = false): Promise<void> {
@@ -214,5 +214,4 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
     }
   }
 }
-
 

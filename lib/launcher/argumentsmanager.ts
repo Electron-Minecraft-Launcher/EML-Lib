@@ -3,19 +3,19 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
-import { FullConfig } from '../../types/config.js'
+import { ResolvedConfig } from '../../types/config.js'
 import { MinecraftManifest } from '../../types/manifest.js'
 import utils from '../utils/utils.js'
 import path_ from 'node:path'
 import { ExtraFile, ILoader } from '../../types/file.js'
 
 export default class ArgumentsManager {
-  private config: FullConfig
+  private config: ResolvedConfig
   private manifest: MinecraftManifest
   private loaderManifest: MinecraftManifest | null
   private loader: ILoader | null
 
-  constructor(config: FullConfig, manifest: MinecraftManifest) {
+  constructor(config: ResolvedConfig, manifest: MinecraftManifest) {
     this.config = config
     this.manifest = manifest
     this.loaderManifest = null
@@ -27,7 +27,8 @@ export default class ArgumentsManager {
    * @param libraries The libraries of the game (including loader libraries).
    * @param loader The loader used (can be null if no loader is used).
    * @param loaderManifest The manifest of the loader (can be null if no loader is used).
-   * @param customAuth [Optional] Custom authentication method (for advanced users, use with authlib-injector).
+   * @param customAuth [Optional] Custom authentication method (for advanced users, use with 
+   * authlib-injector).
    * @returns The arguments to launch the game.
    */
   getArgs(
@@ -125,7 +126,7 @@ export default class ArgumentsManager {
   }
 
   private getMinecraftArgs(): string[] {
-    const slug = utils.sanitizeSlug(this.config.storageMode === 'shared' && this.config.profile ? this.config.profile.slug : '')
+    const slug = utils.sanitizeSlug(this.config.storage === 'shared' && this.config.slug ? this.config.slug : '')
     const gameDirectory = path_.join(this.config.root, slug).replaceAll('\\', '/')
     const assetsDirectory =
       this.manifest.assets === 'legacy' || this.manifest.assets === 'pre-1.6'

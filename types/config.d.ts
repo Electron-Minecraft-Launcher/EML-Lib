@@ -3,196 +3,286 @@ import { IProfile } from './profile.js'
 
 export interface Config {
   /**
-   * [Optional] The URL of your EML AdminTool website, where is stored your modpack and loader info. If
-   * you don't set this value, the launcher will use the vanilla version of Minecraft (loaders such as
-   * Forge or Fabric are only available through the EML AdminTool).
+   * [Optional] The URL of your EML AdminTool instance. This endpoint provides the modpack
+   * manifest, loader information, and server settings.
+   *
+   * **Attention!** This property is ignored if a Minecraft version is explicitly defined (either
+   * in {@link minecraft `minecraft.version`} or {@link profile `profile.minecraft.version`}). If
+   * neither a URL nor a version is provided, the launcher defaults to the latest Vanilla release.
    */
   url?: string
+
   /**
-   * [Optional] The profile of the Minecraft instance to launch. You should choose a profile form
-   * `Profiles.getProfiles()` to be sure to get the correct profile. If you don't set this value, the
-   * launcher will use the default profile from EML AdminTool.
+   * [Optional] The specific profile to launch. It is recommended to retrieve this object via
+   * `Profiles.getProfiles()`.
+   *
+   * **Attention!** When you set a manual profile, you must ensure the profile contains a valid
+   * `slug`. This slug determines the name of the game instance folder.
    */
-  profile?: IProfile
+  profile?: Partial<IProfile> & { slug: string } & {
+    /**
+     * [Optional: defaults to `{ version: undefined, args: [] }`]
+     * Instance-specific Minecraft configuration.
+     *
+     * **Attention!** If defined, this block takes precedence over the root
+     * {@link minecraft `minecraft`} configuration and any data fetched from the EML AdminTool.
+     */
+    minecraft?: {
+      /**
+       * [Optional] The Minecraft version to install (e.g., `'1.20.1'`). Use `'latest_release'` or
+       * `'latest_snapshot'` for the most recent versions.
+       *
+       * **Attention!** Providing this value forces the launcher into to ignore the
+       * {@link url `url`} property.
+       *
+       * @see [List of Minecraft versions](https://emlproject.pages.dev/resources/minecraft-versions/)
+       */
+      version?: string
+      /**
+       * [Optional: defaults to `{ loader: 'vanilla', version: undefined }` if
+       * `profile.minecraft.version` is set, otherwise `undefined`]
+       * The mod loader configuration for this profile.
+       *
+       * **Attention!** This property is ignored if `profile.minecraft.version` is not set.
+       */
+      loader?: {
+        /**
+         * [Optional: defaults to `'vanilla'`]
+         * The type of mod loader to utilize.
+         */
+        loader: 'vanilla' | 'forge' | 'neoforge' | 'fabric' | 'quilt'
+        /**
+         * [Optional] The specific version of the loader. This is required for any loader other
+         * than `'vanilla'`.
+         *
+         * @see [List of loader versions](https://emlproject.pages.dev/resources/minecraft-versions/)
+         */
+        version?: string
+      }
+      /**
+       * [Optional] The direct URL to a modpack manifest (.json).
+       *
+       * **Attention!** This property is ignored if `profile.minecraft.version` is not set.
+       *
+       * @see [Modpack JSON Generator](https://emlproject.pages.dev/resources/modpack-json-generator/)
+       */
+      modpackUrl?: string
+      /**
+       * [Optional: defaults to `[]`]
+       * Custom Minecraft launch arguments.
+       * **Use this option only if you know what you are doing!**
+       */
+      args?: string[]
+    }
+  }
+
   /**
-   * [Optional: default is `'isolated'`] 
-   * The storage mode of the launcher. If you set this value to `'shared'`, the launcher will use the 
-   * same game folder for all the profiles, which means that the different profiles will share the same 
-   * assets, libraries, etc., but mods, configurations and saves will be separated in different 
-   * folders. If you set this value to `'isolated'`, the launcher will create a separate game folder 
-   * for each profile (e.g. `.minecraft/profile1`) and the profiles will not share anything.
-   * 
-   * **Attention!** If you use `storageMode: 'shared'`, you should disable the cleaning (with 
-   * `cleaning.enabled: false`) to avoid deleting the shared assets and libraries when launching 
-   * different profiles.
+   * @deprecated Use the {@link storage `storage`} property instead.
    */
   storageMode?: 'isolated' | 'shared'
   /**
-   * Your Minecraft server ID (e.g. `'minecraft'`). This will be used to create the
-   * server folder (e.g. `.minecraft`).
-   * @deprecated Use `root` property instead to set the game folder directly.
+   * [Optional: defaults to `'isolated'`]
+   * Defines how game files are organized on the disk.
+   * - `'isolated'`: Each profile has its own completely separate folder (e.g., `.root/slug/` if
+   * you use the {@link profile `profile`} property, `.root/` otherwise).
+   * - `'shared'`: Profiles share common assets and libraries, but keep `mods`, `config`, and
+   * `saves` in separate sub-folders.
+   *
+   * **Attention!** If you use `storage: 'shared'`, you should disable the {@link cleaning cleaning} (with `cleaning.enabled: false`) to avoid deleting the shared assets and libraries when launching different profiles.
+   */
+  storage?: 'isolated' | 'shared'
+
+  /**
+   * @deprecated Use the {@link root `root`} property instead.
    */
   serverId?: string
   /**
-   * The name of the game folder, **without the dot** (e.g. `'minecraft'`). This will be used to create
-   * the server folder (e.g. `.minecraft`).
+   * The name of the root game directory (e.g., `'minecraft'`). The launcher will automatically
+   * prefix this with a dot (e.g., `'.minecraft'`) under Windows.
    */
   root?: string
+
   /**
-   * [Optional: default is `{ clean: true, ignored: ['runtime/', 'crash-reports/', 'logs/',
-   * 'resourcepacks/', 'resources/', 'saves/', 'shaderpacks/', 'options.txt', 'optionsof.txt'] }`]
-   * The cleaning configuration, used to clean the game folder before launching the Minecraft game.
-   */
-  cleaning?: {
-    /**
-     * [Optional: default is `true`]
-     * Should the launcher clean the game folder before launching the Minecraft game? In most cases,
-     * you should set this value to `true`. Set this value to `false` if you want to keep allow the
-     * players to keep their mods, resource packs, etc., or if you want to install multiple
-     * instances of Minecraft on the same game folder.
-     * @deprecated Use `enabled` property instead to enable or disable the cleaning.
-     */
-    clean?: boolean
-    /**
-     * [Optional: default is `true`]
-     * Should the launcher clean the game folder before launching the Minecraft game? In most cases,
-     * you should set this value to `true`. Set this value to `false` if you want to keep allow the
-     * players to keep their mods, resource packs, etc., or if you want to install multiple
-     * instances of Minecraft on the same game folder.
-     * 
-     * **Attention!** You should disable the cleaning if you use `storageMode: 'shared'`.
-     */
-    enabled?: boolean
-    /**
-     * [Optional: default is `['crash-reports/', 'logs/', 'resourcepacks/', 'resources/',
-     * 'saves/', 'shaderpacks/', 'options.txt', 'optionsof.txt']`]
-     * The list of paths/files to ignore when checking and cleaning the game folder, before launching
-     * the Minecraft game.
-     */
-    ignored?: string[]
-  }
-  /**
-   * The player account (use `MicrosoftAuth`, `AzAuth` `YggdrasilAuth` or `CrackAuth` to get the account,
-   * but you should **not** authenticate the user directly in the `config`, to be able to handle
-   * authentication).
-   */
-  account: Account
-  /**
-   * [Optional: default is `{ version: 'latest_release', args: [] }`]
-   * Minecraft configuration.
+   * [Optional: defaults to `{ version: undefined, args: [] }`]
+   * Global Minecraft configuration.
    *
-   * **Attention!** Setting `minecraft.version` overrides the Minecraft version from the EML AdminTool.
-   * Moreover, if you want to use a loader (like Forge), you **must** use the EML AdminTool.
+   * **Attention!** This configuration is overridden if {@link profile `profile.minecraft`} is
+   * defined with a valid version. Setting `minecraft.version` will bypass the EML AdminTool data.
    */
   minecraft?: {
     /**
-     * [Optional: default is `null`]
-     * The version of Minecraft you want to install. Set to `'latest_release'` to install the
-     * latest release version of Minecraft, or `'latest_snapshot'` to install the latest snapshot.
-     * Set to `null` or `undefined` to get the version from the EML AdminTool.
+     * [Optional] The Minecraft version to install (e.g., `'1.20.1'`). Use `'latest_release'` or
+     * `'latest_snapshot'` for the most recent versions.
+     *
+     * **Attention!** Providing this value forces the launcher into to ignore the {@link url `url`}
+     * property.
+     *
+     * @see [List of Minecraft versions](https://emlproject.pages.dev/resources/minecraft-versions/)
      */
-    version?: string | null
+    version?: string
     /**
-     * [Optional: default is `[]`]
-     * **Use this option only if you know what you are doing!** Add custom arguments to launch Minecraft.
+     * [Optional: defaults to `{ loader: 'vanilla', version: undefined }` if `minecraft.version` is
+     * set, otherwise `undefined`]
+     * The mod loader configuration for this profile.
+     *
+     * **Attention!** This property is ignored if you don't set `minecraft.version`.
+     */
+    loader?: {
+      /**
+       * [Optional: defaults to `'vanilla'`]
+       * The loader to use for the Minecraft instance.
+       */
+      loader: 'vanilla' | 'forge' | 'neoforge' | 'fabric' | 'quilt'
+      /**
+       * [Optional] The specific version of the loader. This is required for any loader other than
+       * `'vanilla'`.
+       *
+       * @see [List of loader versions](https://emlproject.pages.dev/resources/minecraft-versions/)
+       */
+      version?: string
+    }
+    /**
+     * [Optional] The direct URL to a modpack manifest (.json).
+     *
+     * **Attention!** This property is ignored if `minecraft.version` is not set.
+     *
+     * @see [Modpack JSON Generator](https://emlproject.pages.dev/resources/modpack-json-generator/)
+     */
+    modpackUrl?: string
+    /**
+     * Optional: defaults to `[]`]
+     * Custom Minecraft launch arguments.
+     * **Use this option only if you know what you are doing!**
      */
     args?: string[]
   }
+
   /**
-   * [Optional: default automatically installs Java when calling `Launcher.launch()`]
-   * Java configuration.
+   * [Optional: defaults to `{ enabled: true, ignored: [...] }`]
+   * Configuration for the directory cleaning process before launch.
+   */
+  cleaning?: {
+    /**
+     * @deprecated Use the `enabled` property instead to enable or disable the cleaning.
+     */
+    clean?: boolean
+    /**
+     * [Optional: defaults to `true`]
+     * Whether the launcher should remove unrecognized files from the instance folder.
+     *
+     * **Attention!** Must be `false` when {@link storage `storage`} is set to 'shared'.
+     */
+    enabled?: boolean
+    /**
+     * [Optional: defaults to `['crash-reports/', 'logs/', 'resourcepacks/', 'resources/',
+     * 'saves/', 'shaderpacks/', 'options.txt', 'optionsof.txt']`]
+     * A list of relative paths or files to protect from the cleaning process.
+     */
+    ignored?: string[]
+  }
+
+  /**
+   * The authenticated player account. Use `MicrosoftAuth`, `AzAuth`, `YggdrasilAuth`, or
+   * `CrackAuth` to generate this.
+   */
+  account: Account
+
+  /**
+   * [Optional: default automatically manages Java runtimes]
+   * Java Runtime Environment (JRE) configuration.
    */
   java?: {
     /**
-     * [Optional: default is `'auto'`]
-     * Should the launcher install Java automatically? `'auto'` automatically installs Java when
-     * calling `Launcher.launch()`. `'manual'` does not install Java automatically. You can use
-     * `Java.download()` to install Java manually.
+     * [Optional: defaults to `'auto'`]
+     * - `'auto'`: Automatically downloads and manages the required Java version.
+     * - `'manual'`: Uses a pre-installed Java executable.
      */
     install?: 'auto' | 'manual'
     /**
-     * [Optional: default is `undefined`]
-     * The absolute path to the Java executable.
-     * If you use a manual installation of Java with a custom path, you can set it here. Be careful
-     * to indicate the correct path depending on the operating system of the user.
-     * If you don't install Java (automatically or manually), set this value to `'java'` to use the
-     * Java installed on the user's computer.
+     * [Optional: defaults to `'java'` if `java.install` is set to `'manual'`, otherwise
+     * `undefined`]
+     * The absolute path to the Java executable. Required if `install` is `'manual'` and
+     * `relativePath` is not provided.
      *
-     * **Attention!** This property overrides the `java.relativePath` property.
+     * **Attention!** Overrides `java.relativePath`. Ignored if `install` is `'auto'`.
      */
     absolutePath?: string
     /**
-     * [Optional: default is `'runtime/jre-X/bin/java'` where `X` is the major version of Java]
-     * The path (relative to the game folder) to the Java executable.
-     * If you use a manual installation of Java with a custom path, or if you don't install Java,
-     * (automatically or manually) use `java.absolutePath` property instead.
+     * [Optional: defaults to `'runtime/jre-X/bin/java'` where `X` is the major version of Java]
+     * The path to the Java executable relative to the game `root` or `root/slug`.
      *
-     * **Attention!** This property is ignored if `java.absolutePath` is set.
+     * **Attention!** Ignored if `install` is `'auto'` or `absolutePath` is set.
      */
     relativePath?: string
     /**
-     * [Optional: default is `[]`]
-     * **Use this option only if you know what you are doing!** Add custom arguments to Java
-     * Virtual Machine (JVM).
+     * [Optional: defaults to `[]`]
+     * Custom JVM (Java Virtual Machine) arguments.
+     * **Use this option only if you know what you are doing!**
      *
-     * **Please don't try to patch [Log4j](https://help.minecraft.net/hc/en-us/articles/4416199399693-Security-Vulnerability-in-Minecraft-Java-Edition)
-     * with this option!** The launcher will automatically patch Log4j if needed.
+     * **Attention!** Do not use this for [Log4j patches]((https://help.minecraft.net/hc/en-us/articles/4416199399693-Security-Vulnerability-in-Minecraft-Java-Edition)); the launcher applies security patches automatically.
      */
     args?: string[]
   }
+
   /**
-   * [Optional: default is a 854x480 window]
-   * The Minecraft window configuration.
+   * [Optional: defaults to 854x480]
+   * Configuration for the Minecraft game window.
    */
   window?: {
     /**
-     * [Optional: default is `854`]
+     * [Optional: defaults to `854`]
      * The width of the Minecraft window.
      */
     width?: number
     /**
-     * [Optional: default is `480`]
+     * [Optional: defaults to `480`]
      * The height of the Minecraft window.
      */
     height?: number
     /**
-     * [Optional: default is `false`]
+     * [Optional: defaults to `false`]
      * Should the Minecraft window be fullscreen?
      */
     fullscreen?: boolean
   }
+
   /**
-   * [Optional: default is `{ min: 1024, max: 2048 }`]
-   * The memory (RAM) configuration.
+   * [Optional: defaults to `{ min: 512, max: 1023 }`]
+   * RAM allocation for the Minecraft process (in MB).
    */
   memory?: {
     /**
-     * [Optional: default is `512`]
+     * [Optional: defaults to `512`]
      * The minimum memory (RAM), in **MB**, allocated to Minecraft.
      */
     min: number
     /**
-     * [Optional: default is `1023`]
+     * [Optional: defaults to `1023`]
      * The maximum memory (RAM), in **MB**, allocated to Minecraft.
      */
     max: number
   }
 }
 
-export interface FullConfig {
-  url: string
-  profile?: IProfile
-  storageMode: 'isolated' | 'shared'
+export interface ResolvedConfig {
+  url?: string
+  slug?: string
+  storage: 'isolated' | 'shared'
   root: string
+  minecraft: {
+    version?: string
+    loader?: {
+      loader: 'vanilla' | 'forge' | 'neoforge' | 'fabric' | 'quilt'
+      version: string
+    }
+    modpackUrl?: string
+    args: string[]
+  }
   cleaning: {
     enabled: boolean
     ignored: string[]
   }
   account: Account
-  minecraft: {
-    version: string | null
-    args: string[]
-  }
   java: {
     install: 'auto' | 'manual'
     absolutePath: string

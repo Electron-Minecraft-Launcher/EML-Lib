@@ -14,7 +14,22 @@ import Background from './lib/background/background.js'
 import ServerStatus from './lib/serverstatus/serverstatus.js'
 import Java from './lib/java/java.js'
 import Launcher from './lib/launcher/launcher.js'
-import Profile from './lib/profiles/profiles.js'
+import Profiles from './lib/profiles/profiles.js'
+
+type EMLLib = {
+  MicrosoftAuth: typeof MicrosoftAuth
+  AzAuth: typeof AzAuth
+  CrackAuth: typeof CrackAuth
+  YggdrasilAuth: typeof YggdrasilAuth
+  Bootstraps: typeof Bootstraps
+  Maintenance: typeof Maintenance
+  News: typeof News
+  Background: typeof Background
+  Profiles: typeof Profiles
+  ServerStatus: typeof ServerStatus
+  Java: typeof Java
+  Launcher: typeof Launcher
+}
 
 export type * from './types/account.js'
 export type * from './types/background.js'
@@ -89,7 +104,7 @@ export { Background }
  *
  * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
  */
-export { Profile }
+export { Profiles }
 
 /**
  * Get the status of a Minecraft server.
@@ -106,7 +121,6 @@ export { Java }
 
 /**
  * Launch Minecraft.
- * @workInProgress
  */
 export { Launcher }
 
@@ -124,8 +138,8 @@ export { Launcher }
  * **Recommandations:**
  * - To get all the capacities of this Node.js library, you must set up your
  * [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool) website!
- * - If you don't want to use the EML AdminTool, you should rather use the
- * [Minecraft Launcher Core](https://npmjs.com/package/minecraft-launcher-core) library.
+ * - If you don't want to set up EML AdminTool, you can use our [modpack generator](https://emlproject.pages.dev/resources/modpack-generator/) 
+ * to generate an EML Lib-compatible modpack.
  *
  * ---
  *
@@ -136,9 +150,9 @@ export { Launcher }
  *
  * ---
  *
- * @version 2.0.0
+ * @version 2.2.0
  * @license MIT — See the `LICENSE` file for more information
- * @copyright Copyright (c) 2026, GoldFrite
+ * @copyright Copyright (c) 2026, GoldFrite and contributors
  */
 const EMLLib = {
   /**
@@ -172,7 +186,6 @@ const EMLLib = {
    * Update your Launcher.
    *
    * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
-   * @workInProgress
    */
   Bootstraps,
 
@@ -202,7 +215,7 @@ const EMLLib = {
    *
    * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    */
-  Profiles: Profile,
+  Profiles,
 
   /**
    * Get the status of a Minecraft server.
@@ -219,10 +232,9 @@ const EMLLib = {
 
   /**
    * Launch Minecraft.
-   * @workInProgress
    */
   Launcher
-}
+} as EMLLib
 
 
 export default EMLLib

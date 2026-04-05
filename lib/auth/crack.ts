@@ -12,7 +12,8 @@ export default class CrackAuth {
    * Authenticate a user with a crack account.
    * @param username The username of the user.
    * @returns The account information.
-   * @deprecated This auth method is not secure, use it only for testing purposes or for local servers!
+   * @deprecated This auth method is not secure, use it only for testing purposes or for local 
+   * servers!
    */
   auth(username: string): Account {
     if (/^[a-zA-Z0-9_]+$/gm.test(username) && username.length > 2) {

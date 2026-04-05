@@ -3,7 +3,7 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
-import { FullConfig } from '../../../types/config.js'
+import { ResolvedConfig } from '../../../types/config.js'
 import { ExtraFile, File, ILoader } from '../../../types/file.js'
 import { MinecraftManifest } from '../../../types/manifest.js'
 import fs from 'node:fs/promises'
@@ -15,12 +15,12 @@ import { FilesManagerEvents } from '../../../types/events.js'
 import { EMLLibError, ErrorType } from '../../../types/errors.js'
 
 export default class FabricLikeLoader extends EventEmitter<FilesManagerEvents> {
-  private readonly config: FullConfig
+  private readonly config: ResolvedConfig
   private readonly manifest: MinecraftManifest
   private readonly loader: ILoader
   private readonly metaConfig: { name: string; url: string; apiVersion: string }
 
-  constructor(config: FullConfig, manifest: MinecraftManifest, loader: ILoader) {
+  constructor(config: ResolvedConfig, manifest: MinecraftManifest, loader: ILoader) {
     super()
     this.config = config
     this.manifest = manifest
@@ -35,8 +35,9 @@ export default class FabricLikeLoader extends EventEmitter<FilesManagerEvents> {
 
   /**
    * Setup Fabric or Quilt loader.
-   * @returns `loaderManifest`: Loader manifest; `installProfile`: null (Fabric n'en a pas); `libraries`: libraries
-   * to download; `files`: all files created by this method or that will be created (including `libraries`)
+   * @returns `loaderManifest`: Loader manifest; `installProfile`: null (Fabric n'en a pas); 
+   * `libraries`: libraries to download; `files`: all files created by this method or that will be
+   * created (including `libraries`)
    */
   async setup(): Promise<{
     loaderManifest: MinecraftManifest | null
@@ -107,20 +108,8 @@ export default class FabricLikeLoader extends EventEmitter<FilesManagerEvents> {
       const baseUrl = lib.url ?? defaultBaseUrl
       const url = `${baseUrl}${utils.getLibraryPath(lib.name).replaceAll('\\', '/')}${name}`
 
-      let size = 0
-      let sha1 = ''
-
-      try {
-        const sizeReq = await fetch(url, { method: 'HEAD' })
-        size = parseInt(sizeReq.headers.get('Content-Length') ?? '0', 10)
-
-        const sha1Req = await fetch(`${url}.sha1`)
-        if (sha1Req.ok) {
-          sha1 = await sha1Req.text()
-        }
-      } catch (e) {
-        console.warn(`Failed to fetch metadata for ${name}, downloading blindly.`)
-      }
+      const size = await utils.getRemoteFileSize(url, `Failed to get size for library ${name}`)
+      const sha1 = await utils.getRemoteFileSha1(url, `Failed to get SHA1 for library ${name}`)
 
       return {
         name: name,

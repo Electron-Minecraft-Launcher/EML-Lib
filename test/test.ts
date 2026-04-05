@@ -1,4 +1,5 @@
 import EMLLib from '../index.js'
+import { IProfile } from '../types/profile.js'
 
 async function mainWithElectron() {
   const { app, BrowserWindow } = await import('electron')
@@ -28,17 +29,9 @@ async function mainWithElectron() {
 }
 
 async function main() {
-  const profiles = await new EMLLib.Profiles('http://localhost:5173').getProfiles()
-  const dp = profiles.find((p) => p.slug === 'mineplex')!
   const launcher = new EMLLib.Launcher({
-    url: 'http://localhost:5173',
-    profile: dp,
-    storageMode: 'shared',
     root: 'goldfrite',
-    account: new EMLLib.CrackAuth().auth('Goldfrite'),
-    cleaning: {
-      clean: true
-    }
+    account: new EMLLib.CrackAuth().auth('Goldfrite')
   })
 
   try {

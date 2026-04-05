@@ -25,6 +25,11 @@ async function run() {
   readme = readme.replace(/badge\/version-([a-zA-Z0-9.\-]+)-orangered/, `badge/version-${cleanVersion.replace('-', '--')}-orangered`)
   await fs.writeFile('README.md', readme)
 
+  console.log('🗂️ Updating index.ts...')
+  let index = await fs.readFile('index.ts', 'utf-8')
+  index = index.replace(/@version \d+\.\d+\.\d+/, `@version ${cleanVersion}`)
+  await fs.writeFile('index.ts', index)
+
   console.log('📋 Creating changelog...')
   await fs.writeFile(`.github/changelogs/v${cleanVersion}.md`, `## Changelog\n\n### New features\n\n### Changes\n\n### Bug fixes and improvements\n`)
 

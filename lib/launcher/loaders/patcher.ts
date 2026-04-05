@@ -4,7 +4,7 @@
  */
 
 import yauzl from 'yauzl'
-import { FullConfig } from '../../../types/config.js'
+import { ResolvedConfig } from '../../../types/config.js'
 import { ILoader, File } from '../../../types/file.js'
 import { MinecraftManifest } from '../../../types/manifest.js'
 import utils from '../../utils/utils.js'
@@ -16,12 +16,12 @@ import EventEmitter from '../../utils/events.js'
 import { PatcherEvents } from '../../../types/events.js'
 
 export default class Patcher extends EventEmitter<PatcherEvents> {
-  private readonly config: FullConfig
+  private readonly config: ResolvedConfig
   private readonly manifest: MinecraftManifest
   private readonly loader: ILoader
   private readonly installProfile: any
 
-  constructor(config: FullConfig, manifest: MinecraftManifest, loader: ILoader, installProfile: any) {
+  constructor(config: ResolvedConfig, manifest: MinecraftManifest, loader: ILoader, installProfile: any) {
     super()
     this.config = config
     this.manifest = manifest
