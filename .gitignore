@@ -5,3 +5,4 @@ test/drasl-*
 
 .env
 .env.*
+test/test-config.ts

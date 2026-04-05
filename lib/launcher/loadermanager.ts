@@ -3,7 +3,7 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
-import { FullConfig } from '../../types/config.js'
+import { ResolvedConfig } from '../../types/config.js'
 import { FilesManagerEvents, PatcherEvents } from '../../types/events.js'
 import { ExtraFile, File, ILoader } from '../../types/file.js'
 import { MinecraftManifest } from '../../types/manifest.js'
@@ -13,11 +13,11 @@ import ForgeLikeLoader from './loaders/forgelike.js'
 import FabricLikeLoader from './loaders/fabriclike.js'
 
 export default class LoaderManager extends EventEmitter<FilesManagerEvents & PatcherEvents> {
-  private readonly config: FullConfig
+  private readonly config: ResolvedConfig
   private readonly manifest: MinecraftManifest
   private readonly loader: ILoader
 
-  constructor(config: FullConfig, manifest: MinecraftManifest, loader: ILoader) {
+  constructor(config: ResolvedConfig, manifest: MinecraftManifest, loader: ILoader) {
     super()
     this.config = config
     this.manifest = manifest
@@ -26,8 +26,9 @@ export default class LoaderManager extends EventEmitter<FilesManagerEvents & Pat
 
   /**
    * Setup the loader.
-   * @returns `loaderManifest`: Loader manifest; `installProfile`: Install profile; `libraries`: libraries
-   * files; `files`: all files created by the method or that will be created (including `libraries`).
+   * @returns `loaderManifest`: Loader manifest; `installProfile`: Install profile; `libraries`: 
+   * libraries files; `files`: all files created by the method or that will be created (including
+   * `libraries`).
    */
   async setupLoader(): Promise<{
     loaderManifest: MinecraftManifest | null

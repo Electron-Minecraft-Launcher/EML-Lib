@@ -10,7 +10,7 @@ import os from 'node:os'
 import { createHash } from 'node:crypto'
 import { pipeline } from 'node:stream/promises'
 import { ExtraFile } from '../../types/file.js'
-import { Config, FullConfig } from '../../types/config.js'
+import { Config, ResolvedConfig } from '../../types/config.js'
 
 class Utils {
   /**
@@ -79,9 +79,9 @@ class Utils {
    * @param serverId Your Minecraft server ID (e.g. `'minecraft'`).
    * @returns The path to the root folder (e.g. `'C:\Users\user\AppData\Roaming\.minecraft'`).
    */
-  getRootFolder(config: (Config | FullConfig) & { root: string }): string {
-    if (config.profile && config.storageMode === 'isolated') {
-      const slug = this.sanitizeSlug(config.profile.slug)
+  getRootFolder(config: ResolvedConfig): string {
+    if (config.slug && config.storage === 'isolated') {
+      const slug = this.sanitizeSlug(config.slug)
       return path_.join(this.getServerFolder(config.root), slug)
     }
     return this.getServerFolder(config.root)
@@ -99,7 +99,8 @@ class Utils {
   }
 
   /**
-   * Sanitize a slug (e.g. a profile slug) by replacing spaces with dashes and removing special characters.
+   * Sanitize a slug (e.g. a profile slug) by replacing spaces with dashes and removing special
+   * characters.
    * @param slug The slug to sanitize.
    * @returns The sanitized slug (e.g. `'my-profile'`).
    */
@@ -232,7 +233,8 @@ class Utils {
    * Check if a version is newer than another one.
    * @param refVersion Reference version.
    * @param checkVersion Version to check.
-   * @returns `true` if `checkVersion` is newer than `refVersion`, `false` if `checkVersion` is older than
+   * @returns `true` if `checkVersion` is newer than `refVersion`, `false` if `checkVersion` is
+   * older than
    * `refVersion`, `null` if the versions are the same.
    */
   isNewer(ref: ExtraFile, check: ExtraFile): boolean | null {
@@ -255,6 +257,43 @@ class Utils {
     }
 
     return false
+  }
+
+  /**
+   * Get the size of a remote file by sending a HEAD request to the file URL.
+   * @param url URL of the file.
+   * @param errorMsg Error message to include in the error if the request fails.
+   * @returns The size of the file in bytes.
+   */
+  async getRemoteFileSize(url: string, errorMsg: string): Promise<number> {
+    try {
+      const req = await fetch(url, { method: 'HEAD', headers: { Connection: 'close' } })
+      if (!req.ok) {
+        throw new EMLLibError(ErrorType.FETCH_ERROR, `${errorMsg}: HTTP ${req.status} ${await req.text()}`)
+      }
+      return Number(req.headers.get('Content-Length') ?? 0)
+    } catch (err) {
+      throw new EMLLibError(ErrorType.FETCH_ERROR, `${errorMsg}: ${err instanceof Error ? err.message : err}`)
+    }
+  }
+
+  /**
+   * Get the SHA1 hash of a remote file by sending a GET request to the file URL and reading the
+   * response as text.
+   * @param url URL of the file.
+   * @param errorMsg Error message to include in the error if the request fails.
+   * @returns The SHA1 hash of the file as a string.
+   */
+  async getRemoteFileSha1(url: string, errorMsg: string): Promise<string> {
+    try {
+      const req = await fetch(url, { headers: { Connection: 'close' } })
+      if (!req.ok) {
+        throw new EMLLibError(ErrorType.FETCH_ERROR, `${errorMsg}: HTTP ${req.status} ${await req.text()}`)
+      }
+      return await req.text().then((text) => text.trim())
+    } catch (err) {
+      throw new EMLLibError(ErrorType.FETCH_ERROR, `${errorMsg}: ${err instanceof Error ? err.message : err}`)
+    }
   }
 
   private parseVersion(v: string) {

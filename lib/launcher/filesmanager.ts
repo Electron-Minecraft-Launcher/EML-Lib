@@ -4,7 +4,7 @@
  * @copyright Copyright (c) 2019, Pierce Harriz, from [Minecraft Launcher Core](https://github.com/Pierce01/MinecraftLauncher-core)
  */
 
-import { FullConfig } from '../../types/config.js'
+import { ResolvedConfig } from '../../types/config.js'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
 import { ExtraFile, File, ILoader } from '../../types/file.js'
 import { Artifact, MinecraftManifest, Assets } from '../../types/manifest.js'
@@ -19,11 +19,11 @@ import { FilesManagerEvents } from '../../types/events.js'
 import Java from '../java/java.js'
 
 export default class FilesManager extends EventEmitter<FilesManagerEvents> {
-  private config: FullConfig
+  private config: ResolvedConfig
   private manifest: MinecraftManifest
   private loader: ILoader
 
-  constructor(config: FullConfig, manifest: MinecraftManifest, loader: ILoader) {
+  constructor(config: ResolvedConfig, manifest: MinecraftManifest, loader: ILoader) {
     super()
     this.config = config
     this.manifest = manifest
@@ -36,7 +36,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
    * (including `java`).
    */
   async getJava(): Promise<{ java: File[]; files: File[] }> {
-    const java = await new Java(this.manifest.id, this.config.root).getFiles(this.manifest)
+    const java = await new Java(this.config).getFiles(this.manifest)
     if (this.config.java.install === 'auto') {
       return { java: java, files: java }
     } else {
@@ -50,11 +50,17 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
    * created (including `modpack`).
    */
   async getModpack(): Promise<{ modpack: File[]; files: File[] }> {
-    if (!this.config.url) return { modpack: [], files: [] }
+    const slug = utils.sanitizeSlug(this.config.storage === 'shared' && this.config.slug ? this.config.slug : '')
+    const gameDirectory = path_.join(this.config.root, slug).replaceAll('\\', '/')
+    if (!existsSync(gameDirectory)) {
+      await fs.mkdir(gameDirectory, { recursive: true })
+    }
+
+    if (!this.config.url && !this.config.minecraft.modpackUrl) return { modpack: [], files: [] }
 
     try {
-      const slug = this.config.profile ? this.config.profile.slug : ''
-      const req = await fetch(`${this.config.url}/api/files-updater/${slug}`)
+      const url = this.config.url ? `${this.config.url}/api/files-updater/${this.config.slug ?? ''}` : this.config.minecraft.modpackUrl!
+      const req = await fetch(url)
 
       if (!req.ok) {
         const errorText = await req.text()
@@ -199,21 +205,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
     if (this.config.account.meta.type !== 'yggdrasil') return { injector: [], files: [] }
 
     const url = 'https://github.com/yushijinhun/authlib-injector/releases/download/v1.2.7/authlib-injector-1.2.7.jar'
-
-    let size: number
-    try {
-      const req = await fetch(url, { method: 'HEAD' })
-
-      if (!req.ok) {
-        const errorText = await req.text()
-        throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch authlib-injector file info: HTTP ${req.status} ${errorText}`)
-      }
-
-      size = Number(req.headers.get('content-length')) || 0
-    } catch (err: unknown) {
-      if (err instanceof EMLLibError) throw err
-      throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch authlib-injector file info: ${err instanceof Error ? err.message : err}`)
-    }
+    const size = await utils.getRemoteFileSize(url, 'Failed to get authlib-injector file size')
 
     const injector: File[] = [
       {
@@ -402,8 +394,8 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
   }
 
   private mapFiles(files: File[]) {
-    const slug = utils.sanitizeSlug(this.config.profile ? this.config.profile.slug : '')
-    if (this.config.storageMode === 'shared') {
+    const slug = utils.sanitizeSlug(this.config.slug ?? '')
+    if (this.config.storage === 'shared') {
       return files.map((file) => {
         return {
           ...file,

@@ -19,7 +19,8 @@ export default class Bootstraps extends EventEmitter<DownloaderEvents & Bootstra
    *
    * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    *
-   * **Attention!** Using this class requires Electron Updater. Use `npm i electron-updater` to install it.
+   * **Attention!** Using this class requires Electron Updater. Use `npm i electron-updater` to 
+   * install it.
    * @param url The URL of your EML AdminTool website
    */
   constructor(url: string) {

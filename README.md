@@ -18,14 +18,44 @@
 
 ## Features
 
-- **Authentication**: Authenticate users with Microsoft, Azuriom, Yggdrasil or Crack.
-- **Minecraft**: Automatically download and launch Minecraft (Vanilla, Forge [^1], NeoForge [^1], Fabric [^1], and Quilt [^1]; MCP is coming soon), and remove unwanted files (such as unwanted mods).
-- **Java**: Automatically download and install Java.
-- **Bootstraps [^1]**: Auto-update your launcher.
-- **Maintenance [^1]**: Block the launcher during maintenance.
-- **Server status**: Displaying server information (from Minecraft 1.4 to the latest Minecraft version)
-- **News [^1]**: Displaying news.
-- **Background [^1]**: Displaying a background image.
+### Authentication
+
+EML Lib supports multiple authentication methods, including Microsoft, Azuriom, Yggdrasil and Crack. This allows you to choose the authentication method that best suits your needs and preferences.
+
+_Read the [docs](https://emlproject.pages.dev/docs/authentication)._
+
+### Launch settings
+
+Choose the Minecraft version and loader that you want to launch. EML Lib supports all Minecraft versions, from Minecraft beta to the latest Minecraft snapshot, and all loaders, including Vanilla, Forge, NeoForge, Fabric and Quilt. MCP support is coming soon. <br/>
+EML Lib also allows you to use _Profiles_, which are sets of settings (such as Minecraft version, loader, mods, etc.) that you can save and reuse later.
+
+EML Lib can automatically download and install Java to ensure that you have the correct Java version for the Minecraft version you want to launch. It also supports custom Java paths if you prefer to use your own Java installation.
+
+To use all the capacities of EML Lib, you should set up your [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool) website. It will allow you to use features such as news, bootstraps, maintenance, background, and more.
+
+_Read the [docs](https://emlproject.pages.dev/docs/launch-settings)._
+
+### Bootstrap [^1]
+
+_Bootstrap_ is a powerful feature that allows you to auto-update your launcher. It checks for updates on a specified URL and downloads and installs them automatically. This ensures that your launcher is always up to date with the latest features and bug fixes.
+
+_Read the [docs](https://emlproject.pages.dev/docs/bootstrap)._
+
+### Maintenance mode [^1]
+
+_Maintenance_ mode is a feature that allows you to block the launcher during maintenance. When maintenance mode is enabled, users will see a message indicating that the launcher is under maintenance and will not be able to launch Minecraft until the maintenance is complete.
+
+_Read the [docs](https://emlproject.pages.dev/docs/maintenance-mode)._
+
+### Customization [^1]
+
+EML Lib allows you to customize the launcher with various features, including:
+
+- **News**: Displaying news on the launcher.
+- **Background**: Displaying a background image on the launcher.
+- **Server status**: Displaying server information on the launcher.
+
+_Read the [docs](https://emlproject.pages.dev/docs/customization)._
 
 ## Installation
 
@@ -34,9 +64,7 @@
 - Node.js 20 or higher: see [Node.js](https://nodejs.org/);
 - Electron 23 or higher: please install it with `npm i electron` _if you use Microsoft Authentication_.
 
-To get all the capacities of this Node.js library, you must set up your [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool) website! Without it, you can only use Minecraft Vanilla, and many features will be disabled (such as News, Bootstrap, etc.).
-
-If you don't want to use EML AdminTool, you should rather use the [Minecraft Launcher Core](https://npmjs.com/package/minecraft-launcher-core) library.
+To get all the capacities of this Node.js library, you should set up your [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool) website! Without it, some features will be unavailable (such as News, Bootstrap, etc.).
 
 ### EML Lib installation
 
@@ -48,6 +76,10 @@ npm i eml-lib
 ```
 
 `eml-lib` package includes TypeScript typings, so you don't need to install `@types/eml-lib`.
+
+### Template
+
+You can use the [EML Template](https://github.com/Electron-Minecraft-Launcher/EML-Template) to create a Minecraft launcher with EML Lib. It is an Electron application that uses EML Lib to launch Minecraft. It is a good starting point to create your own Minecraft launcher.
 
 ### Quick start
 
@@ -94,12 +126,7 @@ The library has been tested on Windows 11 and macOS Tahoe (M3) with Node.js 22, 
 
 ## Contributing
 
-Download the code and run the commands:
-
-```bash
-cd EML-Lib
-npm i
-```
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on how to contribute to this project.
 
 ## Important information
 
@@ -107,7 +134,6 @@ npm i
 - This Node.js library is under the `MIT` license; to get more information, please read the file `LICENSE`. It is legally obligatory to respect this license.
 - If you need some help, you can join [this Discord](https://discord.gg/nfEHKtghPh).
 
-<br>
+<br/>
 
-[^1]: Requires [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool).
-
+[^1]: These features require the use of the [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool)

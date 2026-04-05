@@ -13,11 +13,54 @@ import utils from '../utils/utils.js'
 import { spawn } from 'node:child_process'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
 import { MinecraftManifest } from '../../types/manifest.js'
+import { ResolvedConfig } from '../../types/config.js'
+
+type JavaConfig = {
+  /**
+   * [Optional] The URL of your EML AdminTool instance. This endpoint provides the modpack 
+   * manifest, loader information, and server settings.
+   *
+   * **Attention!** This property is ignored if a Minecraft version is explicitly defined (either 
+   * in {@link minecraft `minecraft.version`}). If neither a URL nor a version is provided, the
+   * launcher defaults to the latest Vanilla release.
+   */
+  url?: string
+  /**
+   * [Optional: defaults to `{ version: undefined }`]
+   * Minecraft configuration.
+   */
+  minecraft?: {
+    /**
+     * [Optional] The Minecraft version to install (e.g., `'1.20.1'`). Use `'latest_release'` or 
+     * `'latest_snapshot'` for the most recent versions.
+     *
+     * **Attention!** Providing this value forces the launcher into to ignore the {@link url `url`}
+     * property.
+     *
+     * @see [List of Minecraft versions](https://emlproject.pages.dev/resources/minecraft-versions/)
+     */
+    version?: string
+  }
+  /**
+   * The name of the root game directory (e.g., `'minecraft'`). The launcher will automatically 
+   * prefix this with a dot (e.g., `'.minecraft'`) under Windows.
+   */
+  root: string
+}
 
 export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
-  private readonly minecraftVersion: string | null
-  private readonly root: string
   private readonly url?: string
+  private readonly root: string
+  private readonly minecraftVersion?: string
+
+  /**
+   * Download Java for Minecraft.
+   *
+   * You should not use this class if you launch Minecraft with `java.install: 'auto'` in
+   * the configuration.
+   * @param config The Java configuration.
+   */
+  constructor(config: JavaConfig)
 
   /**
    * Download Java for Minecraft.
@@ -28,28 +71,42 @@ export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
    * `null` to get the version from the EML AdminTool. Set to `latest_release` to get the latest
    * release version of Minecraft. Set to `latest_snapshot` to get the latest snapshot version of
    * Minecraft.
-   * @param root The name of the game folder, **without the dot** (e.g. `'minecraft'`). This will 
-   * be used to create the server folder (e.g. `.minecraft`). Java will be installed in the 
+   * @param root The name of the game folder, **without the dot** (e.g. `'minecraft'`). This will
+   * be used to create the server folder (e.g. `.minecraft`). Java will be installed in the
    * `runtime/jre-X` folder, where `X` is the major version of Java. If you don't want to install 
    * Java in the game folder, you must install Java by yourself.
-   * @param url The URL of the EML AdminTool website, to get the version from the EML AdminTool.
+   * @param url [Optional] The URL of the EML AdminTool website, to get the version from the EML 
+   * AdminTool.
+   * @deprecated The constructor with separate parameters is deprecated. Please use the constructor
+   * with a `JavaConfig` object instead.
    */
-  constructor(minecraftVersion: string | null, root: string, url?: string) {
+  constructor(minecraftVersion: string | null, root: string, url?: string)
+
+  constructor(arg1: string | null | JavaConfig, arg2?: string, arg3?: string) {
     super()
-    this.minecraftVersion = minecraftVersion
-    this.root = root
-    this.url = url
+    if (typeof arg1 === 'object' && arg1 !== null) {
+      this.minecraftVersion = arg1.minecraft?.version
+      this.root = arg1.root
+      this.url = arg1.url
+    } else {
+      this.minecraftVersion = arg1 ?? undefined
+      this.root = arg2 as string
+      this.url = arg3
+    }
   }
 
   /**
    * Get the files of the Java version to download.
    *
    * **You should not use this method directly. Use `Java.download()` instead.**
-   * @param manifest The manifest of the Minecraft version. If not provided, the manifest will be fetched.
+   * @param manifest [Optional]The manifest of the Minecraft version. If not provided, the manifest
+   * will be fetched.
    * @returns The files of the Java version.
    */
   async getFiles(manifest?: MinecraftManifest): Promise<File[]> {
-    manifest = manifest ?? (await manifests.getMinecraftManifest(this.minecraftVersion, this.url))
+    manifest =
+      manifest ??
+      (await manifests.getMinecraftManifest({ minecraft: { version: this.minecraftVersion ?? undefined }, url: this.url } as ResolvedConfig))
     const jreVersion = (manifest.javaVersion?.component ?? 'jre-legacy') as
       | 'java-runtime-alpha'
       | 'java-runtime-beta'
@@ -104,10 +161,12 @@ export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
 
   /**
    * Check if Java is correctly installed.
-   * @param absolutePath [Optional: default is `path.join(utils.getServerFolder(this.root), 'runtime',
-   * 'jre-${X}', 'bin', 'java')`] Absolute path to the Java executable. You can use `${X}` to replace it
-   * with the major version of Java.
-   * @param majorVersion [Optional: default is `8`] Major version of Java to check.
+   * @param absolutePath [Optional: defaults to `path.join(utils.getServerFolder(this.root), 
+   * 'runtime', 'jre-${X}', 'bin', 'java')`] 
+   * Absolute path to the Java executable. You can use  `${X}` to replace it with the major 
+   * version of Java.
+   * @param majorVersion [Optional: defaults to `8`] 
+   * Major version of Java to check.
    * @returns The version and architecture of Java.
    */
   async check(
@@ -161,5 +220,6 @@ export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
     return path_.join('runtime', `jre-${jreV}`, path_.dirname(filePath), '/')
   }
 }
+
 
 
