@@ -19,7 +19,7 @@ export interface Config {
    * **Attention!** When you set a manual profile, you must ensure the profile contains a valid
    * `slug`. This slug determines the name of the game instance folder.
    */
-  profile?: IProfile & {
+  profile?: Partial<IProfile> & { slug: string } & {
     /**
      * [Optional: defaults to `{ version: undefined, args: [] }`]
      * Instance-specific Minecraft configuration.
@@ -174,7 +174,7 @@ export interface Config {
      */
     enabled?: boolean
     /**
-     * [Optional: defaults to `['crash-reports/', 'logs/', 'resourcepacks/', 'resources/', 
+     * [Optional: defaults to `['crash-reports/', 'logs/', 'resourcepacks/', 'resources/',
      * 'saves/', 'shaderpacks/', 'options.txt', 'optionsof.txt']`]
      * A list of relative paths or files to protect from the cleaning process.
      */
