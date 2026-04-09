@@ -41,6 +41,7 @@ export type * from './types/file.js'
 export type * from './types/maintenance.js'
 export type * from './types/manifest.js'
 export type * from './types/news.js'
+export type * from './types/profile.js'
 export type * from './types/status.js'
 
 /**
