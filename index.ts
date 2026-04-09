@@ -41,6 +41,7 @@ export type * from './types/file.js'
 export type * from './types/maintenance.js'
 export type * from './types/manifest.js'
 export type * from './types/news.js'
+export type * from './types/profile.js'
 export type * from './types/status.js'
 
 /**
@@ -150,7 +151,7 @@ export { Launcher }
  *
  * ---
  *
- * @version 2.2.0
+ * @version 2.2.1
  * @license MIT — See the `LICENSE` file for more information
  * @copyright Copyright (c) 2026, GoldFrite and contributors
  */
