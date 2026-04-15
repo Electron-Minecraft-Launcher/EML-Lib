@@ -110,7 +110,7 @@ Quick start using the [EML AdminTool](https://github.com/Electron-Minecraft-Laun
 const EMLLib = require('eml-lib')
 
 const launcher = new EMLLib.Launcher({
-  url: 'https://at.emlproject.com' // Your EML AdminTool URL,
+  url: 'https://at.emlproject.com', // Your EML AdminTool URL
   root: 'eml',
   account: new EMLLib.CrackAuth().auth('GoldFrite')
 })
