@@ -57,6 +57,29 @@ EML Lib allows you to customize the launcher with various features, including:
 
 _Read the [docs](https://emlproject.pages.dev/docs/customization)._
 
+---
+
+## Comparison with other solutions
+
+There are already several ways to build and distribute a Minecraft launcher or modpack. EML Lib does not aim to replace them entirely, but to solve a different part of the problem: **client-side consistency and control**.
+
+| Solution                            | What it does well                              | Limitations                                                                                   | EML Lib approach                                                      |
+| ----------------------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| **Packwiz**                         | Modpack definition, reproducible builds        | Requires external launcher or manual integration; players can still drift from expected setup | Enforces the exact state at launch time (no manual client management) |
+| **CurseForge / Modrinth launchers** | Easy distribution for players, large ecosystem | No control over client behavior, tied to platform                                             | Full control over launcher behavior and updates                       |
+| **Custom scripts / installers**     | Flexible, simple setups                        | Hard to maintain, no real update system                                                       | Built-in update system (Bootstrap) and structured config              |
+| **Other launcher libraries**        | Basic Minecraft launching                      | Often limited to launching, little ecosystem around it                                        | Complete ecosystem (authentication, launcher, optional EML AdminTool)     |
+
+### Key difference
+
+Most existing solutions focus on _how to build a modpack_. EML Lib focuses on _how to guarantee that every player runs exactly the expected environment_.
+
+This is especially useful for:
+
+- private servers,
+- heavily modded servers,
+- controlled environments (no manual client edits).
+
 ## Installation
 
 ### Software requirements

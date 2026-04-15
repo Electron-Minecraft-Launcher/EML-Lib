@@ -23,7 +23,13 @@
     "minecraft",
     "forge",
     "launcher",
-    "mods"
+    "mods",
+    "authentication",
+    "modpack",
+    "minecraft-launcher",
+    "microsoft-auth",
+    "custom-minecraft-launcher",
+    "packwiz-alternative"
   ],
   "bugs": {
     "url": "https://github.com/Electron-Minecraft-Launcher/EML-Lib/issues"
