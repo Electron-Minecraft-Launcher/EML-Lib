@@ -57,8 +57,6 @@ EML Lib allows you to customize the launcher with various features, including:
 
 _Read the [docs](https://emlproject.pages.dev/docs/customization)._
 
----
-
 ## Comparison with other solutions
 
 There are already several ways to build and distribute a Minecraft launcher or modpack. EML Lib does not aim to replace them entirely, but to solve a different part of the problem: **client-side consistency and control**.
