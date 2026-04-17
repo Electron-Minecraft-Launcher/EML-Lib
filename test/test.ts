@@ -31,7 +31,11 @@ async function mainWithElectron() {
 async function main() {
   const launcher = new EMLLib.Launcher({
     root: 'goldfrite',
-    account: new EMLLib.CrackAuth().auth('Goldfrite')
+    account: new EMLLib.CrackAuth().auth('Goldfrite'),
+    memory: {
+      min: 2048,
+      max: 4096
+    }
   })
 
   try {
@@ -70,7 +74,7 @@ async function main() {
     launcher.on('launch_data', (message) => console.log(message))
     launcher.on('launch_close', (code) => console.log(`Closed with code ${code}.`))
 
-    // launcher.on('launch_debug', (message) => console.log(`Debug: ${message}\n`))
+    launcher.on('launch_debug', (message) => console.log(`Debug: ${message}\n`))
     // launcher.on('patch_debug', (message) => console.log(`Debug: ${message}`))
 
     await launcher.launch()

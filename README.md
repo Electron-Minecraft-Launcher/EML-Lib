@@ -2,13 +2,13 @@
 
 **Electron Minecraft Launcher Lib (EML Lib) is a Node.js library. It permits to authenticate, download Java and Minecraft and launch Minecraft.**
 
-[<img src="https://img.shields.io/badge/Discord-EML-5561e6?&style=for-the-badge">](https://discord.gg/YVB4k6HzAY)
+[<img src="https://img.shields.io/badge/Discord-EML-5561e6?&style=for-the-badge">](https://emlproject.com/discord/github)
 [<img src="https://img.shields.io/badge/platforms-Windows%2C%20macOS%2C%20Linux-0077DA?style=for-the-badge&color=0077DA">](#platforms)
 [<img src="https://img.shields.io/badge/version-2.2.1-orangered?style=for-the-badge&color=orangered">](package.json)
 
 <p>
 <center>
-<a href="https://discord.gg/YVB4k6HzAY">
+<a href="https://emlproject.com/discord/github">
   <img src="./.github/assets/gg.png" alt="EML AdminTool Logo" width="300"/>
 </a>
 </center>
@@ -57,6 +57,30 @@ EML Lib allows you to customize the launcher with various features, including:
 
 _Read the [docs](https://emlproject.pages.dev/docs/customization)._
 
+## Comparison with other solutions
+
+There are already several Node.js libraries to launch Minecraft. Here is how EML Lib compares to the main ones.
+
+| Solution                         | Language / License       | Actively maintained     | Auth                                 | Loaders                                 | Agnostic mode | Ecosystem                   |
+| -------------------------------- | ------------------------ | ----------------------- | ------------------------------------ | --------------------------------------- | ------------- | --------------------------- |
+| **EML Lib**                      | TypeScript / MIT         | Yes                     | Microsoft, Azuriom, Yggdrasil, Crack | Vanilla, Forge, NeoForge, Fabric, Quilt | Yes (v2.2.0+) | EML AdminTool, EML Template |
+| **MCLC** (Pierce01)              | JavaScript / MIT         | No (last release: 2023) | Via MSMC (external)                  | Forge only                              | Yes           | None                        |
+| **minecraft-java-core** (Luuxis) | TypeScript / Custom [^2] | Yes                     | Microsoft, Azuriom                   | Vanilla, Forge, NeoForge, Fabric, Quilt | Yes           | Selvania Launcher           |
+| **GMLL** (Hanro50)               | TypeScript / MIT         | No (last release: 2023) | Via MSMC (external)                  | Forge, Fabric, Quilt                    | Yes           | None                        |
+| **@xmcl packages** (Voxelum)     | TypeScript / MIT         | Yes                     | — (low-level toolkit)                | All                                     | Yes           | XMCL launcher               |
+
+### Key difference
+
+Most existing libraries focus on _launching_ Minecraft. EML Lib focuses on _guaranteeing that every player runs exactly the expected environment_ — from authentication to file integrity, Java installation, and modpack distribution.
+
+This is especially useful for:
+
+- private servers that distribute a specific modpack,
+- heavily modded servers where client drift causes issues,
+- controlled environments where manual client edits are not acceptable.
+
+If you do not need a backend, use [agnostic mode](https://emlproject.com/docs/launch-settings) with a hosted JSON modpack file. If you want a full administration dashboard, pair EML Lib with [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool).
+
 ## Installation
 
 ### Software requirements
@@ -89,8 +113,8 @@ Quick start using the [EML AdminTool](https://github.com/Electron-Minecraft-Laun
 const EMLLib = require('eml-lib')
 
 const launcher = new EMLLib.Launcher({
-  url: 'https://admintool.electron-minecraft-launcher.com',
-  serverId: 'eml',
+  url: 'https://at.emlproject.com', // Your EML AdminTool URL
+  root: 'eml',
   account: new EMLLib.CrackAuth().auth('GoldFrite')
 })
 
@@ -132,8 +156,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on how to contribute to 
 
 - This is not an official library from Mojang Studios, Microsoft, Electron or Node.js. _Minecraft_ is a trademark of Mojang Studios.
 - This Node.js library is under the `MIT` license; to get more information, please read the file `LICENSE`. It is legally obligatory to respect this license.
-- If you need some help, you can join [this Discord](https://discord.gg/nfEHKtghPh).
+- If you need some help, you can join [this Discord](https://emlproject.com/discord/github).
 
 <br/>
 
 [^1]: These features require the use of the [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool)
+
+[^2]: `minecraft-java-core` is distributed under a custom restrictive license. Commercial use by third parties and closed-source derivatives are prohibited. Read the LICENSE file carefully before adopting it.
+
