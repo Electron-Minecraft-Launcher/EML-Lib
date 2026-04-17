@@ -59,24 +59,27 @@ _Read the [docs](https://emlproject.pages.dev/docs/customization)._
 
 ## Comparison with other solutions
 
-There are already several ways to build and distribute a Minecraft launcher or modpack. EML Lib does not aim to replace them entirely, but to solve a different part of the problem: **client-side consistency and control**.
+There are already several Node.js libraries to launch Minecraft. Here is how EML Lib compares to the main ones.
 
-| Solution                            | What it does well                              | Limitations                                                                                   | EML Lib approach                                                      |
-| ----------------------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| **Packwiz**                         | Modpack definition, reproducible builds        | Requires external launcher or manual integration; players can still drift from expected setup | Enforces the exact state at launch time (no manual client management) |
-| **CurseForge / Modrinth launchers** | Easy distribution for players, large ecosystem | No control over client behavior, tied to platform                                             | Full control over launcher behavior and updates                       |
-| **Custom scripts / installers**     | Flexible, simple setups                        | Hard to maintain, no real update system                                                       | Built-in update system (Bootstrap) and structured config              |
-| **Other launcher libraries**        | Basic Minecraft launching                      | Often limited to launching, little ecosystem around it                                        | Complete ecosystem (authentication, launcher, optional EML AdminTool)     |
+| Solution                         | Language / License       | Actively maintained     | Auth                                 | Loaders                                 | Agnostic mode | Ecosystem                   |
+| -------------------------------- | ------------------------ | ----------------------- | ------------------------------------ | --------------------------------------- | ------------- | --------------------------- |
+| **EML Lib**                      | TypeScript / MIT         | Yes                     | Microsoft, Azuriom, Yggdrasil, Crack | Vanilla, Forge, NeoForge, Fabric, Quilt | Yes (v2.2.0+) | EML AdminTool, EML Template |
+| **MCLC** (Pierce01)              | JavaScript / MIT         | No (last release: 2023) | Via MSMC (external)                  | Forge only                              | Yes           | None                        |
+| **minecraft-java-core** (Luuxis) | TypeScript / Custom [^2] | Yes                     | Microsoft, Azuriom                   | Vanilla, Forge, NeoForge, Fabric, Quilt | Yes           | Selvania Launcher           |
+| **GMLL** (Hanro50)               | TypeScript / MIT         | No (last release: 2023) | Via MSMC (external)                  | Forge, Fabric, Quilt                    | Yes           | None                        |
+| **@xmcl packages** (Voxelum)     | TypeScript / MIT         | Yes                     | — (low-level toolkit)                | All                                     | Yes           | XMCL launcher               |
 
 ### Key difference
 
-Most existing solutions focus on _how to build a modpack_. EML Lib focuses on _how to guarantee that every player runs exactly the expected environment_.
+Most existing libraries focus on _launching_ Minecraft. EML Lib focuses on _guaranteeing that every player runs exactly the expected environment_ — from authentication to file integrity, Java installation, and modpack distribution.
 
 This is especially useful for:
 
-- private servers,
-- heavily modded servers,
-- controlled environments (no manual client edits).
+- private servers that distribute a specific modpack,
+- heavily modded servers where client drift causes issues,
+- controlled environments where manual client edits are not acceptable.
+
+If you do not need a backend, use [agnostic mode](https://emlproject.com/docs/launch-settings) with a hosted JSON modpack file. If you want a full administration dashboard, pair EML Lib with [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool).
 
 ## Installation
 
@@ -158,3 +161,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on how to contribute to 
 <br/>
 
 [^1]: These features require the use of the [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool)
+
+[^2]: `minecraft-java-core` is distributed under a custom restrictive license. Commercial use by third parties and closed-source derivatives are prohibited. Read the LICENSE file carefully before adopting it.
+
