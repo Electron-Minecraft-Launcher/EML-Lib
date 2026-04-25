@@ -4,9 +4,10 @@
  */
 
 import MicrosoftAuth from './lib/auth/microsoft.js'
+import YggdrasilAuth from './lib/auth/yggdrasil.js'
 import AzAuth from './lib/auth/azuriom.js'
 import CrackAuth from './lib/auth/crack.js'
-import YggdrasilAuth from './lib/auth/yggdrasil.js'
+import Skin from './lib/skin/skin.js'
 import Bootstrap from './lib/bootstraps/bootstraps.js'
 import Maintenance from './lib/maintenance/maintenance.js'
 import News from './lib/news/news.js'
@@ -52,11 +53,6 @@ export type * from './types/status.js'
 export { MicrosoftAuth }
 
 /**
- * Authenticate a user with [Azuriom](https://azuriom.com/).
- */
-export { AzAuth }
-
-/**
  * Authenticate a user with an [Yggdrasil-compatible](https://minecraft.wiki/w/Yggdrasil) server.
  *
  * **Attention!** While Yggdrasil has been deprecated by Mojang/Microsoft, the API is maintained by a community
@@ -66,10 +62,20 @@ export { AzAuth }
 export { YggdrasilAuth }
 
 /**
+ * Authenticate a user with [Azuriom](https://azuriom.com/).
+ */
+export { AzAuth }
+
+/**
  * Authenticate a user with a crack account.
  * @deprecated This auth method is not secure, use it only for testing purposes or for local servers!
  */
 export { CrackAuth }
+
+/**
+ * Manage the player's skin, avatar and cape.
+ */
+export { Skin }
 
 /**
  * @deprecated Use `Bootstrap` instead.
@@ -168,11 +174,6 @@ const EMLLib = {
   MicrosoftAuth,
 
   /**
-   * Authenticate a user with [Azuriom](https://azuriom.com/).
-   */
-  AzAuth,
-
-  /**
    * Authenticate a user with an [Yggdrasil-compatible](https://minecraft.wiki/w/Yggdrasil) server.
    *
    * **Attention!** While Yggdrasil has been deprecated by Mojang/Microsoft, the API is maintained by a community
@@ -182,10 +183,20 @@ const EMLLib = {
   YggdrasilAuth,
 
   /**
+   * Authenticate a user with [Azuriom](https://azuriom.com/).
+   */
+  AzAuth,
+
+  /**
    * Authenticate a user with a crack account.
    * @deprecated This auth method is not secure, use it only for testing purposes or for local servers!
    */
   CrackAuth,
+
+  /**
+   * Manage the player's skin, avatar and cape.
+   */
+  Skin,
 
   /**
    * @deprecated Use `Bootstrap` instead.

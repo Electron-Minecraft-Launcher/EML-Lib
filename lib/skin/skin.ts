@@ -16,7 +16,7 @@ export default class Skin {
   private avatar: IAvatar | null = null
 
   /**
-   * Get the skin player's skin, avatar and cape.
+   * Manage the player's skin, avatar and cape.
    * @param account The account of the player (must be authenticated with EML Lib's authentication
    * system).
    */
