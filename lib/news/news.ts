@@ -13,6 +13,7 @@ export default class News {
    * Manage the News of the Launcher.
    *
    * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
+   * 
    * @param url The URL of your EML AdminTool website.
    */
   constructor(url: string) {

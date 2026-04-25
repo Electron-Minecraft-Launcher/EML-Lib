@@ -13,6 +13,7 @@ export default class Profile {
    * Get the profiles from the EML AdminTool.
    *
    * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
+   * 
    * @param url The URL of your EML AdminTool website.
    */
   constructor(url: string) {

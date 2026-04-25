@@ -4,24 +4,25 @@
  */
 
 import MicrosoftAuth from './lib/auth/microsoft.js'
+import YggdrasilAuth from './lib/auth/yggdrasil.js'
 import AzAuth from './lib/auth/azuriom.js'
 import CrackAuth from './lib/auth/crack.js'
-import YggdrasilAuth from './lib/auth/yggdrasil.js'
-import Bootstraps from './lib/bootstraps/bootstraps.js'
+import Skin from './lib/skin/skin.js'
+import Bootstrap from './lib/bootstraps/bootstraps.js'
 import Maintenance from './lib/maintenance/maintenance.js'
 import News from './lib/news/news.js'
 import Background from './lib/background/background.js'
 import ServerStatus from './lib/serverstatus/serverstatus.js'
 import Java from './lib/java/java.js'
 import Launcher from './lib/launcher/launcher.js'
-import Profiles from './lib/profiles/profiles.js'
+import Profiles from './lib/profile/profile.js'
 
 type EMLLib = {
   MicrosoftAuth: typeof MicrosoftAuth
   AzAuth: typeof AzAuth
   CrackAuth: typeof CrackAuth
   YggdrasilAuth: typeof YggdrasilAuth
-  Bootstraps: typeof Bootstraps
+  Bootstraps: typeof Bootstrap
   Maintenance: typeof Maintenance
   News: typeof News
   Background: typeof Background
@@ -33,7 +34,7 @@ type EMLLib = {
 
 export type * from './types/account.js'
 export type * from './types/background.js'
-export type * from './types/bootstraps.js'
+export type * from './types/bootstrap.js'
 export type * from './types/config.js'
 export type * from './types/errors.js'
 export type * from './types/events.js'
@@ -52,18 +53,18 @@ export type * from './types/status.js'
 export { MicrosoftAuth }
 
 /**
- * Authenticate a user with [Azuriom](https://azuriom.com/).
- */
-export { AzAuth }
-
-/**
  * Authenticate a user with an [Yggdrasil-compatible](https://minecraft.wiki/w/Yggdrasil) server.
- * 
- * **Attention!** While Yggdrasil has been deprecated by Mojang/Microsoft, the API is maintained by a community 
- * who wants to keep the protocol alive. Usage of a custom authentication server may or may not violate 
+ *
+ * **Attention!** While Yggdrasil has been deprecated by Mojang/Microsoft, the API is maintained by a community
+ * who wants to keep the protocol alive. Usage of a custom authentication server may or may not violate
  * Minecraft's Terms of Service: make sure to validate your player's Minecraft ownership!
  */
 export { YggdrasilAuth }
+
+/**
+ * Authenticate a user with [Azuriom](https://azuriom.com/).
+ */
+export { AzAuth }
 
 /**
  * Authenticate a user with a crack account.
@@ -72,12 +73,21 @@ export { YggdrasilAuth }
 export { CrackAuth }
 
 /**
+ * Manage the player's skin, avatar and cape.
+ */
+export { Skin }
+
+/**
+ * @deprecated Use `Bootstrap` instead.
+ */
+export { Bootstrap as Bootstraps }
+
+/**
  * Update your Launcher.
  *
  * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
- * @workInProgress
  */
-export { Bootstraps }
+export { Bootstrap }
 
 /**
  * Manage the Maintenance of the Launcher.
@@ -139,7 +149,7 @@ export { Launcher }
  * **Recommandations:**
  * - To get all the capacities of this Node.js library, you must set up your
  * [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool) website!
- * - If you don't want to set up EML AdminTool, you can use our [modpack generator](https://emlproject.pages.dev/resources/modpack-generator/) 
+ * - If you don't want to set up EML AdminTool, you can use our [modpack generator](https://emlproject.pages.dev/resources/modpack-generator/)
  * to generate an EML Lib-compatible modpack.
  *
  * ---
@@ -164,18 +174,18 @@ const EMLLib = {
   MicrosoftAuth,
 
   /**
+   * Authenticate a user with an [Yggdrasil-compatible](https://minecraft.wiki/w/Yggdrasil) server.
+   *
+   * **Attention!** While Yggdrasil has been deprecated by Mojang/Microsoft, the API is maintained by a community
+   * who wants to keep the protocol alive. Usage of a custom authentication server may or may not violate
+   * Minecraft's Terms of Service: make sure to validate your player's Minecraft ownership!
+   */
+  YggdrasilAuth,
+
+  /**
    * Authenticate a user with [Azuriom](https://azuriom.com/).
    */
   AzAuth,
-
-  /**
-    * Authenticate a user with an [Yggdrasil-compatible](https://minecraft.wiki/w/Yggdrasil) server.
- * 
- * **Attention!** While Yggdrasil has been deprecated by Mojang/Microsoft, the API is maintained by a community 
- * who wants to keep the protocol alive. Usage of a custom authentication server may or may not violate 
- * Minecraft's Terms of Service: make sure to validate your player's Minecraft ownership!
-   */
-  YggdrasilAuth,
 
   /**
    * Authenticate a user with a crack account.
@@ -184,11 +194,21 @@ const EMLLib = {
   CrackAuth,
 
   /**
+   * Manage the player's skin, avatar and cape.
+   */
+  Skin,
+
+  /**
+   * @deprecated Use `Bootstrap` instead.
+   */
+  Bootstraps: Bootstrap,
+
+  /**
    * Update your Launcher.
    *
    * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    */
-  Bootstraps,
+  Bootstrap,
 
   /**
    * Manage the Maintenance of the Launcher.
@@ -237,5 +257,5 @@ const EMLLib = {
   Launcher
 } as EMLLib
 
-
 export default EMLLib
+
