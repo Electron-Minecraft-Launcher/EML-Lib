@@ -19,9 +19,11 @@ export default class ServerStatus {
 
   /**
    * Get the status of a Minecraft server.
+   * 
    * **Attention!** This class may not work for some Minecraft servers (Minecraft 1.4 and below, or
    * servers with a specific configuration). If you encounter any problems, please [open an
    * issue](https://github.com/Electron-Minecraft-Launcher/EML-Lib/issues).
+   * 
    * @param ip Your Minecraft Server's IP or Host (e.g. `'172.65.236.36'` or `'mc.hypixel.net'`).
    * @param port [Optional: defaults to `25565`] 
    * Your Minecraft Server's main port (e.g. `25565`).

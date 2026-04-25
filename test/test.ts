@@ -91,5 +91,5 @@ async function featureTest() {
   console.log(profiles)
 }
 
-main()
+mainWithElectron()
 

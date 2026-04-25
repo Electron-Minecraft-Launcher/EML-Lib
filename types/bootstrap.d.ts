@@ -1,6 +1,6 @@
-import { File } from './file'
+import { File } from './file.js'
 
-export interface IBootstraps {
+export interface IBootstrap {
   updateAvailable: boolean
   currentVersion: string
   latestVersion: string
@@ -10,4 +10,6 @@ export interface IBootstraps {
     releaseDate: Date
   }
 }
+
+export type IBootstraps = IBootstrap
 

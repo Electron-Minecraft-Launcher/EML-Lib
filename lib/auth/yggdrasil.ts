@@ -12,11 +12,12 @@ export default class YggdrasilAuth {
   /**
    * Authenticate a user with an [Yggdrasil-compatible](https://minecraft.wiki/w/Yggdrasil) server.
    *
-   * **Attention!** While Yggdrasil has been deprecated by Mojang/Microsoft, the API is maintained 
-   * by a community who wants to keep the protocol alive. Usage of a custom authentication server 
-   * may or may not violate Minecraft's Terms of Service: make sure to validate your player's 
+   * **Attention!** While Yggdrasil has been deprecated by Mojang/Microsoft, the API is maintained
+   * by a community who wants to keep the protocol alive. Usage of a custom authentication server
+   * may or may not violate Minecraft's Terms of Service: make sure to validate your player's
    * Minecraft ownership!
-   * @param url The URL to the Yggdrasil-compatible server.
+   *
+   * @param url The URL to the Yggdrasil-compatible server (e.g., [Drasl](https://github.com/unmojang/drasl)).
    */
   constructor(url: string) {
     if (url.endsWith('/')) url = url.slice(0, -1)
@@ -80,11 +81,11 @@ export default class YggdrasilAuth {
   }
 
   /**
-   * Select a profile for a user with multiple profiles. This method is used when the 
+   * Select a profile for a user with multiple profiles. This method is used when the
    * `YggdrasilAuth.auth()` method returns a `MultipleProfiles` object.
-   * @param profiles The multiple profiles information returned by the `YggdrasilAuth.auth()` 
+   * @param profiles The multiple profiles information returned by the `YggdrasilAuth.auth()`
    * method.
-   * @param select The profile to select, either by ID or name. If both are provided, ID will be 
+   * @param select The profile to select, either by ID or name. If both are provided, ID will be
    * used.
    * @return The account information with the selected profile.
    */
@@ -117,10 +118,10 @@ export default class YggdrasilAuth {
   }
 
   /**
-   * Validate a user's access token with Yggdrasil. This method will check if the token is still 
+   * Validate a user's access token with Yggdrasil. This method will check if the token is still
    * valid.
    * @param user The user account to validate.
-   * @returns `true` if the token is valid, `false` otherwise (then you should call 
+   * @returns `true` if the token is valid, `false` otherwise (then you should call
    * `YggdrasilAuth.refresh()`).
    */
   async validate(user: Account): Promise<boolean> {
@@ -200,8 +201,10 @@ export default class YggdrasilAuth {
 
   /**
    * Logout a user from Yggdrasil.
-   * @remarks This method use `invalidate`. `invalidate` is preferred over `signout` as `signout` 
-   * invalidates all sessions and `invalidate` invalidates only the current one.
+   *
+   * _This method use `invalidate`. `invalidate` is preferred over `signout` as `signout`
+   * invalidates all sessions and `invalidate` invalidates only the current one._
+   *
    * @param user The user account to logout.
    */
   async logout(user: Account): Promise<void> {

@@ -16,6 +16,7 @@ export default class MicrosoftAuth {
    * Authenticate a user with Microsoft.
    *
    * **Attention!** Using this class requires Electron. Use `npm i electron` to install it.
+   * 
    * @param mainWindow Your Electron application's main window (to create a child window for the 
    * Microsoft login).
    * @param clientId [Optional] Your Microsoft application's client ID.
@@ -98,6 +99,23 @@ export default class MicrosoftAuth {
       if (err instanceof EMLLibError) throw err
       throw new EMLLibError(ErrorType.AUTH_ERROR, `Microsoft auth refresh failed: ${err instanceof Error ? err.message : err}`)
     }
+  }
+
+  /**
+   * Logout a user with Microsoft.
+   * 
+   * **🤔 Microsoft doesn't provide a way to revoke tokens. To log out, just remove the token 
+   * from your storage.** This method is here for consistency with other auth methods and 
+   * future-proofing in case Microsoft adds token revocation. But currently, this method
+   * does nothing.
+   * 
+   * @param user The user account to log out.
+   * 
+   * @deprecated Microsoft doesn't provide a way to revoke tokens, so this method does nothing. 
+   * Just remove the token from your storage to log out.
+   */
+  async logout(user: Account): Promise<void> {
+    // Microsoft doesn't provide a way to revoke tokens, so we just do nothing here.
   }
 
   private async getAccount(authInfo: any): Promise<Account> {

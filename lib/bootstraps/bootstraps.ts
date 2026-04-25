@@ -7,10 +7,10 @@ import EventEmitter from '../utils/events.js'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
 import { BootstrapsEvents, DownloaderEvents } from '../../types/events.js'
 import type { AppUpdater } from 'electron-updater'
-import { IBootstraps } from '../../types/bootstraps.js'
+import { IBootstrap } from '../../types/bootstrap.js'
 import utils from '../utils/utils.js'
 
-export default class Bootstraps extends EventEmitter<DownloaderEvents & BootstrapsEvents> {
+export default class Bootstrap extends EventEmitter<DownloaderEvents & BootstrapsEvents> {
   private readonly url: string
   private autoUpdater: AppUpdater | undefined
 
@@ -21,6 +21,7 @@ export default class Bootstraps extends EventEmitter<DownloaderEvents & Bootstra
    *
    * **Attention!** Using this class requires Electron Updater. Use `npm i electron-updater` to 
    * install it.
+   * 
    * @param url The URL of your EML AdminTool website
    */
   constructor(url: string) {
@@ -32,7 +33,7 @@ export default class Bootstraps extends EventEmitter<DownloaderEvents & Bootstra
    * Check for updates.
    * @returns The update result object if an update is available, null otherwise.
    */
-  async checkForUpdate(): Promise<IBootstraps> {
+  async checkForUpdate(): Promise<IBootstrap> {
     try {
       const updater = await this.getUpdater()
       const result = await updater.checkForUpdates()
@@ -47,14 +48,14 @@ export default class Bootstraps extends EventEmitter<DownloaderEvents & Bootstra
             releaseNotes: result.updateInfo.releaseNotes ?? null,
             releaseDate: new Date(result.updateInfo.releaseDate)
           }
-        } as IBootstraps
+        } as IBootstrap
         return update
       }
       return {
         updateAvailable: false,
         currentVersion: updater.currentVersion.version,
         latestVersion: updater.currentVersion.version
-      } as IBootstraps
+      } as IBootstrap
     } catch (err: any) {
       if (err instanceof EMLLibError) throw err
       throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while checking for updates: ${err.message ?? err}`)
