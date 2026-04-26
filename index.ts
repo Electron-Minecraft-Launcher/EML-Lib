@@ -19,9 +19,10 @@ import Profiles from './lib/profile/profile.js'
 
 type EMLLib = {
   MicrosoftAuth: typeof MicrosoftAuth
+  YggdrasilAuth: typeof YggdrasilAuth
   AzAuth: typeof AzAuth
   CrackAuth: typeof CrackAuth
-  YggdrasilAuth: typeof YggdrasilAuth
+  Skin: typeof Skin
   Bootstraps: typeof Bootstrap
   Maintenance: typeof Maintenance
   News: typeof News
@@ -161,7 +162,7 @@ export { Launcher }
  *
  * ---
  *
- * @version 2.2.1
+ * @version 2.3.0
  * @license MIT — See the `LICENSE` file for more information
  * @copyright Copyright (c) 2026, GoldFrite and contributors
  */
