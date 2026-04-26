@@ -1,4 +1,4 @@
-import EMLLib from '../index.js'
+import EMLLib, { AzAuth, YggdrasilAuth } from '../index.js'
 import { IProfile } from '../types/profile.js'
 
 async function mainWithElectron() {
@@ -84,12 +84,10 @@ async function main() {
 }
 
 async function featureTest() {
-  const profiles = await new EMLLib.Profiles('http://localhost:5173').getProfiles()
-  const background = await new EMLLib.Background('http://localhost:5173').getBackground()
+  const account = await new AzAuth('http://localhost').auth('goldfrite@gmail.com', '123Soleil !!')
 
-  console.log(background)
-  console.log(profiles)
+  console.log(account)
 }
 
-main()
+mainWithElectron()
 

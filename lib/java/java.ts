@@ -14,39 +14,7 @@ import { spawn } from 'node:child_process'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
 import { MinecraftManifest } from '../../types/manifest.js'
 import { ResolvedConfig } from '../../types/config.js'
-
-type JavaConfig = {
-  /**
-   * [Optional] The URL of your EML AdminTool instance. This endpoint provides the modpack 
-   * manifest, loader information, and server settings.
-   *
-   * **Attention!** This property is ignored if a Minecraft version is explicitly defined (either 
-   * in {@link minecraft `minecraft.version`}). If neither a URL nor a version is provided, the
-   * launcher defaults to the latest Vanilla release.
-   */
-  url?: string
-  /**
-   * [Optional: defaults to `{ version: undefined }`]
-   * Minecraft configuration.
-   */
-  minecraft?: {
-    /**
-     * [Optional] The Minecraft version to install (e.g., `'1.20.1'`). Use `'latest_release'` or 
-     * `'latest_snapshot'` for the most recent versions.
-     *
-     * **Attention!** Providing this value forces the launcher into to ignore the {@link url `url`}
-     * property.
-     *
-     * @see [List of Minecraft versions](https://emlproject.pages.dev/resources/minecraft-versions/)
-     */
-    version?: string
-  }
-  /**
-   * The name of the root game directory (e.g., `'minecraft'`). The launcher will automatically 
-   * prefix this with a dot (e.g., `'.minecraft'`) under Windows.
-   */
-  root: string
-}
+import { JavaConfig } from '../../types/java.js'
 
 export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
   private readonly url?: string
@@ -58,6 +26,7 @@ export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
    *
    * You should not use this class if you launch Minecraft with `java.install: 'auto'` in
    * the configuration.
+   *
    * @param config The Java configuration.
    */
   constructor(config: JavaConfig)
@@ -67,15 +36,16 @@ export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
    *
    * You should not use this class if you launch Minecraft with `java.install: 'auto'` in
    * the configuration.
+   *
    * @param minecraftVersion The version of Minecraft you want to install Java for. Set to
    * `null` to get the version from the EML AdminTool. Set to `latest_release` to get the latest
    * release version of Minecraft. Set to `latest_snapshot` to get the latest snapshot version of
    * Minecraft.
    * @param root The name of the game folder, **without the dot** (e.g. `'minecraft'`). This will
    * be used to create the server folder (e.g. `.minecraft`). Java will be installed in the
-   * `runtime/jre-X` folder, where `X` is the major version of Java. If you don't want to install 
+   * `runtime/jre-X` folder, where `X` is the major version of Java. If you don't want to install
    * Java in the game folder, you must install Java by yourself.
-   * @param url [Optional] The URL of the EML AdminTool website, to get the version from the EML 
+   * @param url [Optional] The URL of the EML AdminTool website, to get the version from the EML
    * AdminTool.
    * @deprecated The constructor with separate parameters is deprecated. Please use the constructor
    * with a `JavaConfig` object instead.
@@ -99,6 +69,7 @@ export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
    * Get the files of the Java version to download.
    *
    * **You should not use this method directly. Use `Java.download()` instead.**
+   *
    * @param manifest [Optional]The manifest of the Minecraft version. If not provided, the manifest
    * will be fetched.
    * @returns The files of the Java version.
@@ -161,11 +132,11 @@ export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
 
   /**
    * Check if Java is correctly installed.
-   * @param absolutePath [Optional: defaults to `path.join(utils.getServerFolder(this.root), 
-   * 'runtime', 'jre-${X}', 'bin', 'java')`] 
-   * Absolute path to the Java executable. You can use  `${X}` to replace it with the major 
+   * @param absolutePath [Optional: defaults to `path.join(utils.getServerFolder(this.root),
+   * 'runtime', 'jre-${X}', 'bin', 'java')`]
+   * Absolute path to the Java executable. You can use  `${X}` to replace it with the major
    * version of Java.
-   * @param majorVersion [Optional: defaults to `8`] 
+   * @param majorVersion [Optional: defaults to `8`]
    * Major version of Java to check.
    * @returns The version and architecture of Java.
    */
@@ -220,6 +191,4 @@ export default class Java extends EventEmitter<DownloaderEvents & JavaEvents> {
     return path_.join('runtime', `jre-${jreV}`, path_.dirname(filePath), '/')
   }
 }
-
-
 

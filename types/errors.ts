@@ -26,6 +26,7 @@ export const ErrorType = {
   DOWNLOAD_ERROR: 'DOWNLOAD_ERROR',
   UNKNOWN_OS: 'UNKNOWN_OS',
   FETCH_ERROR: 'FETCH_ERROR',
+  TOO_MANY_REQUESTS: 'TOO_MANY_REQUESTS',
   NET_ERROR: 'NET_ERROR',
   FILE_ERROR: 'FILE_ERROR',
   EXEC_ERROR: 'EXEC_ERROR',
@@ -46,6 +47,7 @@ export type ErrorCode =
   | typeof ErrorType.UNKNOWN_OS
   | typeof ErrorType.NET_ERROR
   | typeof ErrorType.FETCH_ERROR
+  | typeof ErrorType.TOO_MANY_REQUESTS
   | typeof ErrorType.FILE_ERROR
   | typeof ErrorType.EXEC_ERROR
   | typeof ErrorType.JAVA_ERROR

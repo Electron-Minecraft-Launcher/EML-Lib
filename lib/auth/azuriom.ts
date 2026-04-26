@@ -15,7 +15,7 @@ export default class AzAuth {
    */
   constructor(url: string) {
     if (url.endsWith('/')) url = url.slice(0, -1)
-    this.url = `${url}/api/auth`
+    this.url = url
   }
 
   /**
@@ -27,7 +27,7 @@ export default class AzAuth {
    */
   async auth(username: string, password: string, twoFACode?: string): Promise<Account> {
     try {
-      const req = await fetch(`${this.url}/authenticate`, {
+      const req = await fetch(`${this.url}/api/auth/authenticate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -61,7 +61,8 @@ export default class AzAuth {
         userProperties: {},
         meta: {
           online: false,
-          type: 'azuriom'
+          type: 'azuriom',
+          url: this.url
         }
       } as Account
     } catch (err: unknown) {
@@ -77,7 +78,7 @@ export default class AzAuth {
    */
   async verify(user: Account): Promise<Account> {
     try {
-      const req = await fetch(`${this.url}/verify`, {
+      const req = await fetch(`${this.url}/api/auth/verify`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -105,7 +106,8 @@ export default class AzAuth {
         userProperties: {},
         meta: {
           online: false,
-          type: 'azuriom'
+          type: 'azuriom',
+          url: this.url
         }
       } as Account
     } catch (err: unknown) {
@@ -120,7 +122,7 @@ export default class AzAuth {
    */
   async logout(user: Account): Promise<void> {
     try {
-      const req = await fetch(`${this.url}/logout`, {
+      const req = await fetch(`${this.url}/api/auth/logout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

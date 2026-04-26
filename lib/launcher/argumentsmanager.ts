@@ -27,7 +27,7 @@ export default class ArgumentsManager {
    * @param libraries The libraries of the game (including loader libraries).
    * @param loader The loader used (can be null if no loader is used).
    * @param loaderManifest The manifest of the loader (can be null if no loader is used).
-   * @param customAuth [Optional] Custom authentication method (for advanced users, use with 
+   * @param customAuth [Optional] Custom authentication method (for advanced users, use with
    * authlib-injector).
    * @returns The arguments to launch the game.
    */
@@ -186,14 +186,7 @@ export default class ArgumentsManager {
           .replaceAll('${auth_player_name}', this.config.account.name)
           .replaceAll('${auth_uuid}', this.config.account.uuid)
           .replaceAll('${auth_access_token}', this.config.account.accessToken)
-          .replaceAll(
-            '${user_type}',
-            this.manifest.id.startsWith('1.16') && this.config.account.meta.type === 'msa'
-              ? 'Xbox'
-              : this.config.account.meta.type === 'yggdrasil'
-                ? 'Mojang'
-                : this.config.account.meta.type
-          )
+          .replaceAll('${user_type}', this.getUserType())
           .replaceAll('${version_name}', this.manifest.id)
           .replaceAll('${game_directory}', gameDirectory)
           .replaceAll('${assets_root}', assetsDirectory)
@@ -205,6 +198,16 @@ export default class ArgumentsManager {
           .replaceAll('${user_properties}', JSON.stringify(this.config.account.userProperties || {})) // legacy
           .replaceAll('${game_assets}', assetsDirectory) // legacy
     )
+  }
+
+  private getUserType(): string {
+    if (this.manifest.id.startsWith('1.16') && this.config.account.meta.type === 'msa') {
+      return 'Xbox'
+    } else if (this.config.account.meta.type === 'yggdrasil') {
+      return 'Mojang'
+    } else {
+      return this.config.account.meta.type
+    }
   }
 
   private getClasspath(libraries: ExtraFile[]) {

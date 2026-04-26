@@ -2,8 +2,10 @@
 
 Domain = "localhost"
 BaseURL = "http://localhost:25585"
-DefaultAdmins = ["admin"]
+DefaultAdmins = ["admin", "GoldFrite"]
 PlayerUUIDGeneration = "offline"
+AllowSkins = true
+AllowCapes = true
 
 [CreateNewPlayer]
 AllowChoosingUUID = true
