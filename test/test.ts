@@ -19,10 +19,14 @@ async function mainWithElectron() {
     const msAuth = new EMLLib.MicrosoftAuth(mainWindow)
     try {
       const account = await msAuth.auth()
+      const skin = new EMLLib.Skin(account)
+
       console.log('Authenticated account:', account)
+      console.log('Avatar is:', await skin.getAvatar())
     } catch (err) {
       console.error('Authentication error:', err)
     }
+
 
     app.quit()
   })
