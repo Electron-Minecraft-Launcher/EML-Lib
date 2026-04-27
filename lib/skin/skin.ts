@@ -623,9 +623,11 @@ export default class Skin {
 
   // util
   private async getAvatarFromSkin(skinUrl: string | null, size: number = 256) {
-    if (typeof window === 'undefined' || typeof document === 'undefined' || !skinUrl) {
+    if (!skinUrl) {
       return null
     }
+
+    const inRenderer = typeof window !== 'undefined' && typeof document !== 'undefined'
 
     try {
       const req = await fetch(skinUrl)
@@ -635,19 +637,54 @@ export default class Skin {
         throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching avatar from skin: HTTP ${req.status} ${errorText}`)
       }
 
-      const blob = await req.blob()
-      const img = await createImageBitmap(blob)
+      if (inRenderer) {
+        const blob = await req.blob()
+        const img = await createImageBitmap(blob)
 
-      const canvas = document.createElement('canvas')
-      canvas.width = size
-      canvas.height = size
+        const canvas = document.createElement('canvas')
+        canvas.width = size
+        canvas.height = size
 
-      const ctx = canvas.getContext('2d')!
-      ctx.imageSmoothingEnabled = false
-      ctx.drawImage(img, 8, 8, 8, 8, 0, 0, size, size)
-      ctx.drawImage(img, 40, 8, 8, 8, 0, 0, size, size)
+        const ctx = canvas.getContext('2d')!
+        ctx.imageSmoothingEnabled = false
+        ctx.drawImage(img, 8, 8, 8, 8, 0, 0, size, size)
+        ctx.drawImage(img, 40, 8, 8, 8, 0, 0, size, size)
 
-      return canvas.toDataURL('image/png')
+        return canvas.toDataURL('image/png')
+      } else {
+        const { PNG } = await import('pngjs')
+
+        const arrayBuffer = await req.arrayBuffer()
+        const src = PNG.sync.read(Buffer.from(arrayBuffer))
+
+        const out = new PNG({ width: size, height: size, filterType: -1 })
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            const srcX = Math.floor((x / size) * 8)
+            const srcY = Math.floor((y / size) * 8)
+            const dstIdx = (y * size + x) * 4
+
+            const faceIdx = ((srcY + 8) * src.width + (srcX + 8)) * 4
+            out.data[dstIdx + 0] = src.data[faceIdx + 0]
+            out.data[dstIdx + 1] = src.data[faceIdx + 1]
+            out.data[dstIdx + 2] = src.data[faceIdx + 2]
+            out.data[dstIdx + 3] = src.data[faceIdx + 3]
+
+            const hatIdx = ((srcY + 8) * src.width + (srcX + 40)) * 4
+            const hatAlpha = src.data[hatIdx + 3]
+            if (hatAlpha > 0) {
+              const a = hatAlpha / 255
+              out.data[dstIdx + 0] = Math.round(src.data[hatIdx + 0] * a + out.data[dstIdx + 0] * (1 - a))
+              out.data[dstIdx + 1] = Math.round(src.data[hatIdx + 1] * a + out.data[dstIdx + 1] * (1 - a))
+              out.data[dstIdx + 2] = Math.round(src.data[hatIdx + 2] * a + out.data[dstIdx + 2] * (1 - a))
+              out.data[dstIdx + 3] = 255
+            }
+          }
+        }
+
+        const buffer = PNG.sync.write(out)
+        return `data:image/png;base64,${buffer.toString('base64')}`
+      }
     } catch (err: any) {
       if (err instanceof EMLLibError) throw err
       throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching avatar from skin: ${err.message ?? err}`)
