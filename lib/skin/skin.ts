@@ -242,7 +242,7 @@ export default class Skin {
       const textures = data.properties?.find((prop: any) => prop.name === 'textures')?.value
 
       if (textures) {
-        const decoded = JSON.parse(Buffer.from(textures, 'base64').toString('utf-8'))
+        const decoded = JSON.parse(atob(textures))
 
         if (decoded.textures?.SKIN) {
           this.skins = [
@@ -654,8 +654,5 @@ export default class Skin {
     }
   }
 }
-
-
-
 
 
