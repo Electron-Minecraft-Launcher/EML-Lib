@@ -222,7 +222,7 @@ export default class Skin {
 
       this.avatar = {
         id: this.account.uuid,
-        url: `https://minotar.com/avatar/${this.account.name}/256.png`
+        url: await this.getAvatarFromSkin(this.skins.find((skin) => skin.state === 'active')?.url ?? this.skins[0]?.url ?? null)
       }
     } catch (err: any) {
       if (err instanceof EMLLibError) throw err
@@ -622,8 +622,8 @@ export default class Skin {
   }
 
   // util
-  private async getAvatarFromSkin(skinUrl: string, size: number = 256) {
-    if (typeof window === 'undefined' || typeof document === 'undefined') {
+  private async getAvatarFromSkin(skinUrl: string | null, size: number = 256) {
+    if (typeof window === 'undefined' || typeof document === 'undefined' || !skinUrl) {
       return null
     }
 
@@ -654,6 +654,7 @@ export default class Skin {
     }
   }
 }
+
 
 
 
