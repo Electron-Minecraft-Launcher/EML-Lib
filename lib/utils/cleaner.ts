@@ -41,7 +41,7 @@ export default class Cleaner extends EventEmitter<CleanerEvents> {
     for (const file of browsed) {
       const fullPath = path_.resolve('/', file.path, file.name).replace(/\\/g, '/')
       const isFileValid = validFilesSet.has(fullPath)
-      const isIgnored = ignoredPaths.some((ig) => fullPath.startsWith(ig))
+      const isIgnored = ignoredPaths.some((ig) => fullPath.startsWith(ig.replace(/\\/g, '/')) || fullPath.startsWith(ig))
       if (!isFileValid && !isIgnored) {
         deletePromises.push(
           fs
