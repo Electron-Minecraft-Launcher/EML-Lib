@@ -36,9 +36,17 @@ async function main() {
   const launcher = new EMLLib.Launcher({
     root: 'goldfrite',
     account: new EMLLib.CrackAuth().auth('Goldfrite'),
-    memory: {
-      min: 2048,
-      max: 4096
+    storage: 'isolated',
+    profile: {
+      slug: 'drayon-paradise',
+      minecraft: {
+        version: '1.21.1',
+        loader: {
+          loader: 'neoforge',
+          version: '21.1.220'
+        },
+        // modpackUrl: 'https://wistaro.fr/projets/drayonparadise/distribution.json' /*Temps for tests*/
+      }
     }
   })
 
@@ -93,5 +101,6 @@ async function featureTest() {
   console.log(account)
 }
 
-mainWithElectron()
+main()
+
 
