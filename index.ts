@@ -34,6 +34,7 @@ type EMLLib = {
 }
 
 export type * from './types/account.js'
+export type * from './types/skin.js'
 export type * from './types/background.js'
 export type * from './types/bootstrap.js'
 export type * from './types/config.js'
@@ -162,7 +163,7 @@ export { Launcher }
  *
  * ---
  *
- * @version 2.3.4
+ * @version 2.3.5
  * @license MIT — See the `LICENSE` file for more information
  * @copyright Copyright (c) 2026, GoldFrite and contributors
  */
