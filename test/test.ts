@@ -22,7 +22,7 @@ async function mainWithElectron() {
       const skin = new EMLLib.Skin(account)
 
       console.log('Authenticated account:', account)
-      console.log('Avatar is:', await skin.getAvatar())
+      console.log('Skin is:', await skin.getSkin())
     } catch (err) {
       console.error('Authentication error:', err)
     }
@@ -101,6 +101,6 @@ async function featureTest() {
   console.log(account)
 }
 
-main()
+mainWithElectron()
 
 
