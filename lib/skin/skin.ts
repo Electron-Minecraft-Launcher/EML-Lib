@@ -28,8 +28,8 @@ export default class Skin {
   /**
    * @deprecated Use `getSkins()` instead.
    */
-  async getSkin(): Promise<ISkin[]> {
-    return await this.getSkins()
+  async getSkin(active: boolean = false): Promise<ISkin[]> {
+    return await this.getSkins(active)
   }
 
   /**
