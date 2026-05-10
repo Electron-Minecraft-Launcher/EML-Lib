@@ -26,6 +26,13 @@ export default class Skin {
   }
 
   /**
+   * @deprecated Use `getSkins()` instead.
+   */
+  async getSkin(): Promise<ISkin[]> {
+    return await this.getSkins()
+  }
+
+  /**
    * Get the player's skin. If the player has no skin, an empty array is returned.
    *
    * **Note:** Data returned by this method may be cached. Call `reload()` to fetch the latest data
@@ -35,9 +42,16 @@ export default class Skin {
    * player). If `false`, all skins are returned, including inactive ones.
    * @returns The list of the player's skins.
    */
-  async getSkin(active: boolean = false): Promise<ISkin[]> {
+  async getSkins(active: boolean = false): Promise<ISkin[]> {
     if (!this.cached) await this.reload()
     return this.skins.filter((skin) => !active || skin.state === 'active')
+  }
+
+  /**
+   * @deprecated Use `getCapes()` instead.
+   */
+  async getCape(active: boolean = false): Promise<ICape[]> {
+    return await this.getCapes(active)
   }
 
   /**
@@ -50,7 +64,7 @@ export default class Skin {
    * player). If `false`, all capes are returned, including inactive ones.
    * @returns The list of the player's capes.
    */
-  async getCape(active: boolean = false): Promise<ICape[]> {
+  async getCapes(active: boolean = false): Promise<ICape[]> {
     if (!this.cached) await this.reload()
     return this.capes.filter((cape) => !active || cape.state === 'active')
   }
