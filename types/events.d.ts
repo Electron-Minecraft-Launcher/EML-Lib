@@ -55,8 +55,9 @@ export interface PatcherEvents {
   patch_debug: [string]
 }
 
-export interface BootstrapsEvents {
-  bootstraps_error: [{ message: string | Error }]
+export interface BootstrapEvents {
+  bootstrap_error: [{ message: string | Error }]
+  bootstraps_error: [{ message: string | Error }] // backwards compatibility
 }
 
 export interface DownloaderEvents {

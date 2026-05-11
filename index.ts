@@ -24,6 +24,7 @@ type EMLLib = {
   CrackAuth: typeof CrackAuth
   Skin: typeof Skin
   Bootstraps: typeof Bootstrap
+  Bootstrap: typeof Bootstrap
   Maintenance: typeof Maintenance
   News: typeof News
   Background: typeof Background

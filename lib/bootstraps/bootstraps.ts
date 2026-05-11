@@ -5,12 +5,12 @@
 
 import EventEmitter from '../utils/events.js'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
-import { BootstrapsEvents, DownloaderEvents } from '../../types/events.js'
+import { BootstrapEvents, DownloaderEvents } from '../../types/events.js'
 import type { AppUpdater } from 'electron-updater'
 import { IBootstrap } from '../../types/bootstrap.js'
 import utils from '../utils/utils.js'
 
-export default class Bootstrap extends EventEmitter<DownloaderEvents & BootstrapsEvents> {
+export default class Bootstrap extends EventEmitter<DownloaderEvents & BootstrapEvents> {
   private readonly url: string
   private autoUpdater: AppUpdater | undefined
 
@@ -19,9 +19,9 @@ export default class Bootstrap extends EventEmitter<DownloaderEvents & Bootstrap
    *
    * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    *
-   * **Attention!** Using this class requires Electron Updater. Use `npm i electron-updater` to 
+   * **Attention!** Using this class requires Electron Updater. Use `npm i electron-updater` to
    * install it.
-   * 
+   *
    * @param url The URL of your EML AdminTool website
    */
   constructor(url: string) {
@@ -63,7 +63,7 @@ export default class Bootstrap extends EventEmitter<DownloaderEvents & Bootstrap
   }
 
   /**
-   * Download the update found by checkForUpdate.
+   * Download the update found by `checkForUpdate()`.
    * @returns The path to the downloaded update.
    */
   async download(): Promise<string> {
@@ -101,7 +101,7 @@ export default class Bootstrap extends EventEmitter<DownloaderEvents & Bootstrap
     } catch {
       throw new EMLLibError(
         ErrorType.MODULE_NOT_FOUND,
-        '`electron-updater` module is not installed. Please install it with `npm i electron-updater` to use the Bootstraps feature.'
+        '`electron-updater` module is not installed. Please install it with `npm i electron-updater` to use the Bootstrap feature.'
       )
     }
 
@@ -110,7 +110,8 @@ export default class Bootstrap extends EventEmitter<DownloaderEvents & Bootstrap
     this.autoUpdater.setFeedURL({ provider: 'generic', url: this.url })
 
     this.autoUpdater.on('error', (err) => {
-      this.emit('bootstraps_error', { message: err.message ?? err })
+      this.emit('bootstrap_error', { message: err.message ?? err })
+      this.emit('bootstraps_error', { message: err.message ?? err }) // backwards compatibility
     })
 
     this.autoUpdater.on('download-progress', (progressObj) => {
