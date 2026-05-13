@@ -58,9 +58,10 @@ export { MicrosoftAuth }
 /**
  * Authenticate a user with an [Yggdrasil-compatible](https://minecraft.wiki/w/Yggdrasil) server.
  *
- * **Attention!** While Yggdrasil has been deprecated by Mojang/Microsoft, the API is maintained by a community
- * who wants to keep the protocol alive. Usage of a custom authentication server may or may not violate
- * Minecraft's Terms of Service: make sure to validate your player's Minecraft ownership!
+ * **Attention!** While Yggdrasil has been deprecated by Mojang/Microsoft, the API is maintained by
+ * a community who wants to keep the protocol alive. Usage of a custom authentication server may or
+ * may not violate Minecraft's Terms of Service: make sure to validate your player's Minecraft
+ * ownership!
  */
 export { YggdrasilAuth }
 
@@ -71,7 +72,8 @@ export { AzAuth }
 
 /**
  * Authenticate a user with a crack account.
- * @deprecated This auth method is not secure, use it only for testing purposes or for local servers!
+ * @deprecated This auth method is not secure, use it only for testing purposes or for local
+ * servers!
  */
 export { CrackAuth }
 
@@ -140,27 +142,27 @@ export { Launcher }
 
 /**
  * ## Electron Minecraft Launcher Lib
- * ### Create your Electron Minecraft Launcher easily.
+ * ### A Node.js library to build your Minecraft launcher easily with Electron.
  *
  * ---
  *
  * **Requirements:**
- * - Node.js 15.14.0 or higher: see [Node.js](https://nodejs.org/);
- * - Electron 15.0.0 or higher: please install it with `npm i electron` _if you use
- * Microsoft Authentication_.
+ * - Node.js 18 or higher: see [Node.js](https://nodejs.org/);
+ * - Electron 20 or higher: please install it with `npm i electron` _if you use Microsoft
+ * Authentication_.
  *
  * **Recommandations:**
- * - To get all the capacities of this Node.js library, you must set up your
- * [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool) website!
+ * - To get all the capacities of this Node.js library, you should set up your
+ * [EML AdminTool](https://emlproject.com/docs/eml-admintool/system-requirements) instance!
  * - If you don't want to set up EML AdminTool, you can use our [modpack generator](https://emlproject.pages.dev/resources/modpack-generator/)
  * to generate an EML Lib-compatible modpack.
  *
  * ---
  *
- * [Docs](https://emlproject.pages.dev/docs/set-up-environment) —
+ * [EML Website](https://emlproject.com/) —
+ * [Docs](https://emlproject.com/docs/eml-lib-and-launcher/getting-started/set-up-environment) —
  * [GitHub](https://github.com/Electron-Minecraft-Launcher/EML-Lib) —
- * [NPM](https://www.npmjs.com/package/eml-lib) —
- * [EML Website](https://electron-minecraft-launcher.ml)
+ * [NPM](https://www.npmjs.com/package/eml-lib)
  *
  * ---
  *
@@ -179,9 +181,10 @@ const EMLLib = {
   /**
    * Authenticate a user with an [Yggdrasil-compatible](https://minecraft.wiki/w/Yggdrasil) server.
    *
-   * **Attention!** While Yggdrasil has been deprecated by Mojang/Microsoft, the API is maintained by a community
-   * who wants to keep the protocol alive. Usage of a custom authentication server may or may not violate
-   * Minecraft's Terms of Service: make sure to validate your player's Minecraft ownership!
+   * **Attention!** While Yggdrasil has been deprecated by Mojang/Microsoft, the API is maintained
+   * by a community who wants to keep the protocol alive. Usage of a custom authentication server
+   * may or may not violate Minecraft's Terms of Service: make sure to validate your player's
+   * Minecraft ownership!
    */
   YggdrasilAuth,
 
@@ -192,7 +195,8 @@ const EMLLib = {
 
   /**
    * Authenticate a user with a crack account.
-   * @deprecated This auth method is not secure, use it only for testing purposes or for local servers!
+   * @deprecated This auth method is not secure, use it only for testing purposes or for local
+   * servers!
    */
   CrackAuth,
 
@@ -249,8 +253,8 @@ const EMLLib = {
   /**
    * Download Java for Minecraft.
    *
-   * You should not use this class if you launch Minecraft with `java.install: 'auto'` in
-   * the configuration.
+   * You should not use this class if you launch Minecraft with `java.install: 'auto'` in the 
+   * configuration.
    */
   Java,
 
@@ -261,4 +265,3 @@ const EMLLib = {
 } as EMLLib
 
 export default EMLLib
-

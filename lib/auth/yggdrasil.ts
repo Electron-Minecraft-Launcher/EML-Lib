@@ -5,8 +5,10 @@
 
 import { Account, MultipleProfiles } from '../../types/account.js'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
+import { AuthEvents } from '../../types/events.js'
+import EventEmitter from '../utils/events.js'
 
-export default class YggdrasilAuth {
+export default class YggdrasilAuth extends EventEmitter<AuthEvents> {
   private readonly url: string
 
   /**
@@ -20,6 +22,7 @@ export default class YggdrasilAuth {
    * @param url The URL to the Yggdrasil-compatible server (e.g., [Drasl](https://github.com/unmojang/drasl)).
    */
   constructor(url: string) {
+    super()
     if (url.endsWith('/')) url = url.slice(0, -1)
     this.url = url
   }
@@ -229,4 +232,3 @@ export default class YggdrasilAuth {
     }
   }
 }
-

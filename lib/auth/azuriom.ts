@@ -5,15 +5,18 @@
 
 import { Account } from '../../types/account.js'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
+import { AuthEvents } from '../../types/events.js'
+import EventEmitter from '../utils/events.js'
 
-export default class AzAuth {
+export default class AzAuth extends EventEmitter<AuthEvents> {
   private readonly url: string
 
   /**
    * Authenticate a user with [Azuriom](https://azuriom.com/).
-   * @param url The URL of your Azuriom website.
+   * @param url The URL of your Azuriom website (e.g., https://yourwebsite.com).
    */
   constructor(url: string) {
+    super()
     if (url.endsWith('/')) url = url.slice(0, -1)
     this.url = url
   }
@@ -53,6 +56,7 @@ export default class AzAuth {
         throw new EMLLibError(ErrorType.AUTH_ERROR, `AzAuth authentication failed: ${data.reason}`)
       }
 
+      this.emit('auth_success', { name: data.username })
       return {
         name: data.username,
         uuid: data.uuid,
@@ -66,7 +70,11 @@ export default class AzAuth {
         }
       } as Account
     } catch (err: unknown) {
-      if (err instanceof EMLLibError) throw err
+      if (err instanceof EMLLibError) {
+        this.emit('auth_error', { message: err.message })
+        throw err
+      }
+      this.emit('auth_error', { message: `AzAuth authentication failed: ${err instanceof Error ? err.message : err}` })
       throw new EMLLibError(ErrorType.AUTH_ERROR, `AzAuth authentication failed: ${err instanceof Error ? err.message : err}`)
     }
   }
@@ -98,6 +106,7 @@ export default class AzAuth {
         throw new EMLLibError(ErrorType.AUTH_ERROR, `AzAuth verify failed: ${data.reason}`)
       }
 
+      this.emit('validate_success', { name: user.name })
       return {
         name: data.username,
         uuid: data.uuid,
@@ -111,7 +120,11 @@ export default class AzAuth {
         }
       } as Account
     } catch (err: unknown) {
-      if (err instanceof EMLLibError) throw err
+      if (err instanceof EMLLibError) {
+        this.emit('auth_error', { message: err.message })
+        throw err
+      }
+      this.emit('auth_error', { message: `AzAuth verify failed: ${err instanceof Error ? err.message : err}` })
       throw new EMLLibError(ErrorType.AUTH_ERROR, `AzAuth verify failed: ${err instanceof Error ? err.message : err}`)
     }
   }
@@ -136,10 +149,15 @@ export default class AzAuth {
         const errorText = await req.text()
         throw new EMLLibError(ErrorType.AUTH_ERROR, `AzAuth logout failed: HTTP ${req.status} ${errorText}`)
       }
+
+      this.emit('logout_success', { name: user.name })
     } catch (err: unknown) {
-      if (err instanceof EMLLibError) throw err
+      if (err instanceof EMLLibError) {
+        this.emit('auth_error', { message: err.message })
+        throw err
+      }
+      this.emit('auth_error', { message: `AzAuth logout failed: ${err instanceof Error ? err.message : err}` })
       throw new EMLLibError(ErrorType.AUTH_ERROR, `AzAuth logout failed: ${err instanceof Error ? err.message : err}`)
     }
   }
 }
-
