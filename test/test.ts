@@ -101,6 +101,6 @@ async function featureTest() {
   console.log(account)
 }
 
-mainWithElectron()
+main()
 
 

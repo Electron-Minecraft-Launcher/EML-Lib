@@ -16,6 +16,7 @@ import ServerStatus from './lib/serverstatus/serverstatus.js'
 import Java from './lib/java/java.js'
 import Launcher from './lib/launcher/launcher.js'
 import Profiles from './lib/profile/profile.js'
+import Stats from './lib/stats/stats.js'
 
 type EMLLib = {
   MicrosoftAuth: typeof MicrosoftAuth
@@ -32,6 +33,7 @@ type EMLLib = {
   ServerStatus: typeof ServerStatus
   Java: typeof Java
   Launcher: typeof Launcher
+  Stats: typeof Stats
 }
 
 export type * from './types/account.js'
@@ -47,6 +49,7 @@ export type * from './types/manifest.js'
 export type * from './types/news.js'
 export type * from './types/profile.js'
 export type * from './types/status.js'
+export type * from './types/stats.js'
 
 /**
  * Authenticate a user with Microsoft.
@@ -141,6 +144,21 @@ export { Java }
 export { Launcher }
 
 /**
+ * Send stats about the Launcher to EML AdminTool.
+ *
+ * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
+ *
+ * ---
+ *
+ * Note for European users:
+ *
+ * This class is compliant with the [GDPR](https://gdpr-info.eu/), and does not send any
+ * personally identifiable information to EML. However, it does send some anonymous usage
+ * statistics to help you improve your Launcher.
+ */
+export { Stats }
+
+/**
  * ## Electron Minecraft Launcher Lib
  * ### A Node.js library to build your Minecraft launcher easily with Electron.
  *
@@ -148,14 +166,44 @@ export { Launcher }
  *
  * **Requirements:**
  * - Node.js 18 or higher: see [Node.js](https://nodejs.org/);
- * - Electron 20 or higher: please install it with `npm i electron` _if you use Microsoft
- * Authentication_.
+ * - Electron 20 or higher _if you use Microsoft Authentication_: please install it with
+ * `npm i electron`.
  *
  * **Recommandations:**
+ * - Always use this library from the `main` process of Electron, and forward events to the
+ * `renderer` process using IPC if needed.
  * - To get all the capacities of this Node.js library, you should set up your
  * [EML AdminTool](https://emlproject.com/docs/eml-admintool/system-requirements) instance!
- * - If you don't want to set up EML AdminTool, you can use our [modpack generator](https://emlproject.pages.dev/resources/modpack-generator/)
+ * - If you don't want to set up EML AdminTool, you can use our [modpack generator](https://emlproject.pages.dev/resources/modpack-json-generator/)
  * to generate an EML Lib-compatible modpack.
+ *
+ * ---
+ *
+ * Basic usage example:
+ * ```ts
+ * import { app, BrowserWindow } from 'electron'
+ * import { MicrosoftAuth, Launcher } from 'eml-lib'
+ *
+ * app.whenReady().then(start)
+ *
+ * async function start() {
+ *   const mainWindow = new BrowserWindow()
+ *
+ *   // 1. Authenticate
+ *   const account = await (new MicrosoftAuth(mainWindow)).auth()
+ *
+ *   // 2. Setup launcher
+ *   const launcher = new Launcher({
+ *     url: 'https://at.emlproject.com',
+ *     root: 'goldfrite',
+ *     account: account,
+ *     memory: { min: 2048, max: 1024 },
+ *   })
+ *
+ *   // 3. Launch
+ *   await launcher.launch()
+ * }
+ * ```
  *
  * ---
  *
@@ -253,7 +301,7 @@ const EMLLib = {
   /**
    * Download Java for Minecraft.
    *
-   * You should not use this class if you launch Minecraft with `java.install: 'auto'` in the 
+   * You should not use this class if you launch Minecraft with `java.install: 'auto'` in the
    * configuration.
    */
   Java,
@@ -261,7 +309,22 @@ const EMLLib = {
   /**
    * Launch Minecraft.
    */
-  Launcher
+  Launcher,
+
+  /**
+   * Send stats about the Launcher to EML AdminTool.
+   *
+   * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
+   *
+   * ---
+   *
+   * Note for European users:
+   *
+   * This class is compliant with the [GDPR](https://gdpr-info.eu/), and does not send any
+   * personally identifiable information to EML. However, it does send some anonymous usage
+   * statistics to help you improve your Launcher.
+   */
+  Stats
 } as EMLLib
 
 export default EMLLib
