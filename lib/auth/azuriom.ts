@@ -70,12 +70,9 @@ export default class AzAuth extends EventEmitter<AuthEvents> {
         }
       } as Account
     } catch (err: unknown) {
-      if (err instanceof EMLLibError) {
-        this.emit('auth_error', { message: err.message })
-        throw err
-      }
-      this.emit('auth_error', { message: `AzAuth authentication failed: ${err instanceof Error ? err.message : err}` })
-      throw new EMLLibError(ErrorType.AUTH_ERROR, `AzAuth authentication failed: ${err instanceof Error ? err.message : err}`)
+      const error = err instanceof EMLLibError ? err : new EMLLibError(ErrorType.AUTH_ERROR, `AzAuth authentication failed: ${err instanceof Error ? err.message : err}`)
+      this.emit('auth_error', { message: error.message })
+      throw error
     }
   }
 
@@ -120,12 +117,9 @@ export default class AzAuth extends EventEmitter<AuthEvents> {
         }
       } as Account
     } catch (err: unknown) {
-      if (err instanceof EMLLibError) {
-        this.emit('auth_error', { message: err.message })
-        throw err
-      }
-      this.emit('auth_error', { message: `AzAuth verify failed: ${err instanceof Error ? err.message : err}` })
-      throw new EMLLibError(ErrorType.AUTH_ERROR, `AzAuth verify failed: ${err instanceof Error ? err.message : err}`)
+      const error = err instanceof EMLLibError ? err : new EMLLibError(ErrorType.AUTH_ERROR, `AzAuth verify failed: ${err instanceof Error ? err.message : err}`)
+      this.emit('validate_error', { message: error.message })
+      throw error
     }
   }
 
@@ -152,12 +146,9 @@ export default class AzAuth extends EventEmitter<AuthEvents> {
 
       this.emit('logout_success', { name: user.name })
     } catch (err: unknown) {
-      if (err instanceof EMLLibError) {
-        this.emit('auth_error', { message: err.message })
-        throw err
-      }
-      this.emit('auth_error', { message: `AzAuth logout failed: ${err instanceof Error ? err.message : err}` })
-      throw new EMLLibError(ErrorType.AUTH_ERROR, `AzAuth logout failed: ${err instanceof Error ? err.message : err}`)
+      const error = err instanceof EMLLibError ? err : new EMLLibError(ErrorType.AUTH_ERROR, `AzAuth logout failed: ${err instanceof Error ? err.message : err}`)
+      this.emit('logout_error', { message: error.message })
+      throw error
     }
   }
 }

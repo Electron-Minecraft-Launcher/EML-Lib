@@ -1,5 +1,7 @@
 export interface AuthEvents {
   auth_success: [{ name: string }]
+  auth_need_2fa: []
+  auth_need_profile_selection: [{ availableProfiles: { id: string; name: string }[] }]
   auth_error: [{ message: string | Error }]
   refresh_success: [{ name: string }]
   refresh_error: [{ message: string | Error }]

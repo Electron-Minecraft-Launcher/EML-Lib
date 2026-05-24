@@ -56,12 +56,9 @@ export default class MicrosoftAuth extends EventEmitter<AuthEvents> {
       this.emit('auth_success', { name: account.name })
       return account
     } catch (err: unknown) {
-      if (err instanceof EMLLibError) {
-        this.emit('auth_error', { message: err.message })
-        throw err
-      }
-      this.emit('auth_error', { message: `Microsoft authentication failed: ${err instanceof Error ? err.message : err}` })
-      throw new EMLLibError(ErrorType.AUTH_ERROR, `Microsoft authentication failed: ${err instanceof Error ? err.message : err}`)
+      const error = err instanceof EMLLibError ? err : new EMLLibError(ErrorType.AUTH_ERROR, `Microsoft authentication failed: ${err instanceof Error ? err.message : err}`)
+      this.emit('auth_error', { message: error.message })
+      throw error
     }
   }
 
@@ -80,15 +77,15 @@ export default class MicrosoftAuth extends EventEmitter<AuthEvents> {
         }
       })
 
-      if (req.ok) {
-        this.emit('validate_success', { name: user.name })
-      } else {
-        const errorText = await req.text()
-        this.emit('validate_error', { message: `Microsoft token validation failed: HTTP ${req.status} ${errorText}` })
+      if (!req.ok) {
+        this.emit('validate_error', { message: `Microsoft token validation failed: HTTP ${req.status} ${await req.text()}` })
+        return false
       }
-      return req.ok
+
+      this.emit('validate_success', { name: user.name })
+      return true
     } catch {
-      this.emit('validate_error', { message: 'Microsoft token validation failed' })
+      this.emit('validate_error', { message: 'Microsoft token validation failed: network error' })
       return false
     }
   }
@@ -116,12 +113,9 @@ export default class MicrosoftAuth extends EventEmitter<AuthEvents> {
       this.emit('refresh_success', { name: account.name })
       return account
     } catch (err: unknown) {
-      if (err instanceof EMLLibError) {
-        this.emit('refresh_error', { message: err.message })
-        throw err
-      }
-      this.emit('refresh_error', { message: `Microsoft auth refresh failed: ${err instanceof Error ? err.message : err}` })
-      throw new EMLLibError(ErrorType.AUTH_ERROR, `Microsoft auth refresh failed: ${err instanceof Error ? err.message : err}`)
+      const error = err instanceof EMLLibError ? err : new EMLLibError(ErrorType.AUTH_ERROR, `Microsoft auth refresh failed: ${err instanceof Error ? err.message : err}`)
+      this.emit('refresh_error', { message: error.message })
+      throw error
     }
   }
 
