@@ -3,6 +3,7 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
+import { IStatProvider, StatProvider } from '../../types/stats.js'
 import EventEmitter from '../utils/events.js'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
 import { BootstrapEvents, DownloaderEvents } from '../../types/events.js'
@@ -10,7 +11,8 @@ import type { AppUpdater } from 'electron-updater'
 import { IBootstrap } from '../../types/bootstrap.js'
 import utils from '../utils/utils.js'
 
-export default class Bootstrap extends EventEmitter<DownloaderEvents & BootstrapEvents> {
+export default class Bootstrap extends EventEmitter<DownloaderEvents & BootstrapEvents> implements IStatProvider {
+  public readonly statType: StatProvider = 'BOOTSTRAP'
   private readonly url: string
   private autoUpdater: AppUpdater | undefined
 
@@ -85,6 +87,7 @@ export default class Bootstrap extends EventEmitter<DownloaderEvents & Bootstrap
   async runUpdate(silent = false): Promise<void> {
     try {
       const updater = await this.getUpdater()
+      this.emit('bootstrap_update', { current: updater.currentVersion.version, latest: updater.currentVersion.version })
       updater.quitAndInstall(silent, true)
     } catch (err: any) {
       if (err instanceof EMLLibError) throw err

@@ -3,12 +3,14 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
+import { IStatProvider, StatProvider } from '../../index.js'
 import { Account } from '../../types/account.js'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
 import { AuthEvents } from '../../types/events.js'
 import EventEmitter from '../utils/events.js'
 
-export default class AzAuth extends EventEmitter<AuthEvents> {
+export default class AzAuth extends EventEmitter<AuthEvents> implements IStatProvider {
+  public readonly statType: StatProvider = 'AUTH_AZURIOM'
   private readonly url: string
 
   /**

@@ -8,8 +8,10 @@ import { Account } from '../../types/account.js'
 import { EMLLibError, ErrorType } from './../../types/errors.js'
 import { AuthEvents } from '../../types/events.js'
 import EventEmitter from '../utils/events.js'
+import { IStatProvider, StatProvider } from '../../types/stats.js'
 
-export default class CrackAuth extends EventEmitter<AuthEvents> {
+export default class CrackAuth extends EventEmitter<AuthEvents> implements IStatProvider {
+  public readonly statType: StatProvider = 'AUTH_CRACK'
   /**
    * Authenticate a user with a crack account.
    * @deprecated This auth method is not secure, use it only for testing purposes or for local 

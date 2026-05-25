@@ -3,6 +3,7 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
+import { IStatProvider, StatProvider } from '../../types/stats.js'
 import type { BrowserWindow } from 'electron'
 import MicrosoftAuthGui from './microsoftgui.js'
 import { Account } from '../../types/account.js'
@@ -10,7 +11,8 @@ import { EMLLibError, ErrorType } from '../../types/errors.js'
 import { AuthEvents } from '../../types/events.js'
 import EventEmitter from '../utils/events.js'
 
-export default class MicrosoftAuth extends EventEmitter<AuthEvents> {
+export default class MicrosoftAuth extends EventEmitter<AuthEvents> implements IStatProvider {
+  public readonly statType: StatProvider = 'AUTH_MICROSOFT'
   private readonly mainWindow: BrowserWindow
   private readonly clientId: string
 

@@ -3,12 +3,14 @@
  * @copyright Copyright (c) 2026, IkyMax, GoldFrite
  */
 
+import { IStatProvider, StatProvider } from '../../types/stats.js'
 import { Account, MultipleProfiles } from '../../types/account.js'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
 import { AuthEvents } from '../../types/events.js'
 import EventEmitter from '../utils/events.js'
 
-export default class YggdrasilAuth extends EventEmitter<AuthEvents> {
+export default class YggdrasilAuth extends EventEmitter<AuthEvents> implements IStatProvider {
+  public readonly statType: StatProvider = 'AUTH_YGGDRASIL'
   private readonly url: string
 
   /**

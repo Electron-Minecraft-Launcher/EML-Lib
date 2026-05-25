@@ -46,6 +46,7 @@
     "@types/yauzl": "^2.10.3",
     "@types/yazl": "^3.3.1",
     "electron": "^42.2.0",
+    "electron-updater": "^6.8.3",
     "prettier": "^3.8.3",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3"

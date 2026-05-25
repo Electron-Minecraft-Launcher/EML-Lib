@@ -1,3 +1,5 @@
+import { ResolvedConfig } from './config.js'
+
 export interface AuthEvents {
   auth_success: [{ name: string }]
   auth_need_2fa: []
@@ -37,7 +39,7 @@ export interface LauncherEvents {
   launch_patch_loader: []
   launch_check_java: []
   launch_clean: []
-  launch_launch: [{ version: string; type: 'VANILLA' | 'FORGE' | 'NEOFORGE' | 'FABRIC' | 'QUILT'; loaderVersion: string | null }]
+  launch_launch: [ResolvedConfig & { java?: { version: string } }]
   launch_data: [string]
   launch_close: [number | null]
   launch_debug: [string]
@@ -69,6 +71,7 @@ export interface PatcherEvents {
 }
 
 export interface BootstrapEvents {
+  bootstrap_update: [{ current: string; latest: string }]
   bootstrap_error: [{ message: string | Error }]
   bootstraps_error: [{ message: string | Error }] // backwards compatibility
 }

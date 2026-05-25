@@ -144,7 +144,8 @@ export { Java }
 export { Launcher }
 
 /**
- * Send stats about the Launcher to EML AdminTool.
+ * Send stats about the Launcher to EML AdminTool. Ensure to initialize this class only **once**
+ * in your Launcher. Don't forget to call the `initialize` method.
  *
  * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
  *
@@ -312,7 +313,8 @@ const EMLLib = {
   Launcher,
 
   /**
-   * Send stats about the Launcher to EML AdminTool.
+   * Send stats about the Launcher to EML AdminTool. Ensure to initialize this class only **once**
+   * in your Launcher. Don't forget to call the `initialize` method.
    *
    * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    *

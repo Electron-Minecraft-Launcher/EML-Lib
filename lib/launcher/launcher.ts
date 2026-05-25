@@ -3,6 +3,7 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
+import { IStatProvider, StatProvider } from '../../types/stats.js'
 import { CleanerEvents, DownloaderEvents, FilesManagerEvents, JavaEvents, LauncherEvents, PatcherEvents } from '../../types/events.js'
 import EventEmitter from '../utils/events.js'
 import manifests from '../utils/manifests.js'
@@ -19,9 +20,11 @@ import { spawn } from 'node:child_process'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
 import loaders from '../utils/loaders.js'
 
-export default class Launcher extends EventEmitter<
-  LauncherEvents & DownloaderEvents & CleanerEvents & FilesManagerEvents & JavaEvents & PatcherEvents
-> {
+export default class Launcher
+  extends EventEmitter<LauncherEvents & DownloaderEvents & CleanerEvents & FilesManagerEvents & JavaEvents & PatcherEvents>
+  implements IStatProvider
+{
+  public readonly statType: StatProvider = 'LAUNCHER'
   /**
    * The configuration of the launcher.
    */
@@ -123,24 +126,20 @@ export default class Launcher extends EventEmitter<
 
     //* Install loader
     this.emit('launch_install_loader', loader)
-
     const loaderFiles = await loaderManager.setupLoader()
     await downloader.download(loaderFiles.libraries)
 
     //* Extract natives
     this.emit('launch_extract_natives')
-
     const extractedNatives = await filesManager.extractNatives([...librariesFiles.libraries, ...loaderFiles.libraries])
 
     //* Copy assets
     this.emit('launch_copy_assets')
-
     const copiedAssets = await filesManager.copyAssets()
 
     //* Check Java
     this.emit('launch_check_java')
-
-    await java.check(this.config.java.absolutePath, manifest.javaVersion?.majorVersion ?? 8)
+    const javaInfo = await java.check(this.config.java.absolutePath, manifest.javaVersion?.majorVersion ?? 8)
 
     //* Path loader
     this.emit('launch_patch_loader')
@@ -165,7 +164,7 @@ export default class Launcher extends EventEmitter<
     await cleaner.clean(files, this.config.cleaning.ignored, !this.config.cleaning.enabled)
 
     //* Launch
-    this.emit('launch_launch', { version: manifest.id, type: loader.type, loaderVersion: loader.loaderVersion })
+    this.emit('launch_launch', { ...this.config, java: { ...this.config.java, version: javaInfo.version } })
 
     const customAuth =
       this.config.account.meta.type === 'yggdrasil' && injectorFiles.injector[0]
@@ -379,4 +378,3 @@ export default class Launcher extends EventEmitter<
     })
   }
 }
-
