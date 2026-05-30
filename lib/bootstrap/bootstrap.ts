@@ -82,12 +82,21 @@ export default class Bootstrap extends EventEmitter<DownloaderEvents & Bootstrap
 
   /**
    * Quit the application and install the update.
+   * 
+   * You should only call this method after `checkForUpdate()` has found an update and `download()`
+   * has successfully downloaded it. Otherwise, this method may not work as expected.
+   * 
    * @param silent [Optional: default if `false`] (Windows-only) Runs the installer in silent mode.
    */
   async runUpdate(silent = false): Promise<void> {
     try {
       const updater = await this.getUpdater()
-      this.emit('bootstrap_update', { current: updater.currentVersion.version, latest: updater.currentVersion.version })
+      const update = await this.checkForUpdate()
+      if (!update.updateAvailable) {
+        console.warn('No update available. Aborting update process.')
+        return
+      }
+      this.emit('bootstrap_update', { current: updater.currentVersion.version, latest: update.latestVersion })
       updater.quitAndInstall(silent, true)
     } catch (err: any) {
       if (err instanceof EMLLibError) throw err

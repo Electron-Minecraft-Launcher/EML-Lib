@@ -31,7 +31,7 @@ export default class Stats {
    * track the `STARTUP` event, you should initialize this class as soon as possible in your code,
    * so that it can send the `STARTUP` event as soon as possible after the Launcher is started.
    */
-  constructor(url: string, events: StatEvent[] = ['STARTUP', 'LOGIN', 'LAUNCH', 'BOOTSTRAP', 'DEVTOOLS']) {
+  constructor(url: string, events: StatEvent[] = ['STARTUP', 'LOGIN', 'LAUNCH', 'BOOTSTRAP']) {
     this.url = `${url}/api`
     this.events = events
   }
