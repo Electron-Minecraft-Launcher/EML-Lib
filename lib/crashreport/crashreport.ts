@@ -170,7 +170,7 @@ export default class CrashReport {
     const token = await this.getAuthToken()
     if (!token) return
 
-    const req = await fetch(`${this.url}/crash`, {
+    const req = await fetch(`${this.url}/crash-reports`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -198,7 +198,7 @@ export default class CrashReport {
         }
       }
 
-      const req = await fetch(`${this.url}/crashreports/handshake`)
+      const req = await fetch(`${this.url}/crash-reports/handshake`)
 
       if (!req.ok) {
         return null
