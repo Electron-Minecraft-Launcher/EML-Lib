@@ -17,7 +17,7 @@ export default class Bootstrap extends EventEmitter<DownloaderEvents & Bootstrap
   private autoUpdater: AppUpdater | undefined
 
   /**
-   * Update your Launcher.
+   * Update the launcher.
    *
    * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    *

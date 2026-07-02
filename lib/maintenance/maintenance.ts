@@ -17,7 +17,7 @@ export default class Maintenance {
   }
 
   /**
-   * Manage the Maintenance of the Launcher.
+   * Manage the Maintenance of the launcher.
    *
    * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    * Get the current Maintenance status from the EML AdminTool.

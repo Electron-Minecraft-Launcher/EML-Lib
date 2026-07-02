@@ -24,15 +24,16 @@ export default class Launcher
   extends EventEmitter<LauncherEvents & DownloaderEvents & CleanerEvents & FilesManagerEvents & JavaEvents & PatcherEvents>
   implements IStatProvider
 {
-  public readonly statType: StatProvider = 'LAUNCHER'
+  readonly statType: StatProvider = 'LAUNCHER'
   /**
    * The configuration of the launcher.
    */
   readonly config: ResolvedConfig
+  private launchArgs_: string[] = []
 
   /**
    * Launch Minecraft.
-   * @param config The configuration of the Launcher.
+   * @param config The configuration of the launcher.
    *
    * _Need help? Try our [config generator](https://emlproject.pages.dev/resources/config-generator/)!_
    */
@@ -63,6 +64,10 @@ export default class Launcher
       window: tmpConfig.window!,
       memory: tmpConfig.memory!
     } as ResolvedConfig
+  }
+
+  get launchArgs() {
+    return this.launchArgs_
   }
 
   /**
@@ -166,15 +171,8 @@ export default class Launcher
     //* Launch
     this.emit('launch_launch', { ...this.config, java: { ...this.config.java, version: javaInfo.version } })
 
-    const customAuth =
-      this.config.account.meta.type === 'yggdrasil' && injectorFiles.injector[0]
-        ? {
-            injectorPath: injectorFiles.injector[0].path + injectorFiles.injector[0].name,
-            authServerUrl: this.config.account.meta.url!
-          }
-        : undefined
+    const customAuth = argumentsManager.getCustomArgs(injectorFiles)
     const args = argumentsManager.getArgs([...loaderFiles.libraries, ...librariesFiles.libraries], loader, loaderFiles.loaderManifest, customAuth)
-
     const blindArgs = args.map((arg, i) => (i === args.findIndex((p) => p === '--accessToken') + 1 ? '**********' : arg))
     this.emit('launch_debug', `Launching Minecraft with args: ${blindArgs.join(' ')}`)
 
@@ -365,14 +363,27 @@ export default class Launcher
   }
 
   private async run(javaPath: string, args: string[]) {
+    this.launchArgs_ = args
+
     return new Promise<void>((resolve, reject) => {
       const minecraft = spawn(javaPath, args, { cwd: this.config.root, detached: true })
       minecraft.unref()
+
       minecraft.stdout.on('data', (data: Buffer) => this.emit('launch_data', data.toString('utf8').replace(/\n$/, '')))
       minecraft.stderr.on('data', (data: Buffer) => this.emit('launch_data', data.toString('utf8').replace(/\n$/, '')))
       minecraft.on('error', reject)
       minecraft.on('close', (code) => {
-        this.emit('launch_close', code ?? -1)
+        const exitCode = code ?? -1
+        this.emit('launch_close', exitCode)
+        if (exitCode !== 0) {
+          this.emit('launch_crash', {
+            code: exitCode,
+            date: new Date().toISOString(),
+            javaPath: javaPath,
+            logsPath: path_.join(this.config.root, 'logs', 'latest.log'),
+            crashReportsDir: path_.join(this.config.root, 'crash-reports')
+          })
+        }
         resolve()
       })
     })

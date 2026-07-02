@@ -11,8 +11,8 @@ export default class Stats {
   private initialized = false
 
   /**
-   * Send stats about the Launcher to EML AdminTool. Ensure to initialize this class only **once**
-   * in your Launcher. Don't forget to call the `initialize` method.
+   * Send stats about the launcher to EML AdminTool. Ensure to initialize this class only **once**
+   * in the launcher. Don't forget to call the `initialize` method.
    *
    * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    *
@@ -22,14 +22,14 @@ export default class Stats {
    *
    * This class is compliant with the [GDPR](https://gdpr-info.eu/), and does not send any
    * personally identifiable information to EML. However, it does send some anonymous usage
-   * statistics to help you improve your Launcher.
+   * statistics to help you improve the launcher.
    *
    * ---
    *
    * @param url The URL of your EML AdminTool website.
    * @param events [Optional: defaults to all events] The events to track. Note that if you want to
    * track the `STARTUP` event, you should initialize this class as soon as possible in your code,
-   * so that it can send the `STARTUP` event as soon as possible after the Launcher is started.
+   * so that it can send the `STARTUP` event as soon as possible after the launcher is started.
    */
   constructor(url: string, events: StatEvent[] = ['STARTUP', 'LOGIN', 'LAUNCH', 'BOOTSTRAP']) {
     this.url = `${url}/api`
@@ -39,7 +39,7 @@ export default class Stats {
   /**
    * Initialize the stats system. This method should be called as soon as possible in your code,
    * and only once. It is recommended to call it before any other code, so that the `STARTUP` event
-   * can be sent as soon as possible after the Launcher is started.
+   * can be sent as soon as possible after the launcher is started.
    */
   async initialize(): Promise<void> {
     if (this.initialized) {

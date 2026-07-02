@@ -43,6 +43,7 @@ export interface LauncherEvents {
   launch_data: [string]
   launch_close: [number | null]
   launch_debug: [string]
+  launch_crash: [CrashData]
 }
 
 export interface FilesManagerEvents {

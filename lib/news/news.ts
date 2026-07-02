@@ -10,7 +10,7 @@ export default class News {
   private readonly url: string
 
   /**
-   * Manage the News of the Launcher.
+   * Manage the News of the launcher.
    *
    * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    * 

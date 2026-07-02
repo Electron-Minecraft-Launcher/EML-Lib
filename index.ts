@@ -17,23 +17,25 @@ import Java from './lib/java/java.js'
 import Launcher from './lib/launcher/launcher.js'
 import Profiles from './lib/profile/profile.js'
 import Stats from './lib/stats/stats.js'
+import CrashReport from './lib/crashreport/crashreport.js'
 
 type EMLLib = {
   MicrosoftAuth: typeof MicrosoftAuth
   YggdrasilAuth: typeof YggdrasilAuth
   AzAuth: typeof AzAuth
   CrackAuth: typeof CrackAuth
-  Skin: typeof Skin
-  Bootstraps: typeof Bootstrap
+  Java: typeof Java
+  Profiles: typeof Profiles
+  Launcher: typeof Launcher
+  Bootstraps: typeof Bootstrap // backward compatibility
   Bootstrap: typeof Bootstrap
   Maintenance: typeof Maintenance
+  Skin: typeof Skin
+  ServerStatus: typeof ServerStatus
   News: typeof News
   Background: typeof Background
-  Profiles: typeof Profiles
-  ServerStatus: typeof ServerStatus
-  Java: typeof Java
-  Launcher: typeof Launcher
   Stats: typeof Stats
+  CrashReport: typeof CrashReport
 }
 
 export type * from './types/account.js'
@@ -91,28 +93,28 @@ export { Skin }
 export { Bootstrap as Bootstraps }
 
 /**
- * Update your Launcher.
+ * Update the launcher.
  *
  * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
  */
 export { Bootstrap }
 
 /**
- * Manage the Maintenance of the Launcher.
+ * Manage the Maintenance of the launcher.
  *
  * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
  */
 export { Maintenance }
 
 /**
- * Manage the News of the Launcher.
+ * Manage the News of the launcher.
  *
  * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
  */
 export { News }
 
 /**
- * Manage the background of the Launcher.
+ * Manage the background of the launcher.
  *
  * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
  */
@@ -144,8 +146,8 @@ export { Java }
 export { Launcher }
 
 /**
- * Send stats about the Launcher to EML AdminTool. Ensure to initialize this class only **once**
- * in your Launcher. Don't forget to call the `initialize` method.
+ * Send stats about the launcher to EML AdminTool. Ensure to initialize this class only **once**
+ * in the launcher. Don't forget to call the `initialize` method.
  *
  * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
  *
@@ -155,9 +157,30 @@ export { Launcher }
  *
  * This class is compliant with the [GDPR](https://gdpr-info.eu/), and does not send any
  * personally identifiable information to EML. However, it does send some anonymous usage
- * statistics to help you improve your Launcher.
+ * statistics to help you improve the launcher.
  */
 export { Stats }
+
+/**
+ * Send game crash reports to EML AdminTool. Ensure to initialize this class only **once** in
+ * the launcher.
+ *
+ * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
+ *
+ * **Note:** This class is useless if you close the launcher before the game crashes, because
+ * the crash report will not be sent to the server.
+ *
+ * ---
+ *
+ * Note for European users:
+ *
+ * To be compliant with the [GDPR](https://gdpr-info.eu/), **never send crash reports without**
+ * the user's consent. You should ask the user for consent before sending any crash reports, and
+ * only send crash reports if the user has given their consent. This class automatically hides
+ * the user's username and token from the crash report, so that it does not send any personally
+ * identifiable information.
+ */
+export { CrashReport }
 
 /**
  * ## Electron Minecraft Launcher Lib
@@ -260,28 +283,28 @@ const EMLLib = {
   Bootstraps: Bootstrap,
 
   /**
-   * Update your Launcher.
+   * Update the launcher.
    *
    * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    */
   Bootstrap,
 
   /**
-   * Manage the Maintenance of the Launcher.
+   * Manage the Maintenance of the launcher.
    *
    * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    */
   Maintenance,
 
   /**
-   * Manage the News of the Launcher.
+   * Manage the News of the launcher.
    *
    * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    */
   News,
 
   /**
-   * Manage the background of the Launcher.
+   * Manage the background of the launcher.
    *
    * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    */
@@ -313,8 +336,8 @@ const EMLLib = {
   Launcher,
 
   /**
-   * Send stats about the Launcher to EML AdminTool. Ensure to initialize this class only **once**
-   * in your Launcher. Don't forget to call the `initialize` method.
+   * Send stats about the launcher to EML AdminTool. Ensure to initialize this class only **once**
+   * in the launcher. Don't forget to call the `initialize` method.
    *
    * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    *
@@ -324,9 +347,30 @@ const EMLLib = {
    *
    * This class is compliant with the [GDPR](https://gdpr-info.eu/), and does not send any
    * personally identifiable information to EML. However, it does send some anonymous usage
-   * statistics to help you improve your Launcher.
+   * statistics to help you improve the launcher.
    */
-  Stats
+  Stats,
+
+  /**
+   * Send game crash reports to EML AdminTool. Ensure to initialize this class only **once** in
+   * the launcher.
+   *
+   * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
+   *
+   * **Note:** This class is useless if you close the launcher before the game crashes, because
+   * the crash report will not be sent to the server.
+   *
+   * ---
+   *
+   * Note for European users:
+   *
+   * To be compliant with the [GDPR](https://gdpr-info.eu/), **never send crash reports without**
+   * the user's consent. You should ask the user for consent before sending any crash reports, and
+   * only send crash reports if the user has given their consent. This class automatically hides
+   * the user's username and token from the crash report, so that it does not send any personally
+   * identifiable information.
+   */
+  CrashReport
 } as EMLLib
 
 export default EMLLib
