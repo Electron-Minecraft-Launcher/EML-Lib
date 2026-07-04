@@ -10,7 +10,7 @@ import { AuthEvents } from '../../types/events.js'
 import EventEmitter from '../utils/events.js'
 
 export default class AzAuth extends EventEmitter<AuthEvents> implements IStatProvider {
-  public readonly statType: StatProvider = 'AUTH_AZURIOM'
+  public readonly statType: StatProvider = 'AUTH_AZAUTH'
   private readonly url: string
 
   /**

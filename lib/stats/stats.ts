@@ -6,6 +6,7 @@ import utils from '../utils/utils.js'
 
 export default class Stats {
   private readonly url: string
+  private readonly version: string
   private readonly events: StatEvent[]
   private token: string | null = null
   private initialized = false
@@ -27,12 +28,15 @@ export default class Stats {
    * ---
    *
    * @param url The URL of your EML AdminTool website.
+   * @param version The version of the launcher (from the package.json). This is used to track
+   * which versions of the launcher are being used, and to help you improve the launcher.
    * @param events [Optional: defaults to all events] The events to track. Note that if you want to
    * track the `STARTUP` event, you should initialize this class as soon as possible in your code,
    * so that it can send the `STARTUP` event as soon as possible after the launcher is started.
    */
-  constructor(url: string, events: StatEvent[] = ['STARTUP', 'LOGIN', 'LAUNCH', 'BOOTSTRAP']) {
+  constructor(url: string, version: string, events: StatEvent[] = ['STARTUP', 'LOGIN', 'LAUNCH', 'BOOTSTRAP']) {
     this.url = `${url}/api`
+    this.version = version
     this.events = events
   }
 
@@ -50,7 +54,8 @@ export default class Stats {
     if (this.events.includes('STARTUP')) {
       this.sendStat('STARTUP', {
         os: utils.getOS(),
-        arch: utils.getArch()
+        arch: process.arch,
+        current: this.version ?? ''
       })
     }
   }
@@ -68,21 +73,24 @@ export default class Stats {
     switch (provider.statType) {
       case 'AUTH_MICROSOFT':
       case 'AUTH_YGGDRASIL':
-      case 'AUTH_AZURIOM':
+      case 'AUTH_AZAUTH':
       case 'AUTH_CRACK':
         if (this.events.includes('LOGIN')) {
           const p = provider as IStatProvider & EventEmitter<AuthEvents>
-          const type = provider.statType.split('_')[1]
-          p.on('auth_success', ({ name }) => this.sendStat('LOGIN', { type }))
+          const type = provider.statType.split('_')[1].toLocaleLowerCase()
+          p.on('auth_success', ({ name }) => {
+            this.sendStat('LOGIN', { type })
+          })
         }
         break
       case 'LAUNCHER':
         if (this.events.includes('LAUNCH')) {
           const p = provider as IStatProvider & EventEmitter<LauncherEvents>
-          p.on('launch_launch', (config) =>
+          p.on('launch_launch', (config) => {
             this.sendStat('LAUNCH', {
+              current: this.version ?? '',
               os: utils.getOS(),
-              arch: utils.getArch(),
+              arch: process.arch,
               java: config.java.version,
               loader: config.minecraft.loader?.loader ?? 'vanilla',
               version: config.minecraft.version ?? 'unknown',
@@ -90,19 +98,22 @@ export default class Stats {
               minRam: config.memory.min ?? null,
               maxRam: config.memory.max ?? null
             })
-          )
+          })
         }
         break
       case 'BOOTSTRAP':
         if (this.events.includes('BOOTSTRAP')) {
           const p = provider as IStatProvider & EventEmitter<BootstrapEvents>
-          p.on('bootstrap_update', ({ current, latest }) =>
+          p.on('bootstrap_update', ({ current, latest }) => {
+            if (this.version !== current) {
+              console.warn(`Bootstrap update event received, but current version (${current}) does not match the launcher version (${this.version}).`)
+            }
             this.sendStat('BOOTSTRAP', {
               os: utils.getOS(),
               current: current,
               latest: latest
             })
-          )
+          })
         }
         break
       default:
@@ -137,7 +148,10 @@ export default class Stats {
       this.token = data.token
       return this.token
     } catch (err: unknown) {
-      const error = err instanceof EMLLibError ? err : new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching stats token: ${err instanceof Error ? err.message : err}`)
+      const error =
+        err instanceof EMLLibError
+          ? err
+          : new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching stats token: ${err instanceof Error ? err.message : err}`)
       console.error(error)
       return null
     }
@@ -171,7 +185,10 @@ export default class Stats {
         throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while sending stat event: HTTP ${req.status} ${errorText}`)
       }
     } catch (err: unknown) {
-      const error = err instanceof EMLLibError ? err : new EMLLibError(ErrorType.FETCH_ERROR, `Error while sending stat event: ${err instanceof Error ? err.message : err}`)
+      const error =
+        err instanceof EMLLibError
+          ? err
+          : new EMLLibError(ErrorType.FETCH_ERROR, `Error while sending stat event: ${err instanceof Error ? err.message : err}`)
       console.error(error)
     }
   }
