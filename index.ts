@@ -198,7 +198,7 @@ export { CrashReport }
  * `renderer` process using IPC if needed.
  * - To get all the capacities of this Node.js library, you should set up your
  * [EML AdminTool](https://emlproject.com/docs/eml-admintool/system-requirements) instance!
- * - If you don't want to set up EML AdminTool, you can use our [modpack generator](https://emlproject.pages.dev/resources/modpack-json-generator/)
+ * - If you don't want to set up EML AdminTool, you can use our [modpack generator](https://emlproject.com/resources/modpack-json-generator/)
  * to generate an EML Lib-compatible modpack.
  *
  * ---

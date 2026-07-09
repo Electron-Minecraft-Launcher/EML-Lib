@@ -50,13 +50,13 @@ export default class Stats {
       console.warn('Stats system is already initialized. Skipping.')
       return
     }
-    this.initialized = true
     if (this.events.includes('STARTUP')) {
-      this.sendStat('STARTUP', {
+      await this.sendStat('STARTUP', {
         os: utils.getOS(),
         arch: process.arch,
         current: this.version ?? ''
       })
+      this.initialized = true
     }
   }
 
@@ -78,7 +78,7 @@ export default class Stats {
         if (this.events.includes('LOGIN')) {
           const p = provider as IStatProvider & EventEmitter<AuthEvents>
           const type = provider.statType.split('_')[1].toLocaleLowerCase()
-          p.on('auth_success', ({ name }) => {
+          p.on('auth_success', () => {
             this.sendStat('LOGIN', { type })
           })
         }

@@ -43,7 +43,7 @@ export default class CrashReport {
   }
 
   /**
-   * Send the crash report to EML AdminTool. This method should be called when the game crashes, 
+   * Send the crash report to EML AdminTool. This method should be called when the game crashes,
    * and only if the user has given their consent to send crash reports. This method will read the
    * latest.log file and the latest crash report file, sanitize them, and send them to the server.
    * @param launcher The Launcher instance used to launch the game.
@@ -51,11 +51,27 @@ export default class CrashReport {
    */
   async send(launcher: Launcher, crashData: CrashData): Promise<void> {
     try {
-      const logs = await this.readLogs(crashData)
-      const sanitizedLogs = this.sanitize(logs, launcher.launchArgs)
+      const logs = await this.readLogs(launcher, crashData)
+      const sanLauncherLogs = this.sanitizeText(logs.launcherLogs, launcher)
+      const sanLaunchArgs = this.sanitizeText(logs.launchArgs, launcher)
+      const sanCrashReportLog = this.sanitizeText(logs.crashReportLog, launcher)
+      const sanLatestLog = this.sanitizeText(logs.latestLog, launcher)
       const javaInfo = await this.checkJava(crashData.javaPath)
 
-      const compressedBuffer = await gzip(Buffer.from(sanitizedLogs, 'utf-8'))
+      const formattedLogs = `=== LAUNCHER LOGS ===
+${sanLauncherLogs}
+
+=== LAUNCH ARGUMENTS ===
+${sanLaunchArgs}
+
+=== CRASH REPORT LOG ===
+${sanCrashReportLog}
+
+=== LATEST LOG ===
+${sanLatestLog}
+`
+
+      const compressedBuffer = await gzip(Buffer.from(formattedLogs, 'utf-8'))
       const logData = compressedBuffer.toString('base64')
 
       const payload = {
@@ -86,7 +102,17 @@ export default class CrashReport {
     }
   }
 
-  private async readLogs(crashData: CrashData): Promise<string> {
+  private async readLogs(
+    launcher: Launcher,
+    crashData: CrashData
+  ): Promise<{
+    launcherLogs: string
+    launchArgs: string
+    crashReportLog: string
+    latestLog: string
+  }> {
+    let launcherLogs = launcher.launcherLogs.join('\n')
+    let launchArgs = launcher.launchArgs.join(' ')
     let latestLog = ''
     let crashReportLog = ''
 
@@ -110,7 +136,12 @@ export default class CrashReport {
       crashReportLog = 'No dedicated crash report file found.'
     }
 
-    return `=== EXIT CODE: ${crashData.code} ===\n\n=== CRASH REPORT ===\n${crashReportLog}\n\n=== LATEST LOG ===\n${latestLog}`
+    return {
+      launcherLogs,
+      launchArgs,
+      crashReportLog,
+      latestLog
+    }
   }
 
   private async checkJava(javaPath: string) {
@@ -143,32 +174,47 @@ export default class CrashReport {
     }>
   }
 
-  private sanitize(text: string, args: string[]): string {
+  private sanitizeText(text: string, launcher: Launcher): string {
     let cleaned = text
 
     const username = os.userInfo().username
-    if (username && username.length > 1) {
-      const escapedUsername = username.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-      cleaned = cleaned.replace(new RegExp(escapedUsername, 'gi'), '<USER>')
-    }
+    const userDirname = os.userInfo().homedir.replaceAll('\\', '/').split('/').pop()
+    const pseudo = launcher.config.account.name
+    const uuid = launcher.config.account.uuid
+
+    const sensitiveStrings: { target: string; mask: string }[] = []
+
+    if (username && username.length > 1) sensitiveStrings.push({ target: username, mask: '<USER>' })
+    if (userDirname && userDirname.length > 1) sensitiveStrings.push({ target: userDirname, mask: '<USER>' })
+    if (pseudo && pseudo.length > 1) sensitiveStrings.push({ target: pseudo, mask: '<PSEUDO>' })
+    if (uuid && uuid.length > 1) sensitiveStrings.push({ target: uuid, mask: '<UUID>' })
 
     const sensitiveKeys = ['--accessToken', '--uuid', '--clientId']
     for (const key of sensitiveKeys) {
-      const index = args.indexOf(key)
-      if (index !== -1 && args[index + 1]) {
-        cleaned = cleaned.replace(new RegExp(args[index + 1], 'g'), '<HIDDEN>')
+      const index = launcher.launchArgs.indexOf(key)
+      if (index !== -1 && launcher.launchArgs[index + 1]) {
+        sensitiveStrings.push({ target: launcher.launchArgs[index + 1], mask: '<TOKEN>' })
       }
     }
 
-    cleaned = cleaned.replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g, '<IP_HIDDEN>')
-    cleaned = cleaned.replace(/eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+/g, '<JWT_HIDDEN>')
+    sensitiveStrings.sort((a, b) => b.target.length - a.target.length)
+
+    for (const { target, mask } of sensitiveStrings) {
+      const escapedTarget = target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      cleaned = cleaned.replace(new RegExp(escapedTarget, 'gi'), mask)
+    }
+
+    cleaned = cleaned.replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g, '<IP>')
+    cleaned = cleaned.replace(/eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+/g, '<JWT>')
 
     return cleaned
   }
 
   private async transmit(payload: Record<string, any>): Promise<void> {
     const token = await this.getAuthToken()
-    if (!token) return
+    if (!token) {
+      throw new EMLLibError(ErrorType.FETCH_ERROR, 'Failed to obtain authentication token for crash report transmission.')
+    }
 
     const req = await fetch(`${this.url}/crash-reports`, {
       method: 'POST',

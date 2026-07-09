@@ -33,8 +33,9 @@ async function mainWithElectron() {
 
 async function main() {
   const stats = new EMLLib.Stats('http://localhost:5173', '1.0.0')
+  const crarhReport = new EMLLib.CrashReport('http://localhost:5173')
   await stats.initialize()
-  
+
   const auth = new EMLLib.CrackAuth()
   stats.attach(auth)
 
@@ -82,6 +83,16 @@ async function main() {
 
     launcher.on('launch_debug', (message) => console.log(`Debug: ${message}\n`))
     launcher.on('patch_debug', (message) => console.log(`Debug: ${message}`))
+
+    launcher.on('launch_crash', async (crashData) => {
+      console.error(`\nGame crashed with code ${crashData.code}. Sending crash report...`)
+      try {
+        await crarhReport.send(launcher, crashData)
+        console.log('Crash report sent successfully.')
+      } catch (err) {
+        console.error('Failed to send crash report:', err)
+      }
+    })
 
     await launcher.launch()
   } catch (error) {
