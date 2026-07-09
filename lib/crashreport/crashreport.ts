@@ -78,13 +78,14 @@ ${sanLatestLog}
         metadata: {
           date: crashData.date,
           os: utils.getOS(),
-          arch: utils.getArch(),
+          arch: process.arch,
           javaVersion: javaInfo.version ?? 'unknown',
           javaArch: javaInfo.arch ?? 'unknown',
           profile: launcher.config.slug ?? '',
           version: launcher.config.minecraft.version ?? 'unknown',
           loader: launcher.config.minecraft.loader?.loader ?? 'vanilla',
           loaderVersion: launcher.config.minecraft.loader?.version ?? '',
+          authType: launcher.config.account.meta.type ?? 'crack',
           minRam: launcher.config.memory.min ?? null,
           maxRam: launcher.config.memory.max ?? null,
           exitCode: crashData.code
