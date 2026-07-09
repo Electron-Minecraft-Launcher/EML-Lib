@@ -277,7 +277,7 @@ export default class Launcher
 
   protected warn(message: string) {
     const time = new Date().toTimeString().split(' ')[0]
-    const logLine = `[${time}] [WARN] ${message}`
+    const logLine = `[${time}] [WARN]: ${message}`
     console.warn(message)
     this.launcherLogs_.push(logLine)
   }
