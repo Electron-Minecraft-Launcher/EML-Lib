@@ -10,7 +10,7 @@ import os from 'node:os'
 import { createHash } from 'node:crypto'
 import { pipeline } from 'node:stream/promises'
 import { ExtraFile } from '../../types/file.js'
-import { Config, ResolvedConfig } from '../../types/config.js'
+import { ResolvedConfig } from '../../types/config.js'
 
 class Utils {
   /**

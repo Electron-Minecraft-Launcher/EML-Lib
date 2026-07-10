@@ -20,7 +20,7 @@ export interface JavaConfig {
      * **Attention!** Providing this value forces the launcher into to ignore the {@link url `url`}
      * property.
      *
-     * @see [List of Minecraft versions](https://emlproject.pages.dev/resources/minecraft-versions/)
+     * @see [List of Minecraft versions](https://emlproject.com/resources/minecraft-versions/)
      */
     version?: string
   }

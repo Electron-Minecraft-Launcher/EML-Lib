@@ -3,6 +3,7 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
+import { IStatProvider, StatProvider } from '../../types/stats.js'
 import EventEmitter from '../utils/events.js'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
 import { BootstrapEvents, DownloaderEvents } from '../../types/events.js'
@@ -10,12 +11,13 @@ import type { AppUpdater } from 'electron-updater'
 import { IBootstrap } from '../../types/bootstrap.js'
 import utils from '../utils/utils.js'
 
-export default class Bootstrap extends EventEmitter<DownloaderEvents & BootstrapEvents> {
+export default class Bootstrap extends EventEmitter<DownloaderEvents & BootstrapEvents> implements IStatProvider {
+  public readonly statType: StatProvider = 'BOOTSTRAP'
   private readonly url: string
   private autoUpdater: AppUpdater | undefined
 
   /**
-   * Update your Launcher.
+   * Update the launcher.
    *
    * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    *
@@ -80,11 +82,21 @@ export default class Bootstrap extends EventEmitter<DownloaderEvents & Bootstrap
 
   /**
    * Quit the application and install the update.
+   * 
+   * You should only call this method after `checkForUpdate()` has found an update and `download()`
+   * has successfully downloaded it. Otherwise, this method may not work as expected.
+   * 
    * @param silent [Optional: default if `false`] (Windows-only) Runs the installer in silent mode.
    */
   async runUpdate(silent = false): Promise<void> {
     try {
       const updater = await this.getUpdater()
+      const update = await this.checkForUpdate()
+      if (!update.updateAvailable) {
+        console.warn('No update available. Aborting update process.')
+        return
+      }
+      this.emit('bootstrap_update', { current: updater.currentVersion.version, latest: update.latestVersion })
       updater.quitAndInstall(silent, true)
     } catch (err: any) {
       if (err instanceof EMLLibError) throw err

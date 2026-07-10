@@ -1,3 +1,18 @@
+import { ResolvedConfig } from './config.js'
+
+export interface AuthEvents {
+  auth_success: [{ name: string }]
+  auth_need_2fa: []
+  auth_need_profile_selection: [{ availableProfiles: { id: string; name: string }[] }]
+  auth_error: [{ message: string | Error }]
+  refresh_success: [{ name: string }]
+  refresh_error: [{ message: string | Error }]
+  validate_success: [{ name: string }]
+  validate_error: [{ message: string | Error }]
+  logout_success: [{ name: string }]
+  logout_error: [{ message: string | Error }]
+}
+
 export interface LauncherEvents {
   launch_compute_download: []
   launch_download: [
@@ -5,7 +20,7 @@ export interface LauncherEvents {
       /**
        * The total size/amount of files to download.
        *
-       * `total` parameter of `download_progress` event will be specific for each "type" of 
+       * `total` parameter of `download_progress` event will be specific for each "type" of
        * files: Java, modpack, libraries and natives, and finally assets.
        */
       total: { amount: number; size: number }
@@ -13,7 +28,7 @@ export interface LauncherEvents {
   ]
   launch_install_loader: [
     {
-      type: 'VANILLA' | 'FORGE' |'NEOFORGE' | 'FABRIC' | 'QUILT'
+      type: 'VANILLA' | 'FORGE' | 'NEOFORGE' | 'FABRIC' | 'QUILT'
       minecraftVersion: string
       loaderVersion: string | null
       format: 'INSTALLER' | 'UNIVERSAL' | 'CLIENT'
@@ -24,10 +39,11 @@ export interface LauncherEvents {
   launch_patch_loader: []
   launch_check_java: []
   launch_clean: []
-  launch_launch: [{ version: string; type: 'VANILLA' | 'FORGE' |'NEOFORGE' | 'FABRIC' | 'QUILT'; loaderVersion: string | null }]
+  launch_launch: [ResolvedConfig & { java?: { version: string } }]
   launch_data: [string]
   launch_close: [number | null]
   launch_debug: [string]
+  launch_crash: [CrashData]
 }
 
 export interface FilesManagerEvents {
@@ -56,6 +72,7 @@ export interface PatcherEvents {
 }
 
 export interface BootstrapEvents {
+  bootstrap_update: [{ current: string; latest: string }]
   bootstrap_error: [{ message: string | Error }]
   bootstraps_error: [{ message: string | Error }] // backwards compatibility
 }
@@ -75,4 +92,3 @@ export interface DownloaderEvents {
   download_error: [{ filename: string; type: string; message: Error | string }]
   download_end: [{ downloaded: { amount: number; size: number } }]
 }
-

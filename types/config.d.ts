@@ -35,7 +35,7 @@ export interface Config {
        * **Attention!** Providing this value forces the launcher into to ignore the
        * {@link url `url`} property.
        *
-       * @see [List of Minecraft versions](https://emlproject.pages.dev/resources/minecraft-versions/)
+       * @see [List of Minecraft versions](https://emlproject.com/resources/minecraft-versions/)
        */
       version?: string
       /**
@@ -55,7 +55,7 @@ export interface Config {
          * [Optional] The specific version of the loader. This is required for any loader other
          * than `'vanilla'`.
          *
-         * @see [List of loader versions](https://emlproject.pages.dev/resources/minecraft-versions/)
+         * @see [List of loader versions](https://emlproject.com/resources/minecraft-versions/)
          */
         version?: string
       }
@@ -64,7 +64,7 @@ export interface Config {
        *
        * **Attention!** This property is ignored if `profile.minecraft.version` is not set.
        *
-       * @see [Modpack JSON Generator](https://emlproject.pages.dev/resources/modpack-json-generator/)
+       * @see [Modpack JSON Generator](https://emlproject.com/resources/modpack-json-generator/)
        */
       modpackUrl?: string
       /**
@@ -117,7 +117,7 @@ export interface Config {
      * **Attention!** Providing this value forces the launcher into to ignore the {@link url `url`}
      * property.
      *
-     * @see [List of Minecraft versions](https://emlproject.pages.dev/resources/minecraft-versions/)
+     * @see [List of Minecraft versions](https://emlproject.com/resources/minecraft-versions/)
      */
     version?: string
     /**
@@ -137,7 +137,7 @@ export interface Config {
        * [Optional] The specific version of the loader. This is required for any loader other than
        * `'vanilla'`.
        *
-       * @see [List of loader versions](https://emlproject.pages.dev/resources/minecraft-versions/)
+       * @see [List of loader versions](https://emlproject.com/resources/minecraft-versions/)
        */
       version?: string
     }
@@ -146,7 +146,7 @@ export interface Config {
      *
      * **Attention!** This property is ignored if `minecraft.version` is not set.
      *
-     * @see [Modpack JSON Generator](https://emlproject.pages.dev/resources/modpack-json-generator/)
+     * @see [Modpack JSON Generator](https://emlproject.com/resources/modpack-json-generator/)
      */
     modpackUrl?: string
     /**

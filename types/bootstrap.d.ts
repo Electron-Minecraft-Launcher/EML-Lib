@@ -11,5 +11,4 @@ export interface IBootstrap {
   }
 }
 
-export type IBootstraps = IBootstrap
-
+export type IBootstraps = IBootstrap // for backward compatibility

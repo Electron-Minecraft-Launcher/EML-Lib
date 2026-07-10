@@ -27,28 +27,25 @@ async function mainWithElectron() {
       console.error('Authentication error:', err)
     }
 
-
     app.quit()
   })
 }
 
 async function main() {
+  const stats = new EMLLib.Stats('http://localhost:5173', '1.0.0')
+  const crarhReport = new EMLLib.CrashReport('http://localhost:5173')
+  await stats.initialize()
+
+  const auth = new EMLLib.CrackAuth()
+  stats.attach(auth)
+
   const launcher = new EMLLib.Launcher({
     root: 'goldfrite',
-    account: new EMLLib.CrackAuth().auth('Goldfrite'),
+    account: auth.auth('GoldFrite'),
     storage: 'isolated',
-    profile: {
-      slug: 'drayon-paradise',
-      minecraft: {
-        version: '1.21.1',
-        loader: {
-          loader: 'neoforge',
-          version: '21.1.220'
-        },
-        // modpackUrl: 'https://wistaro.fr/projets/drayonparadise/distribution.json' /*Temps for tests*/
-      }
-    }
+    url: 'http://localhost:5173'
   })
+  stats.attach(launcher)
 
   try {
     launcher.on('launch_compute_download', () => console.log('\nComputing download...'))
@@ -80,14 +77,22 @@ async function main() {
     launcher.on('clean_progress', (progress) => console.log(`Cleaned ${progress.filename}.`))
     launcher.on('clean_end', (info) => console.log(`Cleaned ${info.amount} files.`))
 
-    launcher.on('launch_launch', (info) =>
-      console.log(`\nLaunching Minecraft ${info.version} (${info.type}${info.loaderVersion ? ` ${info.loaderVersion}` : ''})...`)
-    )
+    launcher.on('launch_launch', (info) => console.log(`\nLaunching Minecraft ${info.minecraft.version} ${info.minecraft.loader?.loader}...`))
     launcher.on('launch_data', (message) => console.log(message))
     launcher.on('launch_close', (code) => console.log(`Closed with code ${code}.`))
 
     launcher.on('launch_debug', (message) => console.log(`Debug: ${message}\n`))
-    // launcher.on('patch_debug', (message) => console.log(`Debug: ${message}`))
+    launcher.on('patch_debug', (message) => console.log(`Debug: ${message}`))
+
+    launcher.on('launch_crash', async (crashData) => {
+      console.error(`\nGame crashed with code ${crashData.code}. Sending crash report...`)
+      try {
+        await crarhReport.send(launcher, crashData)
+        console.log('Crash report sent successfully.')
+      } catch (err) {
+        console.error('Failed to send crash report:', err)
+      }
+    })
 
     await launcher.launch()
   } catch (error) {
@@ -101,6 +106,4 @@ async function featureTest() {
   console.log(account)
 }
 
-mainWithElectron()
-
-
+main()

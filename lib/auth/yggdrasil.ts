@@ -3,10 +3,14 @@
  * @copyright Copyright (c) 2026, IkyMax, GoldFrite
  */
 
+import { IStatProvider, StatProvider } from '../../types/stats.js'
 import { Account, MultipleProfiles } from '../../types/account.js'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
+import { AuthEvents } from '../../types/events.js'
+import EventEmitter from '../utils/events.js'
 
-export default class YggdrasilAuth {
+export default class YggdrasilAuth extends EventEmitter<AuthEvents> implements IStatProvider {
+  public readonly statType: StatProvider = 'AUTH_YGGDRASIL'
   private readonly url: string
 
   /**
@@ -20,6 +24,7 @@ export default class YggdrasilAuth {
    * @param url The URL to the Yggdrasil-compatible server (e.g., [Drasl](https://github.com/unmojang/drasl)).
    */
   constructor(url: string) {
+    super()
     if (url.endsWith('/')) url = url.slice(0, -1)
     this.url = url
   }
@@ -52,6 +57,7 @@ export default class YggdrasilAuth {
       const data = await req.json()
 
       if (!data.selectedProfile) {
+        this.emit('auth_need_profile_selection', { availableProfiles: data.availableProfiles })
         return {
           needsProfileSelection: true,
           availableProfiles: data.availableProfiles,
@@ -62,6 +68,7 @@ export default class YggdrasilAuth {
         } as MultipleProfiles
       }
 
+      this.emit('auth_success', { name: data.selectedProfile.name })
       return {
         name: data.selectedProfile.name,
         uuid: data.selectedProfile.id,
@@ -75,8 +82,9 @@ export default class YggdrasilAuth {
         }
       } as Account
     } catch (err: unknown) {
-      if (err instanceof EMLLibError) throw err
-      throw new EMLLibError(ErrorType.AUTH_ERROR, `Yggdrasil authentication failed: ${err instanceof Error ? err.message : err}`)
+      const error = err instanceof EMLLibError ? err : new EMLLibError(ErrorType.AUTH_ERROR, `Yggdrasil authentication failed: ${err instanceof Error ? err.message : err}`)
+      this.emit('auth_error', { message: error.message })
+      throw error
     }
   }
 
@@ -91,6 +99,7 @@ export default class YggdrasilAuth {
    */
   selectProfile(profiles: MultipleProfiles, select: { id?: string; name?: string }): Account {
     if (!select.id && !select.name) {
+      this.emit('auth_error', { message: 'Yggdrasil profile selection failed: no profile ID or name provided' })
       throw new EMLLibError(ErrorType.AUTH_ERROR, 'Yggdrasil profile selection failed: no profile ID or name provided')
     }
 
@@ -99,9 +108,11 @@ export default class YggdrasilAuth {
       : profiles.availableProfiles.find((p) => p.name === select.name)
 
     if (!profile) {
+      this.emit('auth_error', { message: `Yggdrasil profile selection failed: profile with ID/name ${select.id ?? select.name} not found` })
       throw new EMLLibError(ErrorType.AUTH_ERROR, `Yggdrasil profile selection failed: profile with ID/name ${select.id ?? select.name} not found`)
     }
 
+    this.emit('auth_success', { name: profile.name })
     return {
       name: profile.name,
       uuid: profile.id,
@@ -135,8 +146,15 @@ export default class YggdrasilAuth {
         })
       })
 
-      return req.ok
+      if (!req.ok) {
+        this.emit('validate_error', { message: `Yggdrasil token validation failed: HTTP ${req.status} ${await req.text()}` })
+        return false
+      }
+
+      this.emit('validate_success', { name: user.name })
+      return true
     } catch {
+      this.emit('validate_error', { message: 'Yggdrasil token validation failed: network error' })
       return false
     }
   }
@@ -181,6 +199,7 @@ export default class YggdrasilAuth {
         selectedProfile = data.selectedProfile
       }
 
+      this.emit('refresh_success', { name: selectedProfile.name })
       return {
         name: selectedProfile.name,
         uuid: selectedProfile.id,
@@ -194,8 +213,9 @@ export default class YggdrasilAuth {
         }
       } as Account
     } catch (err: unknown) {
-      if (err instanceof EMLLibError) throw err
-      throw new EMLLibError(ErrorType.AUTH_ERROR, `Yggdrasil refresh failed: ${err instanceof Error ? err.message : err}`)
+      const error = err instanceof EMLLibError ? err : new EMLLibError(ErrorType.AUTH_ERROR, `Yggdrasil refresh failed: ${err instanceof Error ? err.message : err}`)
+      this.emit('refresh_error', { message: error.message })
+      throw error
     }
   }
 
@@ -223,10 +243,12 @@ export default class YggdrasilAuth {
         const errorText = await req.text()
         throw new EMLLibError(ErrorType.AUTH_ERROR, `Yggdrasil logout failed: HTTP ${req.status} ${errorText}`)
       }
+
+      this.emit('logout_success', { name: user.name })
     } catch (err: unknown) {
-      if (err instanceof EMLLibError) throw err
-      throw new EMLLibError(ErrorType.AUTH_ERROR, `Yggdrasil logout failed: ${err instanceof Error ? err.message : err}`)
+      const error = err instanceof EMLLibError ? err : new EMLLibError(ErrorType.AUTH_ERROR, `Yggdrasil logout failed: ${err instanceof Error ? err.message : err}`)
+      this.emit('logout_error', { message: error.message })
+      throw error
     }
   }
 }
-

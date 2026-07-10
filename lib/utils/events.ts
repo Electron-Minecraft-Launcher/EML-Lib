@@ -22,12 +22,12 @@ export default class EventEmitter<T extends EventMap<T>> {
 
   /**
    * Add a listener for the given event.
-   * @param eventName The name of the event.
+   * @param event The name of the event.
    * @param listener The callback function.
    * @returns This EventEmitter instance.
    */
-  on<K>(eventName: Key<K, T>, listener: Listener1<K, T>): this {
-    this.emitter.on(eventName as string | symbol, listener)
+  on<K>(event: Key<K, T>, listener: Listener1<K, T>): this {
+    this.emitter.on(event as string | symbol, listener)
     return this
   }
 
