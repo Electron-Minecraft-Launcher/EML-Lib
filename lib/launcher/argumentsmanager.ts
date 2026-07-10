@@ -8,6 +8,7 @@ import { MinecraftManifest } from '../../types/manifest.js'
 import utils from '../utils/utils.js'
 import path_ from 'node:path'
 import { ExtraFile, ILoader } from '../../types/file.js'
+import type { File as File_ } from '../../types/file.js'
 
 export default class ArgumentsManager {
   private config: ResolvedConfig
@@ -20,6 +21,15 @@ export default class ArgumentsManager {
     this.manifest = manifest
     this.loaderManifest = null
     this.loader = null
+  }
+
+  getCustomArgs(injectorFiles: { injector: File_[]; files: File_[] }): { injectorPath: string; authServerUrl: string } | undefined {
+    if (this.config.account.meta.type === 'yggdrasil' && injectorFiles.injector[0]) {
+      return {
+        injectorPath: injectorFiles.injector[0].path + injectorFiles.injector[0].name,
+        authServerUrl: this.config.account.meta.url!
+      }
+    }
   }
 
   /**
@@ -240,4 +250,3 @@ export default class ArgumentsManager {
     return this.loaderManifest?.mainClass ?? this.manifest.mainClass
   }
 }
-

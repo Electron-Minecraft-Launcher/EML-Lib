@@ -3,6 +3,7 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
+import { IStatProvider, StatProvider } from '../../types/stats.js'
 import { CleanerEvents, DownloaderEvents, FilesManagerEvents, JavaEvents, LauncherEvents, PatcherEvents } from '../../types/events.js'
 import EventEmitter from '../utils/events.js'
 import manifests from '../utils/manifests.js'
@@ -19,19 +20,23 @@ import { spawn } from 'node:child_process'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
 import loaders from '../utils/loaders.js'
 
-export default class Launcher extends EventEmitter<
-  LauncherEvents & DownloaderEvents & CleanerEvents & FilesManagerEvents & JavaEvents & PatcherEvents
-> {
+export default class Launcher
+  extends EventEmitter<LauncherEvents & DownloaderEvents & CleanerEvents & FilesManagerEvents & JavaEvents & PatcherEvents>
+  implements IStatProvider
+{
+  readonly statType: StatProvider = 'LAUNCHER'
   /**
    * The configuration of the launcher.
    */
   readonly config: ResolvedConfig
+  private launchArgs_: string[] = []
+  private launcherLogs_: string[] = []
 
   /**
    * Launch Minecraft.
-   * @param config The configuration of the Launcher.
+   * @param config The configuration of the launcher.
    *
-   * _Need help? Try our [config generator](https://emlproject.pages.dev/resources/config-generator/)!_
+   * _Need help? Try our [config generator](https://emlproject.com/resources/config-generator/)!_
    */
   constructor(config: Config) {
     super()
@@ -60,6 +65,14 @@ export default class Launcher extends EventEmitter<
       window: tmpConfig.window!,
       memory: tmpConfig.memory!
     } as ResolvedConfig
+  }
+
+  get launchArgs() {
+    return this.launchArgs_
+  }
+
+  get launcherLogs() {
+    return this.launcherLogs_
   }
 
   /**
@@ -123,24 +136,20 @@ export default class Launcher extends EventEmitter<
 
     //* Install loader
     this.emit('launch_install_loader', loader)
-
     const loaderFiles = await loaderManager.setupLoader()
     await downloader.download(loaderFiles.libraries)
 
     //* Extract natives
     this.emit('launch_extract_natives')
-
     const extractedNatives = await filesManager.extractNatives([...librariesFiles.libraries, ...loaderFiles.libraries])
 
     //* Copy assets
     this.emit('launch_copy_assets')
-
     const copiedAssets = await filesManager.copyAssets()
 
     //* Check Java
     this.emit('launch_check_java')
-
-    await java.check(this.config.java.absolutePath, manifest.javaVersion?.majorVersion ?? 8)
+    const javaInfo = await java.check(this.config.java.absolutePath, manifest.javaVersion?.majorVersion ?? 8)
 
     //* Path loader
     this.emit('launch_patch_loader')
@@ -165,21 +174,112 @@ export default class Launcher extends EventEmitter<
     await cleaner.clean(files, this.config.cleaning.ignored, !this.config.cleaning.enabled)
 
     //* Launch
-    this.emit('launch_launch', { version: manifest.id, type: loader.type, loaderVersion: loader.loaderVersion })
+    this.emit('launch_launch', { ...this.config, java: { ...this.config.java, version: javaInfo.version } })
 
-    const customAuth =
-      this.config.account.meta.type === 'yggdrasil' && injectorFiles.injector[0]
-        ? {
-            injectorPath: injectorFiles.injector[0].path + injectorFiles.injector[0].name,
-            authServerUrl: this.config.account.meta.url!
-          }
-        : undefined
+    const customAuth = argumentsManager.getCustomArgs(injectorFiles)
     const args = argumentsManager.getArgs([...loaderFiles.libraries, ...librariesFiles.libraries], loader, loaderFiles.loaderManifest, customAuth)
-
     const blindArgs = args.map((arg, i) => (i === args.findIndex((p) => p === '--accessToken') + 1 ? '**********' : arg))
     this.emit('launch_debug', `Launching Minecraft with args: ${blindArgs.join(' ')}`)
 
     await this.run(this.config.java.absolutePath.replace('${X}', manifest.javaVersion?.majorVersion.toString() ?? '8'), args)
+  }
+
+  // @ts-ignore
+  protected emit(eventName: any, ...args: any[]) {
+    
+    const eventNameStr = String(eventName)
+
+    if (eventNameStr === 'launch_data' || eventNameStr.endsWith('_progress')) {
+      // @ts-ignore
+      return super.emit(eventName, ...args)
+    }
+
+    const time = new Date().toTimeString().split(' ')[0]
+    let level = 'INFO'
+
+    if (eventNameStr.includes('error') || eventNameStr.includes('fail')) level = 'ERROR'
+    else if (eventNameStr.includes('debug')) level = 'DEBUG'
+
+    let message = this.formatEventMessage(eventNameStr, args)
+
+    if (args[0] instanceof Error) {
+      level = 'ERROR'
+      message += `\n${args[0].stack || args[0].message}`
+    } else if (args[0]?.message instanceof Error) {
+      level = 'ERROR'
+      message += `\n${args[0].message.stack || args[0].message.message}`
+    }
+
+    this.launcherLogs_.push(`[${time}] [${level}]: ${message}`)
+
+    if (this.launcherLogs_.length > 500) {
+      this.launcherLogs_.shift()
+    }
+
+    return super.emit(eventName, ...args)
+  }
+
+  private formatEventMessage(eventName: string, args: any[]): string {
+    const arg = args[0]
+
+    switch (eventName) {
+      // --- Events WITHOUT arguments ---
+      case 'launch_compute_download':
+        return `Computing required files...`
+      case 'launch_copy_assets':
+        return `Copying game assets...`
+      case 'launch_extract_natives':
+        return `Extracting native libraries...`
+      case 'launch_patch_loader':
+        return `Applying loader patches...`
+      case 'launch_check_java':
+        return `Checking Java installation...`
+      case 'launch_clean':
+        return `Cleaning files...`
+
+      // --- Events WITH arguments ---
+      case 'launch_download':
+        return `Preparing download of ${arg?.total?.amount ?? 0} files.`
+      case 'launch_install_loader':
+        return `Installing ${arg?.type} ${arg?.loaderVersion || ''} for Minecraft ${arg?.minecraftVersion}.`
+      case 'launch_launch':
+        return `Launching Minecraft process...`
+      case 'launch_crash':
+        return `The process crashed with code ${arg?.code}.`
+      case 'launch_debug':
+        return 'Launching Minecraft with args: see below.'
+
+      // Downloader / FilesManager / Cleaner
+      case 'download_end':
+        return `Download completed (${arg?.downloaded?.amount ?? 0} files).`
+      case 'extract_end':
+        return `Extraction of ${arg?.amount ?? 0} archives completed.`
+      case 'copy_end':
+        return `Copy of ${arg?.amount ?? 0} assets completed.`
+      case 'clean_end':
+        return `Cleanup completed (${arg?.amount ?? 0} files deleted).`
+
+      // Java
+      case 'java_info':
+        return `Java environment detected: v${arg?.version} (${arg?.arch}).`
+
+      // Auth
+      case 'auth_success':
+      case 'refresh_success':
+      case 'validate_success':
+        return `Valid session for player ${arg?.name}.`
+
+      default:
+        if (args.length === 0) return ''
+        return args.map((a) => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ')
+    }
+  }
+
+  protected warn(message: string) {
+    const time = new Date().toTimeString().split(' ')[0]
+    const logLine = `[${time}] [WARN]: ${message}`
+    console.warn(message)
+    this.launcherLogs_.push(logLine)
   }
 
   private setMinecraft(config: Config) {
@@ -192,7 +292,7 @@ export default class Launcher extends EventEmitter<
     if (config.profile && !isValidProfile) {
       let reason = config.url ? 'EML AdminTool default profile' : 'latest Minecraft version'
       if (rootMc) reason = 'Minecraft config'
-      console.warn(`Warning: Invalid profile. Launching with ${reason}.`)
+      this.warn(`Warning: Invalid profile. Launching with ${reason}.`)
     }
 
     if (!activeMcSource) {
@@ -282,7 +382,7 @@ export default class Launcher extends EventEmitter<
     }
 
     if (config.storage === 'shared' && enabled) {
-      console.warn(
+      this.warn(
         'Warning: You are using shared storage mode with cleaning enabled. This may cause issues as the launcher will delete shared assets and libraries when launching different profiles. It is recommended to disable cleaning when using shared storage mode.'
       )
     }
@@ -296,7 +396,7 @@ export default class Launcher extends EventEmitter<
 
   private setAccount(config: Config) {
     if (config.account?.meta.type === 'crack') {
-      console.warn(
+      this.warn(
         'Warning: You are using a cracked account (offline mode). This authentication method is not secure and is not recommended. Use it only for testing purposes.'
       )
     }
@@ -366,17 +466,28 @@ export default class Launcher extends EventEmitter<
   }
 
   private async run(javaPath: string, args: string[]) {
+    this.launchArgs_ = args
+
     return new Promise<void>((resolve, reject) => {
       const minecraft = spawn(javaPath, args, { cwd: this.config.root, detached: true })
-      minecraft.unref()
+
       minecraft.stdout.on('data', (data: Buffer) => this.emit('launch_data', data.toString('utf8').replace(/\n$/, '')))
       minecraft.stderr.on('data', (data: Buffer) => this.emit('launch_data', data.toString('utf8').replace(/\n$/, '')))
       minecraft.on('error', reject)
-      minecraft.on('close', (code) => {
-        this.emit('launch_close', code ?? -1)
+      minecraft.on('exit', (code) => {
+        const exitCode = code ?? -1
+        this.emit('launch_close', exitCode)
+        if (exitCode !== 0) {
+          this.emit('launch_crash', {
+            code: exitCode,
+            date: new Date().toISOString(),
+            javaPath: javaPath,
+            logsPath: path_.join(this.config.root, 'logs', 'latest.log'),
+            crashReportsDir: path_.join(this.config.root, 'crash-reports')
+          })
+        }
         resolve()
       })
     })
   }
 }
-

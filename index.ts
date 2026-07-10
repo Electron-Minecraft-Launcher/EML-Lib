@@ -8,7 +8,7 @@ import YggdrasilAuth from './lib/auth/yggdrasil.js'
 import AzAuth from './lib/auth/azuriom.js'
 import CrackAuth from './lib/auth/crack.js'
 import Skin from './lib/skin/skin.js'
-import Bootstrap from './lib/bootstraps/bootstraps.js'
+import Bootstrap from './lib/bootstrap/bootstrap.js'
 import Maintenance from './lib/maintenance/maintenance.js'
 import News from './lib/news/news.js'
 import Background from './lib/background/background.js'
@@ -16,21 +16,26 @@ import ServerStatus from './lib/serverstatus/serverstatus.js'
 import Java from './lib/java/java.js'
 import Launcher from './lib/launcher/launcher.js'
 import Profiles from './lib/profile/profile.js'
+import Stats from './lib/stats/stats.js'
+import CrashReport from './lib/crashreport/crashreport.js'
 
 type EMLLib = {
   MicrosoftAuth: typeof MicrosoftAuth
   YggdrasilAuth: typeof YggdrasilAuth
   AzAuth: typeof AzAuth
   CrackAuth: typeof CrackAuth
-  Skin: typeof Skin
-  Bootstraps: typeof Bootstrap
+  Java: typeof Java
+  Profiles: typeof Profiles
+  Launcher: typeof Launcher
+  Bootstraps: typeof Bootstrap // backward compatibility
+  Bootstrap: typeof Bootstrap
   Maintenance: typeof Maintenance
+  Skin: typeof Skin
+  ServerStatus: typeof ServerStatus
   News: typeof News
   Background: typeof Background
-  Profiles: typeof Profiles
-  ServerStatus: typeof ServerStatus
-  Java: typeof Java
-  Launcher: typeof Launcher
+  Stats: typeof Stats
+  CrashReport: typeof CrashReport
 }
 
 export type * from './types/account.js'
@@ -46,6 +51,7 @@ export type * from './types/manifest.js'
 export type * from './types/news.js'
 export type * from './types/profile.js'
 export type * from './types/status.js'
+export type * from './types/stats.js'
 
 /**
  * Authenticate a user with Microsoft.
@@ -57,9 +63,10 @@ export { MicrosoftAuth }
 /**
  * Authenticate a user with an [Yggdrasil-compatible](https://minecraft.wiki/w/Yggdrasil) server.
  *
- * **Attention!** While Yggdrasil has been deprecated by Mojang/Microsoft, the API is maintained by a community
- * who wants to keep the protocol alive. Usage of a custom authentication server may or may not violate
- * Minecraft's Terms of Service: make sure to validate your player's Minecraft ownership!
+ * **Attention!** While Yggdrasil has been deprecated by Mojang/Microsoft, the API is maintained by
+ * a community who wants to keep the protocol alive. Usage of a custom authentication server may or
+ * may not violate Minecraft's Terms of Service: make sure to validate your player's Minecraft
+ * ownership!
  */
 export { YggdrasilAuth }
 
@@ -70,7 +77,8 @@ export { AzAuth }
 
 /**
  * Authenticate a user with a crack account.
- * @deprecated This auth method is not secure, use it only for testing purposes or for local servers!
+ * @deprecated This auth method is not secure, use it only for testing purposes or for local
+ * servers!
  */
 export { CrackAuth }
 
@@ -85,28 +93,28 @@ export { Skin }
 export { Bootstrap as Bootstraps }
 
 /**
- * Update your Launcher.
+ * Update the launcher.
  *
  * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
  */
 export { Bootstrap }
 
 /**
- * Manage the Maintenance of the Launcher.
+ * Manage the Maintenance of the launcher.
  *
  * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
  */
 export { Maintenance }
 
 /**
- * Manage the News of the Launcher.
+ * Manage the News of the launcher.
  *
  * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
  */
 export { News }
 
 /**
- * Manage the background of the Launcher.
+ * Manage the background of the launcher.
  *
  * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
  */
@@ -138,32 +146,99 @@ export { Java }
 export { Launcher }
 
 /**
+ * Send stats about the launcher to EML AdminTool. Ensure to initialize this class only **once**
+ * in the launcher. Don't forget to call the `initialize` method.
+ *
+ * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
+ *
+ * ---
+ *
+ * Note for European users:
+ *
+ * This class is compliant with the [GDPR](https://gdpr-info.eu/), and does not send any
+ * personally identifiable information to EML. However, it does send some anonymous usage
+ * statistics to help you improve the launcher.
+ */
+export { Stats }
+
+/**
+ * Send game crash reports to EML AdminTool. Ensure to initialize this class only **once** in
+ * the launcher.
+ *
+ * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
+ *
+ * **Note:** This class is useless if you close the launcher before the game crashes, because
+ * the crash report will not be sent to the server.
+ *
+ * ---
+ *
+ * Note for European users:
+ *
+ * To be compliant with the [GDPR](https://gdpr-info.eu/), **never send crash reports without**
+ * the user's consent. You should ask the user for consent before sending any crash reports, and
+ * only send crash reports if the user has given their consent. This class automatically hides
+ * the user's username and token from the crash report, so that it does not send any personally
+ * identifiable information.
+ */
+export { CrashReport }
+
+/**
  * ## Electron Minecraft Launcher Lib
- * ### Create your Electron Minecraft Launcher easily.
+ * ### A Node.js library to build your Minecraft launcher easily with Electron.
  *
  * ---
  *
  * **Requirements:**
- * - Node.js 15.14.0 or higher: see [Node.js](https://nodejs.org/);
- * - Electron 15.0.0 or higher: please install it with `npm i electron` _if you use
- * Microsoft Authentication_.
+ * - Node.js 18 or higher: see [Node.js](https://nodejs.org/);
+ * - Electron 20 or higher _if you use Microsoft Authentication_: please install it with
+ * `npm i electron`.
  *
  * **Recommandations:**
- * - To get all the capacities of this Node.js library, you must set up your
- * [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool) website!
- * - If you don't want to set up EML AdminTool, you can use our [modpack generator](https://emlproject.pages.dev/resources/modpack-generator/)
+ * - Always use this library from the `main` process of Electron, and forward events to the
+ * `renderer` process using IPC if needed.
+ * - To get all the capacities of this Node.js library, you should set up your
+ * [EML AdminTool](https://emlproject.com/docs/eml-admintool/system-requirements) instance!
+ * - If you don't want to set up EML AdminTool, you can use our [modpack generator](https://emlproject.com/resources/modpack-json-generator/)
  * to generate an EML Lib-compatible modpack.
  *
  * ---
  *
- * [Docs](https://emlproject.pages.dev/docs/set-up-environment) —
- * [GitHub](https://github.com/Electron-Minecraft-Launcher/EML-Lib) —
- * [NPM](https://www.npmjs.com/package/eml-lib) —
- * [EML Website](https://electron-minecraft-launcher.ml)
+ * Basic usage example:
+ * ```ts
+ * import { app, BrowserWindow } from 'electron'
+ * import { MicrosoftAuth, Launcher } from 'eml-lib'
+ *
+ * app.whenReady().then(start)
+ *
+ * async function start() {
+ *   const mainWindow = new BrowserWindow()
+ *
+ *   // 1. Authenticate
+ *   const account = await (new MicrosoftAuth(mainWindow)).auth()
+ *
+ *   // 2. Setup launcher
+ *   const launcher = new Launcher({
+ *     url: 'https://at.emlproject.com',
+ *     root: 'goldfrite',
+ *     account: account,
+ *     memory: { min: 2048, max: 1024 },
+ *   })
+ *
+ *   // 3. Launch
+ *   await launcher.launch()
+ * }
+ * ```
  *
  * ---
  *
- * @version 2.3.7
+ * [EML Website](https://emlproject.com/) —
+ * [Docs](https://emlproject.com/docs/eml-lib-and-launcher/getting-started/set-up-environment) —
+ * [GitHub](https://github.com/Electron-Minecraft-Launcher/EML-Lib) —
+ * [NPM](https://www.npmjs.com/package/eml-lib)
+ *
+ * ---
+ *
+ * @version 2.4.0
  * @license MIT — See the `LICENSE` file for more information
  * @copyright Copyright (c) 2026, GoldFrite and contributors
  */
@@ -178,9 +253,10 @@ const EMLLib = {
   /**
    * Authenticate a user with an [Yggdrasil-compatible](https://minecraft.wiki/w/Yggdrasil) server.
    *
-   * **Attention!** While Yggdrasil has been deprecated by Mojang/Microsoft, the API is maintained by a community
-   * who wants to keep the protocol alive. Usage of a custom authentication server may or may not violate
-   * Minecraft's Terms of Service: make sure to validate your player's Minecraft ownership!
+   * **Attention!** While Yggdrasil has been deprecated by Mojang/Microsoft, the API is maintained
+   * by a community who wants to keep the protocol alive. Usage of a custom authentication server
+   * may or may not violate Minecraft's Terms of Service: make sure to validate your player's
+   * Minecraft ownership!
    */
   YggdrasilAuth,
 
@@ -191,7 +267,8 @@ const EMLLib = {
 
   /**
    * Authenticate a user with a crack account.
-   * @deprecated This auth method is not secure, use it only for testing purposes or for local servers!
+   * @deprecated This auth method is not secure, use it only for testing purposes or for local
+   * servers!
    */
   CrackAuth,
 
@@ -206,28 +283,28 @@ const EMLLib = {
   Bootstraps: Bootstrap,
 
   /**
-   * Update your Launcher.
+   * Update the launcher.
    *
    * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    */
   Bootstrap,
 
   /**
-   * Manage the Maintenance of the Launcher.
+   * Manage the Maintenance of the launcher.
    *
    * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    */
   Maintenance,
 
   /**
-   * Manage the News of the Launcher.
+   * Manage the News of the launcher.
    *
    * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    */
   News,
 
   /**
-   * Manage the background of the Launcher.
+   * Manage the background of the launcher.
    *
    * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    */
@@ -248,16 +325,52 @@ const EMLLib = {
   /**
    * Download Java for Minecraft.
    *
-   * You should not use this class if you launch Minecraft with `java.install: 'auto'` in
-   * the configuration.
+   * You should not use this class if you launch Minecraft with `java.install: 'auto'` in the
+   * configuration.
    */
   Java,
 
   /**
    * Launch Minecraft.
    */
-  Launcher
+  Launcher,
+
+  /**
+   * Send stats about the launcher to EML AdminTool. Ensure to initialize this class only **once**
+   * in the launcher. Don't forget to call the `initialize` method.
+   *
+   * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
+   *
+   * ---
+   *
+   * Note for European users:
+   *
+   * This class is compliant with the [GDPR](https://gdpr-info.eu/), and does not send any
+   * personally identifiable information to EML. However, it does send some anonymous usage
+   * statistics to help you improve the launcher.
+   */
+  Stats,
+
+  /**
+   * Send game crash reports to EML AdminTool. Ensure to initialize this class only **once** in
+   * the launcher.
+   *
+   * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
+   *
+   * **Note:** This class is useless if you close the launcher before the game crashes, because
+   * the crash report will not be sent to the server.
+   *
+   * ---
+   *
+   * Note for European users:
+   *
+   * To be compliant with the [GDPR](https://gdpr-info.eu/), **never send crash reports without**
+   * the user's consent. You should ask the user for consent before sending any crash reports, and
+   * only send crash reports if the user has given their consent. This class automatically hides
+   * the user's username and token from the crash report, so that it does not send any personally
+   * identifiable information.
+   */
+  CrashReport
 } as EMLLib
 
 export default EMLLib
-

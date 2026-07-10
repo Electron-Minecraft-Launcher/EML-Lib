@@ -4,7 +4,7 @@
 
 [<img src="https://img.shields.io/badge/Discord-EML-5561e6?&style=for-the-badge">](https://emlproject.com/discord/github)
 [<img src="https://img.shields.io/badge/platforms-Windows%2C%20macOS%2C%20Linux-0077DA?style=for-the-badge&color=0077DA">](#platforms)
-[<img src="https://img.shields.io/badge/version-2.3.7-orangered?style=for-the-badge&color=orangered">](package.json)
+[<img src="https://img.shields.io/badge/version-2.4.0-orangered?style=for-the-badge&color=orangered">](package.json)
 
 <p>
 <center>
@@ -22,7 +22,7 @@
 
 EML Lib supports multiple authentication methods, including Microsoft, Azuriom, Yggdrasil and Crack. This allows you to choose the authentication method that best suits your needs and preferences.
 
-_Read the [docs](https://emlproject.pages.dev/docs/authentication)._
+_Read the [docs](https://emlproject.com/docs/authentication)._
 
 ### Launch settings
 
@@ -33,19 +33,19 @@ EML Lib can automatically download and install Java to ensure that you have the 
 
 To use all the capacities of EML Lib, you should set up your [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool) website. It will allow you to use features such as news, bootstraps, maintenance, background, and more.
 
-_Read the [docs](https://emlproject.pages.dev/docs/launch-settings)._
+_Read the [docs](https://emlproject.com/docs/launch-settings)._
 
 ### Bootstrap [^1]
 
 _Bootstrap_ is a powerful feature that allows you to auto-update your launcher. It checks for updates on a specified URL and downloads and installs them automatically. This ensures that your launcher is always up to date with the latest features and bug fixes.
 
-_Read the [docs](https://emlproject.pages.dev/docs/bootstrap)._
+_Read the [docs](https://emlproject.com/docs/bootstrap)._
 
 ### Maintenance mode [^1]
 
 _Maintenance_ mode is a feature that allows you to block the launcher during maintenance. When maintenance mode is enabled, users will see a message indicating that the launcher is under maintenance and will not be able to launch Minecraft until the maintenance is complete.
 
-_Read the [docs](https://emlproject.pages.dev/docs/maintenance-mode)._
+_Read the [docs](https://emlproject.com/docs/maintenance-mode)._
 
 ### Customization [^1]
 
@@ -55,7 +55,7 @@ EML Lib allows you to customize the launcher with various features, including:
 - **Background**: Displaying a background image on the launcher.
 - **Server status**: Displaying server information on the launcher.
 
-_Read the [docs](https://emlproject.pages.dev/docs/customization)._
+_Read the [docs](https://emlproject.com/docs/customization)._
 
 ## Comparison with other solutions
 
@@ -121,7 +121,7 @@ const launcher = new EMLLib.Launcher({
 launcher.launch()
 ```
 
-Please refer to the [docs](https://emlproject.pages.dev/docs/set-up-environment) for more information.
+Please refer to the [docs](https://emlproject.com/docs/set-up-environment) for more information.
 
 ## Platform compatibility
 

@@ -3,25 +3,27 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
+import { IStatProvider, StatProvider } from '../../types/stats.js'
 import EventEmitter from '../utils/events.js'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
-import { BootstrapsEvents, DownloaderEvents } from '../../types/events.js'
+import { BootstrapEvents, DownloaderEvents } from '../../types/events.js'
 import type { AppUpdater } from 'electron-updater'
 import { IBootstrap } from '../../types/bootstrap.js'
 import utils from '../utils/utils.js'
 
-export default class Bootstrap extends EventEmitter<DownloaderEvents & BootstrapsEvents> {
+export default class Bootstrap extends EventEmitter<DownloaderEvents & BootstrapEvents> implements IStatProvider {
+  public readonly statType: StatProvider = 'BOOTSTRAP'
   private readonly url: string
   private autoUpdater: AppUpdater | undefined
 
   /**
-   * Update your Launcher.
+   * Update the launcher.
    *
    * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    *
-   * **Attention!** Using this class requires Electron Updater. Use `npm i electron-updater` to 
+   * **Attention!** Using this class requires Electron Updater. Use `npm i electron-updater` to
    * install it.
-   * 
+   *
    * @param url The URL of your EML AdminTool website
    */
   constructor(url: string) {
@@ -63,7 +65,7 @@ export default class Bootstrap extends EventEmitter<DownloaderEvents & Bootstrap
   }
 
   /**
-   * Download the update found by checkForUpdate.
+   * Download the update found by `checkForUpdate()`.
    * @returns The path to the downloaded update.
    */
   async download(): Promise<string> {
@@ -80,11 +82,21 @@ export default class Bootstrap extends EventEmitter<DownloaderEvents & Bootstrap
 
   /**
    * Quit the application and install the update.
+   * 
+   * You should only call this method after `checkForUpdate()` has found an update and `download()`
+   * has successfully downloaded it. Otherwise, this method may not work as expected.
+   * 
    * @param silent [Optional: default if `false`] (Windows-only) Runs the installer in silent mode.
    */
   async runUpdate(silent = false): Promise<void> {
     try {
       const updater = await this.getUpdater()
+      const update = await this.checkForUpdate()
+      if (!update.updateAvailable) {
+        console.warn('No update available. Aborting update process.')
+        return
+      }
+      this.emit('bootstrap_update', { current: updater.currentVersion.version, latest: update.latestVersion })
       updater.quitAndInstall(silent, true)
     } catch (err: any) {
       if (err instanceof EMLLibError) throw err
@@ -101,7 +113,7 @@ export default class Bootstrap extends EventEmitter<DownloaderEvents & Bootstrap
     } catch {
       throw new EMLLibError(
         ErrorType.MODULE_NOT_FOUND,
-        '`electron-updater` module is not installed. Please install it with `npm i electron-updater` to use the Bootstraps feature.'
+        '`electron-updater` module is not installed. Please install it with `npm i electron-updater` to use the Bootstrap feature.'
       )
     }
 
@@ -110,7 +122,8 @@ export default class Bootstrap extends EventEmitter<DownloaderEvents & Bootstrap
     this.autoUpdater.setFeedURL({ provider: 'generic', url: this.url })
 
     this.autoUpdater.on('error', (err) => {
-      this.emit('bootstraps_error', { message: err.message ?? err })
+      this.emit('bootstrap_error', { message: err.message ?? err })
+      this.emit('bootstraps_error', { message: err.message ?? err }) // backwards compatibility
     })
 
     this.autoUpdater.on('download-progress', (progressObj) => {

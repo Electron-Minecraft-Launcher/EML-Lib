@@ -10,7 +10,7 @@ export default class Background {
   private readonly url: string
 
   /**
-   * Manage the background of the Launcher.
+   * Manage the background of the launcher.
    *
    * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    * 

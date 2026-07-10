@@ -3,12 +3,16 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
+import { IStatProvider, StatProvider } from '../../types/stats.js'
 import type { BrowserWindow } from 'electron'
 import MicrosoftAuthGui from './microsoftgui.js'
 import { Account } from '../../types/account.js'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
+import { AuthEvents } from '../../types/events.js'
+import EventEmitter from '../utils/events.js'
 
-export default class MicrosoftAuth {
+export default class MicrosoftAuth extends EventEmitter<AuthEvents> implements IStatProvider {
+  public readonly statType: StatProvider = 'AUTH_MICROSOFT'
   private readonly mainWindow: BrowserWindow
   private readonly clientId: string
 
@@ -16,12 +20,13 @@ export default class MicrosoftAuth {
    * Authenticate a user with Microsoft.
    *
    * **Attention!** Using this class requires Electron. Use `npm i electron` to install it.
-   * 
-   * @param mainWindow Your Electron application's main window (to create a child window for the 
+   *
+   * @param mainWindow Your Electron application's main window (to create a child window for the
    * Microsoft login).
    * @param clientId [Optional] Your Microsoft application's client ID.
    */
   constructor(mainWindow: BrowserWindow, clientId?: string) {
+    super()
     this.mainWindow = mainWindow
     this.clientId = clientId ?? '00000000402b5328'
   }
@@ -33,7 +38,9 @@ export default class MicrosoftAuth {
   async auth(): Promise<Account> {
     try {
       const userCode = await new MicrosoftAuthGui(this.mainWindow, this.clientId).openWindow()
-      if (userCode == 'cancel') throw new EMLLibError(ErrorType.AUTH_CANCELLED, 'User cancelled the login')
+      if (userCode == 'cancel') {
+        throw new EMLLibError(ErrorType.AUTH_CANCELLED, 'User cancelled the login')
+      }
 
       const req = await fetch('https://login.live.com/oauth20_token.srf', {
         method: 'POST',
@@ -47,17 +54,20 @@ export default class MicrosoftAuth {
       }
       const data = await req.json()
 
-      return await this.getAccount(data)
+      const account = await this.getAccount(data)
+      this.emit('auth_success', { name: account.name })
+      return account
     } catch (err: unknown) {
-      if (err instanceof EMLLibError) throw err
-      throw new EMLLibError(ErrorType.AUTH_ERROR, `Microsoft authentication failed: ${err instanceof Error ? err.message : err}`)
+      const error = err instanceof EMLLibError ? err : new EMLLibError(ErrorType.AUTH_ERROR, `Microsoft authentication failed: ${err instanceof Error ? err.message : err}`)
+      this.emit('auth_error', { message: error.message })
+      throw error
     }
   }
 
   /**
    * Validate a user's access token with Microsoft. This method will check if the token is still valid.
    * @param user The user account to validate.
-   * @returns `true` if the token is valid, `false` otherwise (then you should call 
+   * @returns `true` if the token is valid, `false` otherwise (then you should call
    * `MicrosoftAuth.refresh()`).
    */
   async validate(user: Account): Promise<boolean> {
@@ -69,8 +79,15 @@ export default class MicrosoftAuth {
         }
       })
 
-      return req.ok
+      if (!req.ok) {
+        this.emit('validate_error', { message: `Microsoft token validation failed: HTTP ${req.status} ${await req.text()}` })
+        return false
+      }
+
+      this.emit('validate_success', { name: user.name })
+      return true
     } catch {
+      this.emit('validate_error', { message: 'Microsoft token validation failed: network error' })
       return false
     }
   }
@@ -94,24 +111,27 @@ export default class MicrosoftAuth {
       }
       const data = await req.json()
 
-      return await this.getAccount(data)
+      const account = await this.getAccount(data)
+      this.emit('refresh_success', { name: account.name })
+      return account
     } catch (err: unknown) {
-      if (err instanceof EMLLibError) throw err
-      throw new EMLLibError(ErrorType.AUTH_ERROR, `Microsoft auth refresh failed: ${err instanceof Error ? err.message : err}`)
+      const error = err instanceof EMLLibError ? err : new EMLLibError(ErrorType.AUTH_ERROR, `Microsoft auth refresh failed: ${err instanceof Error ? err.message : err}`)
+      this.emit('refresh_error', { message: error.message })
+      throw error
     }
   }
 
   /**
    * Logout a user with Microsoft.
-   * 
-   * **🤔 Microsoft doesn't provide a way to revoke tokens. To log out, just remove the token 
-   * from your storage.** This method is here for consistency with other auth methods and 
+   *
+   * **🤔 Microsoft doesn't provide a way to revoke tokens. To log out, just remove the token
+   * from your storage.** This method is here for consistency with other auth methods and
    * future-proofing in case Microsoft adds token revocation. But currently, this method
    * does nothing.
-   * 
+   *
    * @param user The user account to log out.
-   * 
-   * @deprecated Microsoft doesn't provide a way to revoke tokens, so this method does nothing. 
+   *
+   * @deprecated Microsoft doesn't provide a way to revoke tokens, so this method does nothing.
    * Just remove the token from your storage to log out.
    */
   async logout(user: Account): Promise<void> {
@@ -242,4 +262,3 @@ export default class MicrosoftAuth {
     return result
   }
 }
-
