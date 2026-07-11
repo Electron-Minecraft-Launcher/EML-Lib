@@ -61,7 +61,7 @@ EML Lib allows you to customize the launcher with various features, including:
 - **Background**: Displaying a background image on the launcher.
 - **Server status**: Displaying server information on the launcher.
 
-_Read the docs for [News](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/news), [Background](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/background) and [Server Status](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/server-status)._
+_Read the docs for [News](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/news), [Background](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/background) and [ServerStatus](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/serverstatus)._
 
 ### Stats [^1]
 
