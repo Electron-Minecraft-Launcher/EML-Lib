@@ -22,7 +22,7 @@
 
 EML Lib supports multiple authentication methods, including Microsoft, Azuriom, Yggdrasil and Crack. This allows you to choose the authentication method that best suits your needs and preferences.
 
-_Read the [docs](https://emlproject.com/docs/authentication)._
+_Read the docs for [MicrosoftAuth](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/microsoftauth), [YggdrasilAuth](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/yggdrasilauth), [AzAuth](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/azuriomauth) and [CrackAuth](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/crackauth)._
 
 ### Launch settings
 
@@ -33,19 +33,25 @@ EML Lib can automatically download and install Java to ensure that you have the 
 
 To use all the capacities of EML Lib, you should set up your [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool) website. It will allow you to use features such as news, bootstraps, maintenance, background, and more.
 
-_Read the [docs](https://emlproject.com/docs/launch-settings)._
+_Read the docs for [Profiles](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/profiles), [Launcher](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/launcher) and [Java](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/java)._
+
+### Skin and cape management
+
+EML Lib can allow your players to manage their skins and capes. It supports the official Miccrosoft skin and cape system, as well as custom skins and capes. Players can change their skins and capes directly from the launcher.
+
+_Read the [docs](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/skin)._
 
 ### Bootstrap [^1]
 
 _Bootstrap_ is a powerful feature that allows you to auto-update your launcher. It checks for updates on a specified URL and downloads and installs them automatically. This ensures that your launcher is always up to date with the latest features and bug fixes.
 
-_Read the [docs](https://emlproject.com/docs/bootstrap)._
+_Read the [docs](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/bootstrap)._
 
 ### Maintenance mode [^1]
 
 _Maintenance_ mode is a feature that allows you to block the launcher during maintenance. When maintenance mode is enabled, users will see a message indicating that the launcher is under maintenance and will not be able to launch Minecraft until the maintenance is complete.
 
-_Read the [docs](https://emlproject.com/docs/maintenance-mode)._
+_Read the [docs](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/maintenance)._
 
 ### Customization [^1]
 
@@ -55,7 +61,19 @@ EML Lib allows you to customize the launcher with various features, including:
 - **Background**: Displaying a background image on the launcher.
 - **Server status**: Displaying server information on the launcher.
 
-_Read the [docs](https://emlproject.com/docs/customization)._
+_Read the docs for [News](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/news), [Background](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/background) and [Server Status](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/server-status)._
+
+### Stats [^1]
+
+_Stats_ is a feature that allows you to collect and send anonymized usage statistics to EML AdminTool. This helps you understand how users are interacting with your launcher and can help you improve the user experience.
+
+_Read the [docs](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/stats)._
+
+### Crash reports [^1]
+
+_Crash reports_ is a feature that allows you to collect and send crash reports to EML AdminTool. This helps you understand what went wrong when the launcher crashes and can help you fix the issues.
+
+_Read the [docs](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/crash-reports)._
 
 ## Comparison with other solutions
 
@@ -79,7 +97,7 @@ This is especially useful for:
 - heavily modded servers where client drift causes issues,
 - controlled environments where manual client edits are not acceptable.
 
-If you do not need a backend, use [agnostic mode](https://emlproject.com/docs/launch-settings) with a hosted JSON modpack file. If you want a full administration dashboard, pair EML Lib with [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool).
+If you do not need a backend, use agnostic mode with a [hosted JSON modpack file](https://emlproject.com/resources/modpack-json-generator). If you want a full administration dashboard, pair EML Lib with [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool).
 
 ## Installation
 
@@ -121,7 +139,7 @@ const launcher = new EMLLib.Launcher({
 launcher.launch()
 ```
 
-Please refer to the [docs](https://emlproject.com/docs/set-up-environment) for more information.
+Please refer to the [docs](https://emlproject.com/docs/eml-lib-and-launcher/getting-started/set-up-environment) for more information.
 
 ## Platform compatibility
 
