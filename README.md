@@ -69,9 +69,9 @@ _Stats_ is a feature that allows you to collect and send anonymized usage statis
 
 _Read the [docs](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/stats)._
 
-### Crash reports [^1]
+### Crash Reports [^1]
 
-_Crash reports_ is a feature that allows you to collect and send crash reports to EML AdminTool. This helps you understand what went wrong when the launcher crashes and can help you fix the issues.
+_Crash Reports_ is a feature that allows you to collect and send crash reports to EML AdminTool. This helps you understand what went wrong when the launcher crashes and can help you fix the issues.
 
 _Read the [docs](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/crash-reports)._
 
