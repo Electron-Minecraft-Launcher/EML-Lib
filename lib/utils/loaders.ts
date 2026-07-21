@@ -39,7 +39,8 @@ class Loaders {
       return { type: 'VANILLA', minecraftVersion: 'latest_release', loaderVersion: 'latest_release' } as ILoader
     } else if (!config.minecraft.version && config.url) {
       try {
-        const req = await fetch(`${config.url}/api/loader/${config.slug ?? ''}`)
+        const headers: HeadersInit = config.token ? { Authorization: `Bearer ${config.token}` } : {}
+        const req = await fetch(`${config.url}/api/loader/${config.slug ?? ''}`, { headers })
 
         if (!req.ok) {
           const errorText = await req.text()
