@@ -9,5 +9,6 @@ export interface IProfile {
   visibility: 'PUBLIC' | 'HIDDEN' | 'PROTECTED'
   createdAt: Date
   updatedAt: Date
+  token?: string
 }
 
