@@ -82,7 +82,10 @@ export default class YggdrasilAuth extends EventEmitter<AuthEvents> implements I
         }
       } as Account
     } catch (err: unknown) {
-      const error = err instanceof EMLLibError ? err : new EMLLibError(ErrorType.AUTH_ERROR, `Yggdrasil authentication failed: ${err instanceof Error ? err.message : err}`)
+      const error =
+        err instanceof EMLLibError
+          ? err
+          : new EMLLibError(ErrorType.AUTH_ERROR, `Yggdrasil authentication failed: ${err instanceof Error ? err.message : err}`)
       this.emit('auth_error', { message: error.message })
       throw error
     }
@@ -213,7 +216,10 @@ export default class YggdrasilAuth extends EventEmitter<AuthEvents> implements I
         }
       } as Account
     } catch (err: unknown) {
-      const error = err instanceof EMLLibError ? err : new EMLLibError(ErrorType.AUTH_ERROR, `Yggdrasil refresh failed: ${err instanceof Error ? err.message : err}`)
+      const error =
+        err instanceof EMLLibError
+          ? err
+          : new EMLLibError(ErrorType.AUTH_ERROR, `Yggdrasil refresh failed: ${err instanceof Error ? err.message : err}`)
       this.emit('refresh_error', { message: error.message })
       throw error
     }
@@ -246,9 +252,13 @@ export default class YggdrasilAuth extends EventEmitter<AuthEvents> implements I
 
       this.emit('logout_success', { name: user.name })
     } catch (err: unknown) {
-      const error = err instanceof EMLLibError ? err : new EMLLibError(ErrorType.AUTH_ERROR, `Yggdrasil logout failed: ${err instanceof Error ? err.message : err}`)
+      const error =
+        err instanceof EMLLibError
+          ? err
+          : new EMLLibError(ErrorType.AUTH_ERROR, `Yggdrasil logout failed: ${err instanceof Error ? err.message : err}`)
       this.emit('logout_error', { message: error.message })
       throw error
     }
   }
 }
+

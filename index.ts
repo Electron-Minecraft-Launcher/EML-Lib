@@ -15,7 +15,7 @@ import Background from './lib/background/background.js'
 import ServerStatus from './lib/serverstatus/serverstatus.js'
 import Java from './lib/java/java.js'
 import Launcher from './lib/launcher/launcher.js'
-import Profiles from './lib/profile/profile.js'
+import Profile from './lib/profile/profile.js'
 import Stats from './lib/stats/stats.js'
 import CrashReport from './lib/crashreport/crashreport.js'
 
@@ -25,7 +25,8 @@ type EMLLib = {
   AzAuth: typeof AzAuth
   CrackAuth: typeof CrackAuth
   Java: typeof Java
-  Profiles: typeof Profiles
+  Profiles: typeof Profile // backward compatibility
+  Profile: typeof Profile
   Launcher: typeof Launcher
   Bootstraps: typeof Bootstrap // backward compatibility
   Bootstrap: typeof Bootstrap
@@ -121,11 +122,16 @@ export { News }
 export { Background }
 
 /**
+ * @deprecated Use `Profile` instead.
+ */
+export { Profile as Profiles }
+
+/**
  * Get the profiles from the EML AdminTool.
  *
  * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
  */
-export { Profiles }
+export { Profile }
 
 /**
  * Get the status of a Minecraft server.
@@ -311,11 +317,16 @@ const EMLLib = {
   Background,
 
   /**
+   * @deprecated Use `Profile` instead.
+   */
+  Profiles: Profile,
+
+  /**
    * Get the profiles from the EML AdminTool.
    *
    * **Attention!** This class only works with EML AdminTool. Please do not use it without the it.
    */
-  Profiles,
+  Profile,
 
   /**
    * Get the status of a Minecraft server.

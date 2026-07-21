@@ -6,6 +6,7 @@ export interface IProfile {
   ip?: string | null
   port?: number | null
   tcpProtocol?: 'modern' | '1.6' | '1.4-1.5' | 'beta1.8-1.3' | null
+  visibility: 'PUBLIC' | 'HIDDEN' | 'PROTECTED'
   createdAt: Date
   updatedAt: Date
 }
