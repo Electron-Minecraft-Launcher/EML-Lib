@@ -41,9 +41,10 @@ export default class Launcher
   constructor(config: Config) {
     super()
 
-    let tmpConfig: Config & { slug?: string } = { ...config, slug: undefined }
+    let tmpConfig: Config & { slug?: string; token?: string } = { ...config, slug: undefined, token: undefined }
     tmpConfig.minecraft = this.setMinecraft(tmpConfig)
     tmpConfig.slug = this.setSlug(tmpConfig)
+    tmpConfig.token = this.setToken(tmpConfig)
     tmpConfig.url = this.setUrl(tmpConfig)
     tmpConfig.storage = this.setStorage(tmpConfig)
     tmpConfig.root = this.setRoot(tmpConfig)
@@ -56,6 +57,7 @@ export default class Launcher
     this.config = {
       url: tmpConfig.url,
       slug: tmpConfig.slug,
+      token: tmpConfig.token,
       storage: tmpConfig.storage!,
       root: tmpConfig.root!,
       minecraft: tmpConfig.minecraft!,
@@ -89,7 +91,7 @@ export default class Launcher
     const filesManager = new FilesManager(this.config, manifest, loader)
     const loaderManager = new LoaderManager(this.config, manifest, loader)
     const argumentsManager = new ArgumentsManager(this.config, manifest)
-    const downloader = new Downloader(this.config.root)
+    const downloader = new Downloader(this.config.root, this.config.token)
     const cleaner = new Cleaner(this.config.root)
     const java = new Java(this.config)
 
@@ -186,7 +188,6 @@ export default class Launcher
 
   // @ts-ignore
   protected emit(eventName: any, ...args: any[]) {
-    
     const eventNameStr = String(eventName)
 
     if (eventNameStr === 'launch_data' || eventNameStr.endsWith('_progress')) {
@@ -331,6 +332,13 @@ export default class Launcher
   private setSlug(config: Config) {
     if (config.profile?.slug && config.profile.slug !== '' && config.profile.slug === utils.sanitizeSlug(config.profile.slug)) {
       return config.profile.slug
+    }
+    return undefined
+  }
+
+  private setToken(config: Config) {
+    if (config.profile?.token && config.profile.token !== '') {
+      return config.profile.token
     }
     return undefined
   }
@@ -491,3 +499,4 @@ export default class Launcher
     })
   }
 }
+

@@ -101,11 +101,17 @@ async function main() {
 }
 
 async function featureTest() {
-  const account = new EMLLib.CrackAuth().auth('GoldFrte')
+  const account = new EMLLib.CrackAuth().auth('GoldFrite')
 
-  const profile = new EMLLib.Maintenance('http://localhost:5173', account)
+  const profile = new EMLLib.Profile('http://localhost:5173')
 
-  console.log('Profiles:', await profile.getMaintenance())
+  // console.log('Profiles:', await profile.getProfiles())
+
+  const auth = await profile.auth('hypixel', '123')
+  console.log(auth)
+  console.log('Profiles:', await profile.getProfiles('hypixe'))
 }
 
 featureTest()
+
+

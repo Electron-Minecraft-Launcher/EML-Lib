@@ -1,6 +1,6 @@
 {
   "name": "eml-lib",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "description": "Create your Electron Minecraft Launcher easily!",
   "author": "GoldFrite",
   "license": "MIT",
@@ -36,7 +36,6 @@
   },
   "homepage": "https://github.com/Electron-Minecraft-Launcher/EML-Lib#readme",
   "dependencies": {
-    "pngjs": "^7.0.0",
     "tslib": "^2.8.1",
     "yauzl": "^3.4.0",
     "yazl": "^3.3.1"
@@ -47,19 +46,24 @@
     "@types/yazl": "^3.3.1",
     "electron": "^43.1.0",
     "electron-updater": "^6.8.9",
+    "pngjs": "^7.0.0",
     "prettier": "^3.9.5",
-    "tsx": "^4.23.0",
+    "tsx": "^4.23.1",
     "typescript": "^6.0.3"
   },
   "peerDependencies": {
     "electron": "^43.1.0",
-    "electron-updater": "^6.8.9"
+    "electron-updater": "^6.8.9",
+    "pngjs": "^7.0.0"
   },
   "peerDependenciesMeta": {
     "electron": {
       "optional": true
     },
     "electron-updater": {
+      "optional": true
+    },
+    "pngjs": {
       "optional": true
     }
   }
