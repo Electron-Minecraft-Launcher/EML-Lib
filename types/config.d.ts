@@ -267,6 +267,7 @@ export interface Config {
 export interface ResolvedConfig {
   url?: string
   slug?: string
+  token?: string
   storage: 'isolated' | 'shared'
   root: string
   minecraft: {

@@ -59,8 +59,9 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
     if (!this.config.url && !this.config.minecraft.modpackUrl) return { modpack: [], files: [] }
 
     try {
+      const headers: HeadersInit = this.config.token ? { Authorization: `Bearer ${this.config.token}` } : {}
       const url = this.config.url ? `${this.config.url}/api/files-updater/${this.config.slug ?? ''}` : this.config.minecraft.modpackUrl!
-      const req = await fetch(url)
+      const req = await fetch(url, { headers })
 
       if (!req.ok) {
         const errorText = await req.text()

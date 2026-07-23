@@ -16,6 +16,7 @@ import { Readable } from 'node:stream'
 export default class Downloader extends EventEmitter<DownloaderEvents> {
   private readonly CONCURRENCY_LIMIT = 8
   private readonly dest: string
+  private readonly token: string | undefined
 
   private size = 0
   private amount = 0
@@ -27,10 +28,12 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
 
   /**
    * @param dest Destination folder.
+   * @param token Authentication token for the selected profile.
    */
-  constructor(dest: string) {
+  constructor(dest: string, token?: string) {
     super()
     this.dest = path_.join(dest)
+    this.token = token
   }
 
   /**
@@ -119,15 +122,15 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
       await this.downloadFile(file)
       this.downloaded.amount++
     } catch (err: any) {
+      if (err instanceof EMLLibError && err.code === ErrorType.AUTH_ERROR) {
+        this.emit('download_error', { filename: file.name, type: file.type, message: err.message })
+        throw err
+      }
       if (attempt < 5) {
         await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)))
         return this.downloadFileWithRetry(file, attempt + 1)
       } else {
-        this.emit('download_error', {
-          filename: file.name,
-          type: file.type,
-          message: err.message ?? err
-        })
+        this.emit('download_error', { filename: file.name, type: file.type, message: err.message ?? err })
         throw new EMLLibError(ErrorType.DOWNLOAD_ERROR, `Failed to download ${file.name} after 5 attempts`)
       }
     }
@@ -140,12 +143,16 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
 
     await fs.mkdir(dirPath, { recursive: true })
 
-    const req = await fetch(file.url, {
-      headers: { Accept: 'application/octet-stream' }
-    })
+    const headers: HeadersInit = this.token && file.url.includes('files/files-updater') // do not send the token to unknown urls, only to the files-updater endpoint
+      ? { Authorization: `Bearer ${this.token}`, Accept: 'application/octet-stream' }
+      : { Accept: 'application/octet-stream' }
+    const req = await fetch(file.url, { headers })
 
     if (!req.ok || !req.body) {
       const errorText = await req.text()
+      if (req.status === 401 || req.status === 403) {
+        throw new EMLLibError(ErrorType.AUTH_ERROR, `Authentication rejected for ${file.name}: HTTP ${req.status} ${errorText}`)
+      }
       throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching ${file.name}: HTTP ${req.status} ${errorText}`)
     }
 
