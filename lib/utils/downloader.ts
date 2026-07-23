@@ -143,7 +143,7 @@ export default class Downloader extends EventEmitter<DownloaderEvents> {
 
     await fs.mkdir(dirPath, { recursive: true })
 
-    const headers: HeadersInit = this.token
+    const headers: HeadersInit = this.token && file.url.includes('files/files-updater') // do not send the token to unknown urls, only to the files-updater endpoint
       ? { Authorization: `Bearer ${this.token}`, Accept: 'application/octet-stream' }
       : { Accept: 'application/octet-stream' }
     const req = await fetch(file.url, { headers })
