@@ -79,7 +79,7 @@ export default class Profile {
    * @param password The password for the profile.
    * @returns An object containing the slug and the authentication token.
    */
-  async auth(slug: string, password: string) {
+  async auth(slug: string, password: string): Promise<{ slug: string; token: string }> {
     try {
       const headers: HeadersInit = { Authorization: `Basic ${Buffer.from(`${slug}:${password}`).toString('base64')}` }
       const req = await fetch(`${this.url}/profiles/${slug}/auth`, { method: 'POST', headers })
