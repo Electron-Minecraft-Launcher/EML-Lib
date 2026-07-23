@@ -1,5 +1,4 @@
 import EMLLib from '../index.js'
-import { IProfile } from '../types/profile.js'
 
 async function mainWithElectron() {
   const { app, BrowserWindow } = await import('electron')
@@ -39,8 +38,13 @@ async function main() {
   const auth = new EMLLib.CrackAuth()
   stats.attach(auth)
 
+  const profile = new EMLLib.Profile('http://localhost:5173')
+  const authProfile = await profile.auth('hypixel', '123')
+  const profiles = await profile.getProfiles('hypixel')
+
   const launcher = new EMLLib.Launcher({
     root: 'goldfrite',
+    profile: profiles.find((p) => p.slug === 'hypixel')!,
     account: auth.auth('GoldFrite'),
     storage: 'isolated',
     url: 'http://localhost:5173'
@@ -112,6 +116,6 @@ async function featureTest() {
   console.log('Profiles:', await profile.getProfiles('hypixe'))
 }
 
-featureTest()
+main()
 
 
