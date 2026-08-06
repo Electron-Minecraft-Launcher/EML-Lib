@@ -31,25 +31,18 @@ async function mainWithElectron() {
 }
 
 async function main() {
-  const stats = new EMLLib.Stats('http://localhost:5173', '1.0.0')
-  const crarhReport = new EMLLib.CrashReport('http://localhost:5173')
-  await stats.initialize()
-
-  const auth = new EMLLib.CrackAuth()
-  stats.attach(auth)
-
-  const profile = new EMLLib.Profile('http://localhost:5173')
-  const authProfile = await profile.auth('hypixel', '123')
-  const profiles = await profile.getProfiles('hypixel')
-
   const launcher = new EMLLib.Launcher({
     root: 'goldfrite',
-    profile: profiles.find((p) => p.slug === 'hypixel')!,
-    account: auth.auth('GoldFrite'),
+    account: new EMLLib.CrackAuth().auth('GoldFrite'),
     storage: 'isolated',
-    url: 'http://localhost:5173'
+    minecraft: {
+      version: '26.2',
+      loader: {
+        loader: 'forge',
+        version: '26.2-65.1.0'
+      }
+    }
   })
-  stats.attach(launcher)
 
   try {
     launcher.on('launch_compute_download', () => console.log('\nComputing download...'))
@@ -59,7 +52,7 @@ async function main() {
     launcher.on('download_error', (error) => console.error(error.type, `=> Error downloading ${error.filename}: ${error.message}`))
     launcher.on('download_end', (info) => console.log(`Downloaded ${info.downloaded.amount} files.`))
 
-    launcher.on('launch_install_loader', (loader) => console.log(`\nInstalling loader ${loader.type} ${loader.loaderVersion}...`))
+    launcher.on('launch_install_loader', (minecraft) => console.log(`\nInstalling loader ${minecraft.loader.loader} ${minecraft.loader.version}...`))
 
     launcher.on('launch_extract_natives', () => console.log('\nExtracting natives...'))
     launcher.on('extract_progress', (progress) => console.log(`Extracted ${progress.filename}.`))
@@ -91,7 +84,7 @@ async function main() {
     launcher.on('launch_crash', async (crashData) => {
       console.error(`\nGame crashed with code ${crashData.code}. Sending crash report...`)
       try {
-        await crarhReport.send(launcher, crashData)
+        // await crarhReport.send(launcher, crashData)
         console.log('Crash report sent successfully.')
       } catch (err) {
         console.error('Failed to send crash report:', err)
@@ -105,17 +98,29 @@ async function main() {
 }
 
 async function featureTest() {
-  const account = new EMLLib.CrackAuth().auth('GoldFrite')
-
-  const profile = new EMLLib.Profile('http://localhost:5173')
-
-  // console.log('Profiles:', await profile.getProfiles())
-
-  const auth = await profile.auth('hypixel', '123')
-  console.log(auth)
-  console.log('Profiles:', await profile.getProfiles('hypixe'))
+  const launcher = new EMLLib.Launcher({
+    // url: 'http://localhost:5173',
+    // profile: {
+    //   slug: 'test',
+    //   minecraft: {
+    //     version: '1.21.1',
+    //   }
+    // },
+    // minecraft: {
+    //   version: '1.20.1',
+    //   loader: {
+    //     loader: 'forge',
+    //     version: '1.21.1-47.0.0'
+    //   }
+    // },
+    root: 'goldfrite',
+    account: new EMLLib.CrackAuth().auth('GoldFrite'),
+  })
 }
 
 main()
+
+
+
 
 

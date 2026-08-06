@@ -12,13 +12,14 @@ import { Config, ResolvedConfig } from './../../types/config.js'
 import path_ from 'node:path'
 import FilesManager from './filesmanager.js'
 import Downloader from '../utils/downloader.js'
-import Cleaner from '../utils/cleaner.js'
+import Cleaner from './cleaner.js'
 import Java from '../java/java.js'
 import LoaderManager from './loadermanager.js'
 import ArgumentsManager from './argumentsmanager.js'
 import { spawn } from 'node:child_process'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
 import loaders from '../utils/loaders.js'
+import loader from '../utils/loader.js'
 
 export default class Launcher
   extends EventEmitter<LauncherEvents & DownloaderEvents & CleanerEvents & FilesManagerEvents & JavaEvents & PatcherEvents>
@@ -43,8 +44,7 @@ export default class Launcher
 
     let tmpConfig: Config & { slug?: string; token?: string } = { ...config, slug: undefined, token: undefined }
     tmpConfig.minecraft = this.setMinecraft(tmpConfig)
-    tmpConfig.slug = this.setSlug(tmpConfig)
-    tmpConfig.token = this.setToken(tmpConfig)
+    tmpConfig.profile = this.setProfile(tmpConfig)
     tmpConfig.url = this.setUrl(tmpConfig)
     tmpConfig.storage = this.setStorage(tmpConfig)
     tmpConfig.root = this.setRoot(tmpConfig)
@@ -56,8 +56,7 @@ export default class Launcher
 
     this.config = {
       url: tmpConfig.url,
-      slug: tmpConfig.slug,
-      token: tmpConfig.token,
+      profile: tmpConfig.profile,
       storage: tmpConfig.storage!,
       root: tmpConfig.root!,
       minecraft: tmpConfig.minecraft!,
@@ -67,6 +66,8 @@ export default class Launcher
       window: tmpConfig.window!,
       memory: tmpConfig.memory!
     } as ResolvedConfig
+
+    console.log(this.config)
   }
 
   get launchArgs() {
@@ -83,16 +84,24 @@ export default class Launcher
    * _This method will patch the [Log4j vulnerability](https://help.minecraft.net/hc/en-us/articles/4416199399693-Security-Vulnerability-in-Minecraft-Java-Edition)._
    */
   async launch(): Promise<void> {
-    //* Init launch
-    const loader = await loaders.getLoader(this.config)
-    const manifest = await manifests.getMinecraftManifest(this.config, loader)
-    this.config.minecraft.version = manifest.id
+    //* Init downloader
+    const downloader = new Downloader(this.config.root, this.config.profile.token)
 
-    const filesManager = new FilesManager(this.config, manifest, loader)
-    const loaderManager = new LoaderManager(this.config, manifest, loader)
-    const argumentsManager = new ArgumentsManager(this.config, manifest)
-    const downloader = new Downloader(this.config.root, this.config.token)
-    const cleaner = new Cleaner(this.config.root)
+    //* Init loader
+    this.config.minecraft = await loader.updateMinecraftConfig(this.config)
+    const installer = await loader.getInstaller(this.config)
+    await downloader.download(installer ? [installer] : [])
+
+    //* Init manifests
+    // TODO: Add a isCustom property to config.minecraft.loader => if isCustom is true and config.minecraft.loader is vanilla, then do not download the vanilla manifest
+    const minecraftManifest = await manifests.getMinecraftManifest(this.config)
+    const installProfile = await manifests.getInstallProfile(this.config, installer)
+    const loaderManifest = await manifests.getLoaderManifests(this.config, installProfile, installer)
+
+    const filesManager = new FilesManager(this.config, minecraftManifest, loaderManifest, installProfile, installer)
+    const loaderManager = new LoaderManager(this.config, minecraftManifest, loaderManifest, installProfile, installer)
+    const argumentsManager = new ArgumentsManager(this.config, minecraftManifest, loaderManifest)
+    const cleaner = new Cleaner(this.config)
     const java = new Java(this.config)
 
     filesManager.forwardEvents(this)
@@ -108,6 +117,7 @@ export default class Launcher
     const modpackFiles = await filesManager.getModpack()
     const librariesFiles = await filesManager.getLibraries()
     const assetsFiles = await filesManager.getAssets()
+    const loaderLibrariesFiles = await filesManager.getLoaderLibraries()
     const injectorFiles = await filesManager.getInjector()
     const log4jFiles = await filesManager.getLog4j()
 
@@ -115,6 +125,7 @@ export default class Launcher
     const modpackFilesToDownload = await downloader.getFilesToDownload(modpackFiles.modpack)
     const librariesFilesToDownload = await downloader.getFilesToDownload(librariesFiles.libraries)
     const assetsFilesToDownload = await downloader.getFilesToDownload(assetsFiles.assets)
+    const loaderLibrariesFilesToDownload = await downloader.getFilesToDownload(loaderLibrariesFiles.libraries)
     const injectorFilesToDownload = await downloader.getFilesToDownload(injectorFiles.injector)
     const log4jFilesToDownload = await downloader.getFilesToDownload(log4jFiles.log4j)
     const filesToDownload = [
@@ -122,6 +133,7 @@ export default class Launcher
       ...modpackFilesToDownload,
       ...librariesFilesToDownload,
       ...assetsFilesToDownload,
+      ...loaderLibrariesFilesToDownload,
       ...injectorFilesToDownload,
       ...log4jFilesToDownload
     ]
@@ -133,13 +145,17 @@ export default class Launcher
     await downloader.download(modpackFilesToDownload, true)
     await downloader.download(librariesFilesToDownload, true)
     await downloader.download(assetsFilesToDownload, true)
+    await downloader.download(loaderLibrariesFilesToDownload, true)
     await downloader.download(injectorFilesToDownload, true)
     await downloader.download(log4jFilesToDownload, true)
 
     //* Install loader
-    this.emit('launch_install_loader', loader)
-    const loaderFiles = await loaderManager.setupLoader()
-    await downloader.download(loaderFiles.libraries)
+    this.emit('launch_install_loader', this.config.minecraft)
+    const loaderFiles = await loaderManager.extract()
+
+    //* Path loader
+    this.emit('launch_patch_loader')
+    const patchedFiles = await loaderManager.patchLoader()
 
     //* Extract natives
     this.emit('launch_extract_natives')
@@ -151,12 +167,7 @@ export default class Launcher
 
     //* Check Java
     this.emit('launch_check_java')
-    const javaInfo = await java.check(this.config.java.absolutePath, manifest.javaVersion?.majorVersion ?? 8)
-
-    //* Path loader
-    this.emit('launch_patch_loader')
-
-    const patchedFiles = await loaderManager.patchLoader(loaderFiles.installProfile)
+    const javaInfo = await java.check(this.config.java.absolutePath, minecraftManifest.javaVersion?.majorVersion ?? 8)
 
     //* Clean
     this.emit('launch_clean')
@@ -166,6 +177,7 @@ export default class Launcher
       ...modpackFiles.files,
       ...librariesFiles.files,
       ...assetsFiles.files,
+      ...loaderLibrariesFiles.files,
       ...injectorFiles.files,
       ...log4jFiles.files,
       ...extractedNatives.files,
@@ -179,11 +191,11 @@ export default class Launcher
     this.emit('launch_launch', { ...this.config, java: { ...this.config.java, version: javaInfo.version } })
 
     const customAuth = argumentsManager.getCustomArgs(injectorFiles)
-    const args = argumentsManager.getArgs([...loaderFiles.libraries, ...librariesFiles.libraries], loader, loaderFiles.loaderManifest, customAuth)
+    const args = argumentsManager.getArgs([...loaderFiles.libraries, ...librariesFiles.libraries], customAuth)
     const blindArgs = args.map((arg, i) => (i === args.findIndex((p) => p === '--accessToken') + 1 ? '**********' : arg))
     this.emit('launch_debug', `Launching Minecraft with args: ${blindArgs.join(' ')}`)
 
-    await this.run(this.config.java.absolutePath.replace('${X}', manifest.javaVersion?.majorVersion.toString() ?? '8'), args)
+    await this.run(this.config.java.absolutePath.replace('${X}', minecraftManifest.javaVersion?.majorVersion.toString() ?? '8'), args)
   }
 
   // @ts-ignore
@@ -329,18 +341,14 @@ export default class Launcher
     }
   }
 
-  private setSlug(config: Config) {
+  private setProfile(config: Config) {
     if (config.profile?.slug && config.profile.slug !== '' && config.profile.slug === utils.sanitizeSlug(config.profile.slug)) {
-      return config.profile.slug
+      if (config.profile?.token && config.profile.token !== '') {
+        return { slug: config.profile.slug, token: config.profile.token }
+      }
+      return { slug: config.profile.slug }
     }
-    return undefined
-  }
-
-  private setToken(config: Config) {
-    if (config.profile?.token && config.profile.token !== '') {
-      return config.profile.token
-    }
-    return undefined
+    return { slug: undefined, token: undefined }
   }
 
   private setUrl(config: Config) {

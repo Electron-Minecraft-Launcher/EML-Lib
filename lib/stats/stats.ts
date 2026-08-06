@@ -94,7 +94,7 @@ export default class Stats {
               java: config.java.version,
               loader: config.minecraft.loader?.loader ?? 'vanilla',
               version: config.minecraft.version ?? 'unknown',
-              profile: config.slug ?? null,
+              profile: config.profile.slug ?? null,
               minRam: config.memory.min ?? null,
               maxRam: config.memory.max ?? null
             })

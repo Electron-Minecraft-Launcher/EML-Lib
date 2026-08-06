@@ -7,7 +7,6 @@ import { ILoader, File } from '../../types/file.js'
 import { ResolvedConfig } from '../../types/config.js'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
 import utils from '../utils/utils.js'
-import type { File as File_ } from '../../types/file.js'
 
 const V = {
   FORGE: {
@@ -39,8 +38,8 @@ class Loaders {
       return { type: 'VANILLA', minecraftVersion: 'latest_release', loaderVersion: 'latest_release' } as ILoader
     } else if (!config.minecraft.version && config.url) {
       try {
-        const headers: HeadersInit = config.token ? { Authorization: `Bearer ${config.token}` } : {}
-        const req = await fetch(`${config.url}/api/loader/${config.slug ?? ''}`, { headers })
+        const headers: HeadersInit = config.profile.token ? { Authorization: `Bearer ${config.profile.token}` } : {}
+        const req = await fetch(`${config.url}/api/loader/${config.profile.slug ?? ''}`, { headers })
 
         if (!req.ok) {
           const errorText = await req.text()
@@ -127,7 +126,7 @@ class Loaders {
     const name = `${v.artifact}-${loaderVersion}.${ext}`
     const path = `versions/${v.artifact}-${loaderVersion}/`
     const size = await utils.getRemoteFileSize(url, 'Failed to fetch ForgeLike artifact size')
-    const sha1 = await utils.getRemoteFileSha1(`${url}.sha1`, 'Failed to fetch ForgeLike artifact SHA1')
+    const sha1 = await utils.getRemoteFileSha1(url, 'Failed to fetch ForgeLike artifact SHA1')
     const type = 'OTHER' as const
 
     return {

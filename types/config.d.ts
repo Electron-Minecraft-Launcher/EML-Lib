@@ -19,7 +19,7 @@ export interface Config {
    * **Attention!** When you set a manual profile, you must ensure the profile contains a valid
    * `slug`. This slug determines the name of the game instance folder.
    */
-  profile?: Partial<IProfile> & { slug: string } & {
+  profile?: Partial<IProfile> & { slug: string | undefined } & {
     /**
      * [Optional: defaults to `{ version: undefined, args: [] }`]
      * Instance-specific Minecraft configuration.
@@ -266,8 +266,10 @@ export interface Config {
 
 export interface ResolvedConfig {
   url?: string
-  slug?: string
-  token?: string
+  profile: {
+    slug?: string
+    token?: string
+  }
   storage: 'isolated' | 'shared'
   root: string
   minecraft: {

@@ -47,10 +47,17 @@ export interface ILoader {
   minecraftVersion: string
   loaderVersion: string | null
   format: 'INSTALLER' | 'UNIVERSAL' | 'CLIENT'
+  /**
+   * > IGNORE FILE FOR NOW -> USE IT FOR CUSTOM LOADERS
+   */
   file: File
   updatedAt: Date
 }
 
 export interface ExtraFile extends File {
   extra: 'INSTALL' | 'LOADER' | 'MINECRAFT'
+}
+
+export interface FormatFile extends File {
+  format: 'INSTALLER' | 'UNIVERSAL' | 'CLIENT'
 }

@@ -28,10 +28,11 @@ export interface LauncherEvents {
   ]
   launch_install_loader: [
     {
-      type: 'VANILLA' | 'FORGE' | 'NEOFORGE' | 'FABRIC' | 'QUILT'
-      minecraftVersion: string
-      loaderVersion: string | null
-      format: 'INSTALLER' | 'UNIVERSAL' | 'CLIENT'
+      version: string,
+      loader: {
+        loader: 'vanilla' | 'forge' | 'neoforge' | 'fabric' | 'quilt'
+        version: string
+      }
     }
   ]
   launch_copy_assets: []

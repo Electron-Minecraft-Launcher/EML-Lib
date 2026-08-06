@@ -6,7 +6,7 @@
 
 import { ResolvedConfig } from '../../types/config.js'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
-import { ExtraFile, File, ILoader } from '../../types/file.js'
+import { ExtraFile, File, FormatFile, ILoader } from '../../types/file.js'
 import { Artifact, MinecraftManifest, Assets } from '../../types/manifest.js'
 import utils from '../utils/utils.js'
 import path_ from 'node:path'
@@ -19,15 +19,25 @@ import { FilesManagerEvents } from '../../types/events.js'
 import Java from '../java/java.js'
 
 export default class FilesManager extends EventEmitter<FilesManagerEvents> {
-  private config: ResolvedConfig
-  private manifest: MinecraftManifest
-  private loader: ILoader
+  private readonly config: ResolvedConfig
+  private readonly minecraftManifest: MinecraftManifest
+  private readonly loaderManifest: MinecraftManifest | null
+  private readonly installProfile: any
+  private readonly installer?: FormatFile
 
-  constructor(config: ResolvedConfig, manifest: MinecraftManifest, loader: ILoader) {
+  constructor(
+    config: ResolvedConfig,
+    minecraftManifest: MinecraftManifest,
+    loaderManifest: MinecraftManifest | null,
+    installProfile: any,
+    installer?: FormatFile
+  ) {
     super()
     this.config = config
-    this.manifest = manifest
-    this.loader = loader
+    this.minecraftManifest = minecraftManifest
+    this.loaderManifest = loaderManifest
+    this.installProfile = installProfile
+    this.installer = installer
   }
 
   /**
@@ -36,7 +46,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
    * (including `java`).
    */
   async getJava(): Promise<{ java: File[]; files: File[] }> {
-    const java = await new Java(this.config).getFiles(this.manifest)
+    const java = await new Java(this.config).getFiles(this.minecraftManifest)
     if (this.config.java.install === 'auto') {
       return { java: java, files: java }
     } else {
@@ -50,7 +60,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
    * created (including `modpack`).
    */
   async getModpack(): Promise<{ modpack: File[]; files: File[] }> {
-    const slug = utils.sanitizeSlug(this.config.storage === 'shared' && this.config.slug ? this.config.slug : '')
+    const slug = utils.sanitizeSlug(this.config.storage === 'shared' && this.config.profile.slug ? this.config.profile.slug : '')
     const gameDirectory = path_.join(this.config.root, slug).replaceAll('\\', '/')
     if (!existsSync(gameDirectory)) {
       await fs.mkdir(gameDirectory, { recursive: true })
@@ -59,8 +69,8 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
     if (!this.config.url && !this.config.minecraft.modpackUrl) return { modpack: [], files: [] }
 
     try {
-      const headers: HeadersInit = this.config.token ? { Authorization: `Bearer ${this.config.token}` } : {}
-      const url = this.config.url ? `${this.config.url}/api/files-updater/${this.config.slug ?? ''}` : this.config.minecraft.modpackUrl!
+      const headers: HeadersInit = this.config.profile.token ? { Authorization: `Bearer ${this.config.profile.token}` } : {}
+      const url = this.config.url ? `${this.config.url}/api/files-updater/${this.config.profile.slug ?? ''}` : this.config.minecraft.modpackUrl!
       const req = await fetch(url, { headers })
 
       if (!req.ok) {
@@ -86,14 +96,22 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
     let files: File[] = []
     let libraries: ExtraFile[] = []
 
-    if (!existsSync(path_.join(this.config.root, 'versions', this.manifest.id))) {
-      await fs.mkdir(path_.join(this.config.root, 'versions', this.manifest.id), { recursive: true })
+    files.push({ name: `${this.minecraftManifest.id}.json`, path: path_.join('versions', this.minecraftManifest.id, '/'), url: '', type: 'OTHER' })
+
+    try {
+      if (!existsSync(path_.join(this.config.root, 'versions', this.minecraftManifest.id))) {
+        await fs.mkdir(path_.join(this.config.root, 'versions', this.minecraftManifest.id), { recursive: true })
+      }
+
+      await fs.writeFile(
+        path_.join(this.config.root, 'versions', this.minecraftManifest.id, `${this.minecraftManifest.id}.json`),
+        JSON.stringify(this.minecraftManifest, null, 2)
+      )
+    } catch (err) {
+      throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to write Minecraft manifest: ${err instanceof Error ? err.message : err}`)
     }
 
-    files.push({ name: `${this.manifest.id}.json`, path: path_.join('versions', this.manifest.id, '/'), url: '', type: 'OTHER' })
-    await fs.writeFile(path_.join(this.config.root, 'versions', this.manifest.id, `${this.manifest.id}.json`), JSON.stringify(this.manifest, null, 2))
-
-    this.manifest.libraries.forEach((lib) => {
+    this.minecraftManifest.libraries.forEach((lib) => {
       let type: 'LIBRARY' | 'NATIVE'
       let artifact: Artifact | undefined
 
@@ -134,24 +152,21 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
     })
 
     libraries.push({
-      name: `${this.manifest.id}.jar`,
-      path: path_.join('versions', this.manifest.id, '/'),
-      url: this.manifest.downloads.client.url,
-      sha1: this.manifest.downloads.client.sha1,
-      size: this.manifest.downloads.client.size,
+      name: `${this.minecraftManifest.id}.jar`,
+      path: path_.join('versions', this.minecraftManifest.id, '/'),
+      url: this.minecraftManifest.downloads.client.url,
+      sha1: this.minecraftManifest.downloads.client.sha1,
+      size: this.minecraftManifest.downloads.client.size,
       type: 'LIBRARY',
       extra: 'MINECRAFT'
     })
-
-    if (this.loader.file) {
-      libraries.push({ ...this.loader.file, extra: 'LOADER' })
-    }
 
     files.push(...libraries)
 
     return { libraries, files }
   }
 
+  // TODO handle custom assetIndex.json by reading the minecraftManifest and loaderManifest -> loaderManifest can override the minecraftManifest assetIndex.json
   /**
    * Get assets files.
    * @returns `assets`: Assets files; `files`: all files created by this method or that will be
@@ -159,10 +174,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
    */
   async getAssets(): Promise<{ assets: File[]; files: File[] }> {
     try {
-      let files: File[] = []
-      let assets: File[] = []
-
-      const req = await fetch(this.manifest.assetIndex.url)
+      const req = await fetch(this.minecraftManifest.assetIndex.url)
 
       if (!req.ok) {
         const errorText = await req.text()
@@ -171,12 +183,20 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
 
       const data = (await req.json()) as Assets
 
-      if (!existsSync(path_.join(this.config.root, 'assets', 'indexes'))) {
-        await fs.mkdir(path_.join(this.config.root, 'assets', 'indexes'), { recursive: true })
-      }
+      let files: File[] = []
+      let assets: File[] = []
 
-      files.push({ name: `${this.manifest.assets}.json`, path: path_.join('assets', 'indexes', '/'), url: '', type: 'OTHER' })
-      await fs.writeFile(path_.join(this.config.root, 'assets', 'indexes', `${this.manifest.assets}.json`), JSON.stringify(data, null, 2))
+      files.push({ name: `${this.minecraftManifest.assets}.json`, path: path_.join('assets', 'indexes', '/'), url: '', type: 'OTHER' })
+
+      try {
+        if (!existsSync(path_.join(this.config.root, 'assets', 'indexes'))) {
+          await fs.mkdir(path_.join(this.config.root, 'assets', 'indexes'), { recursive: true })
+        }
+
+        await fs.writeFile(path_.join(this.config.root, 'assets', 'indexes', `${this.minecraftManifest.assets}.json`), JSON.stringify(data, null, 2))
+      } catch (err) {
+        throw new EMLLibError(ErrorType.FILE_ERROR, `Failed to write assets index: ${err instanceof Error ? err.message : err}`)
+      }
 
       Object.values(data.objects).forEach((asset) => {
         assets.push({
@@ -196,6 +216,121 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
       if (err instanceof EMLLibError) throw err
       throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch assets index: ${err instanceof Error ? err.message : err}`)
     }
+  }
+
+  async getLoaderLibraries(): Promise<{ libraries: ExtraFile[]; files: File[] }> {
+    const loader = this.config.minecraft.loader
+
+    if (!this.loaderManifest || !loader) return { libraries: [], files: [] }
+
+    let files: File[] = []
+    let libraries: ExtraFile[] = []
+
+    files.push({ name: `${this.loaderManifest.id}.json`, path: path_.join('versions', this.loaderManifest.id, '/'), url: '', type: 'OTHER' })
+
+    try {
+      if (!existsSync(path_.join(this.config.root, 'versions', this.loaderManifest.id))) {
+        await fs.mkdir(path_.join(this.config.root, 'versions', this.loaderManifest.id), { recursive: true })
+      }
+
+      await fs.writeFile(
+        path_.join(this.config.root, 'versions', this.loaderManifest.id, `${this.loaderManifest.id}.json`),
+        JSON.stringify(this.loaderManifest, null, 2)
+      )
+    } catch (err) {
+      throw new EMLLibError(ErrorType.FILE_ERROR, `Failed to write loader manifest: ${err instanceof Error ? err.message : err}`)
+    }
+
+    if (this.loaderManifest.libraries) {
+      libraries.push(...(await this.formatLibraries(this.loaderManifest.libraries, 'LOADER')))
+    }
+
+    // TODO only one 'if'
+    if (this.installProfile) {
+      if (this.installProfile.libraries) {
+        libraries.push(...(await this.formatLibraries(this.installProfile.libraries, 'INSTALL')))
+      }
+
+      // if (this.installProfile.filePath) {
+      //   const universalName = utils.getLibraryName(this.installProfile.path)
+      //   const universalPath = utils.getLibraryPath(this.installProfile.path)
+      //   libraries.push({
+      //     name: universalName,
+      //     path: path_.join('libraries', universalPath),
+      //     url: '',
+      //     type: 'LIBRARY',
+      //     extra: 'INSTALL'
+      //   })
+      // } else if (this.installProfile.path) {
+      //   if (!this.installer) {
+      //     throw new EMLLibError(ErrorType.FILE_ERROR, 'Installer file is required to extract libraries from the installer')
+      //   }
+      //   const universalPath = utils.getLibraryPath(this.installProfile.path)
+      //   const mavenPath = path_.join('maven', universalPath).replace(/\\/g, '/')
+      //   const installerPath = path_.join(this.config.root, this.installer.path, this.installer.name)
+
+      //   const { zipfile, entries } = await utils.openZip(installerPath)
+
+      //   try {
+      //     const entriesToExtract = entries.filter((e) => e.fileName.includes(mavenPath) && e.fileName.endsWith('.jar'))
+      //     for (const entry of entriesToExtract) {
+      //       libraries.push({
+      //         name: path_.basename(entry.fileName),
+      //         path: path_.join('libraries', universalPath),
+      //         url: '',
+      //         type: 'LIBRARY',
+      //         extra: 'INSTALL'
+      //       })
+      //     }
+      //   } finally {
+      //     zipfile.close()
+      //   }
+      // }
+
+      // if (this.installProfile.data?.PATCHED) {
+      //   const entry = this.installProfile.data.PATCHED
+      //   const rawValue = entry.client || entry.path || (typeof entry === 'string' ? entry : '')
+
+      //   if (rawValue && rawValue.startsWith('[')) {
+      //     const cleanLib = rawValue.replace('[', '').replace(']', '')
+      //     libraries.push({
+      //       name: utils.getLibraryName(cleanLib),
+      //       path: path_.join('libraries', utils.getLibraryPath(cleanLib)),
+      //       url: '',
+      //       sha1: '',
+      //       size: 0,
+      //       type: 'LIBRARY',
+      //       extra: 'INSTALL'
+      //     })
+      //   }
+      // }
+
+      // if (this.installProfile.processors && this.installProfile.processors.length > 0) {
+      //   const universalMaven = this.installProfile.libraries.find(
+      //     (lib: any) => (lib.name + '').startsWith('net.minecraftforge:forge:') || (lib.name + '').startsWith('net.neoforged:neoforge:')
+      //   )
+      //   const targetName = this.installProfile.path ?? universalMaven?.name
+
+      //   if (targetName) {
+      //     files.push({
+      //       name: utils.getLibraryName(targetName).replace('.jar', '-clientdata.lzma'),
+      //       path: path_.join('libraries', utils.getLibraryPath(targetName)),
+      //       url: '',
+      //       type: 'LIBRARY'
+      //     })
+      //   }
+      // }
+    }
+
+    // I think this is not useful anymore since the installer is downloaded before...
+    // // TODO manage loader manifest (cf. getLibraries)
+    // if (loader.loader === 'forge' || loader.loader === 'neoforge') {
+    //   libraries.push({ ...this.loader.file!, extra: 'INSTALL', type: 'LIBRARY' })
+    // }
+
+    files.push(...libraries)
+
+    return { libraries, files }
   }
 
   /**
@@ -230,7 +365,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
    */
   async getLog4j(): Promise<{ log4j: File[]; files: File[] }> {
     let log4j: File[] = []
-    if (+this.manifest.id.split('.')[1] <= 16 && +this.manifest.id.split('.')[1] >= 12) {
+    if (+this.minecraftManifest.id.split('.')[1] <= 16 && +this.minecraftManifest.id.split('.')[1] >= 12) {
       log4j.push({
         name: 'log4j2_112-116.xml',
         path: '',
@@ -239,7 +374,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
         size: 4096,
         type: 'CONFIG'
       })
-    } else if (+this.manifest.id.split('.')[1] <= 11 && +this.manifest.id.split('.')[1] >= 7) {
+    } else if (+this.minecraftManifest.id.split('.')[1] <= 11 && +this.minecraftManifest.id.split('.')[1] >= 7) {
       log4j.push({
         name: 'log4j2_17-111.xml',
         path: '',
@@ -260,7 +395,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
    */
   async extractNatives(libraries: File[]): Promise<{ files: File[] }> {
     const natives = libraries.filter((lib) => lib.type === 'NATIVE')
-    const nativesFolder = path_.resolve(this.config.root, 'bin', this.manifest.id)
+    const nativesFolder = path_.resolve(this.config.root, 'bin', this.minecraftManifest.id)
     let files: File[] = []
 
     if (!existsSync(nativesFolder)) {
@@ -295,7 +430,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
 
             const tmpFile = {
               name: path_.basename(entryName),
-              path: path_.join('bin', this.manifest.id, path_.dirname(entryName), '/'),
+              path: path_.join('bin', this.minecraftManifest.id, path_.dirname(entryName), '/'),
               url: '',
               sha1: '',
               size: entry.uncompressedSize
@@ -352,12 +487,12 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
   async copyAssets(): Promise<{ files: File[] }> {
     let files: File[] = []
 
-    if (this.manifest.assets === 'legacy' || this.manifest.assets === 'pre-1.6') {
+    if (this.minecraftManifest.assets === 'legacy' || this.minecraftManifest.assets === 'pre-1.6') {
       if (existsSync(path_.join(this.config.root, 'assets', 'legacy'))) {
         this.emit('copy_debug', "The 'assets/legacy' directory is no longer used. You can safely remove it from your server's root directory.")
       }
 
-      const assetsContent = await fs.readFile(path_.join(this.config.root, 'assets', 'indexes', `${this.manifest.assets}.json`), 'utf-8')
+      const assetsContent = await fs.readFile(path_.join(this.config.root, 'assets', 'indexes', `${this.minecraftManifest.assets}.json`), 'utf-8')
       const assets = JSON.parse(assetsContent) as Assets
 
       const promises = Object.entries(assets.objects).map(async ([path, { hash, size }]) => {
@@ -395,7 +530,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
   }
 
   private mapFiles(files: File[]) {
-    const slug = utils.sanitizeSlug(this.config.slug ?? '')
+    const slug = utils.sanitizeSlug(this.config.profile.slug ?? '')
     if (this.config.storage === 'shared') {
       return files.map((file) => {
         return {
@@ -405,6 +540,93 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
       })
     }
     return files
+  }
+
+  private async formatLibraries(libs: MinecraftManifest['libraries'], extra: 'INSTALL' | 'LOADER') {
+    const loader = this.config.minecraft.loader!
+
+    const promises = libs.map(async (lib) => {
+      let artifact = lib.downloads?.artifact
+      let native: string | undefined
+
+      let name = utils.getLibraryName(lib.name!)
+      let path = utils.getLibraryPath(lib.name!, 'libraries')
+      let url = ''
+      let sha1 = ''
+      let size = 0
+      let type: 'LIBRARY' | 'NATIVE' = 'LIBRARY'
+
+      if (loader.loader === 'forge' || loader.loader === 'neoforge') {
+        if (lib.natives) {
+          native = lib.natives[utils.getOS_MCCode()]
+          if (!native) return null
+          if (artifact && !artifact.path) name = name.replace('.jar', `-${native}.jar`)
+          type = 'NATIVE'
+        } else {
+          if (!utils.isLibAllowed(lib) || (!lib.serverreq && !lib.clientreq && !lib.url && !lib.downloads)) return null
+        }
+      }
+
+      if (artifact) {
+        if (artifact.path) {
+          name = artifact.path.split('/').pop()!
+          path = path_.join('libraries', artifact.path.split('/').slice(0, -1).join('/'), '/')
+        }
+        url = artifact.url
+        sha1 = artifact.sha1
+        size = artifact.size
+      } else {
+        const info = await this.getLibInfo(lib)
+        url = info.url
+        sha1 = info.sha1
+        size = info.size
+      }
+
+      return { name, path, url, sha1, size, type, extra } as ExtraFile
+    })
+
+    const results = await Promise.all(promises)
+    return results.filter((lib): lib is ExtraFile => lib !== null)
+  }
+
+  private async getLibInfo(lib: MinecraftManifest['libraries'][number]) {
+    const loader = this.config.minecraft.loader!
+
+    let mirrors: string[]
+
+    if (lib.url) {
+      mirrors = [lib.url]
+    } else if (loader.loader === 'forge') {
+      mirrors = ['https://libraries.minecraft.net', 'https://maven.minecraftforge.net', 'https://maven.creeperhost.net']
+    } else if (loader.loader === 'neoforge') {
+      mirrors = ['https://libraries.minecraft.net', 'https://maven.neoforged.net/releases']
+    } else if (loader.loader === 'fabric') {
+      mirrors = ['https://maven.fabricmc.net']
+    } else if (loader.loader === 'quilt') {
+      mirrors = ['https://maven.quiltmc.org/repository/release']
+    } else {
+      mirrors = ['https://libraries.minecraft.net']
+    }
+
+    let lastError: Error | null = null
+    for (const mirror of mirrors) {
+      const url = `${mirror}/${utils.getLibraryPath(lib.name!).replaceAll('\\', '/')}${utils.getLibraryName(lib.name!)}`
+      try {
+        const [size, sha1] = await Promise.all([
+          lib.size ?? utils.getRemoteFileSize(url, `Failed to get size for ${lib.name}`),
+          lib.sha1 ?? utils.getRemoteFileSha1(url, `Failed to get SHA1 for ${lib.name}`)
+        ])
+        return { url, size, sha1 }
+      } catch (err) {
+        lastError = err as Error | EMLLibError
+      }
+    }
+
+    if (lastError) {
+      throw lastError
+    }
+
+    return { url: '', size: 0, sha1: '' }
   }
 }
 
