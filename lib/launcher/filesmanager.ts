@@ -6,7 +6,7 @@
 
 import { ResolvedConfig } from '../../types/config.js'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
-import { ExtraFile, File, FormatFile, ILoader } from '../../types/file.js'
+import { ExtraFile, File, FormatFile } from '../../types/file.js'
 import { Artifact, MinecraftManifest, Assets } from '../../types/manifest.js'
 import utils from '../utils/utils.js'
 import path_ from 'node:path'
@@ -245,90 +245,13 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
       libraries.push(...(await this.formatLibraries(this.loaderManifest.libraries, 'LOADER')))
     }
 
-    // TODO only one 'if'
-    if (this.installProfile) {
-      if (this.installProfile.libraries) {
-        libraries.push(...(await this.formatLibraries(this.installProfile.libraries, 'INSTALL')))
-      }
-
-      // if (this.installProfile.filePath) {
-      //   const universalName = utils.getLibraryName(this.installProfile.path)
-      //   const universalPath = utils.getLibraryPath(this.installProfile.path)
-      //   libraries.push({
-      //     name: universalName,
-      //     path: path_.join('libraries', universalPath),
-      //     url: '',
-      //     type: 'LIBRARY',
-      //     extra: 'INSTALL'
-      //   })
-      // } else if (this.installProfile.path) {
-      //   if (!this.installer) {
-      //     throw new EMLLibError(ErrorType.FILE_ERROR, 'Installer file is required to extract libraries from the installer')
-      //   }
-      //   const universalPath = utils.getLibraryPath(this.installProfile.path)
-      //   const mavenPath = path_.join('maven', universalPath).replace(/\\/g, '/')
-      //   const installerPath = path_.join(this.config.root, this.installer.path, this.installer.name)
-
-      //   const { zipfile, entries } = await utils.openZip(installerPath)
-
-      //   try {
-      //     const entriesToExtract = entries.filter((e) => e.fileName.includes(mavenPath) && e.fileName.endsWith('.jar'))
-      //     for (const entry of entriesToExtract) {
-      //       libraries.push({
-      //         name: path_.basename(entry.fileName),
-      //         path: path_.join('libraries', universalPath),
-      //         url: '',
-      //         type: 'LIBRARY',
-      //         extra: 'INSTALL'
-      //       })
-      //     }
-      //   } finally {
-      //     zipfile.close()
-      //   }
-      // }
-
-      // if (this.installProfile.data?.PATCHED) {
-      //   const entry = this.installProfile.data.PATCHED
-      //   const rawValue = entry.client || entry.path || (typeof entry === 'string' ? entry : '')
-
-      //   if (rawValue && rawValue.startsWith('[')) {
-      //     const cleanLib = rawValue.replace('[', '').replace(']', '')
-      //     libraries.push({
-      //       name: utils.getLibraryName(cleanLib),
-      //       path: path_.join('libraries', utils.getLibraryPath(cleanLib)),
-      //       url: '',
-      //       sha1: '',
-      //       size: 0,
-      //       type: 'LIBRARY',
-      //       extra: 'INSTALL'
-      //     })
-      //   }
-      // }
-
-      // if (this.installProfile.processors && this.installProfile.processors.length > 0) {
-      //   const universalMaven = this.installProfile.libraries.find(
-      //     (lib: any) => (lib.name + '').startsWith('net.minecraftforge:forge:') || (lib.name + '').startsWith('net.neoforged:neoforge:')
-      //   )
-      //   const targetName = this.installProfile.path ?? universalMaven?.name
-
-      //   if (targetName) {
-      //     files.push({
-      //       name: utils.getLibraryName(targetName).replace('.jar', '-clientdata.lzma'),
-      //       path: path_.join('libraries', utils.getLibraryPath(targetName)),
-      //       url: '',
-      //       type: 'LIBRARY'
-      //     })
-      //   }
-      // }
+    if (this.installProfile.libraries) {
+      libraries.push(...(await this.formatLibraries(this.installProfile.libraries, 'INSTALL')))
     }
 
-    // I think this is not useful anymore since the installer is downloaded before...
-    // // TODO manage loader manifest (cf. getLibraries)
-    // if (loader.loader === 'forge' || loader.loader === 'neoforge') {
-    //   libraries.push({ ...this.loader.file!, extra: 'INSTALL', type: 'LIBRARY' })
-    // }
-
     files.push(...libraries)
+
+    console.log(libraries)
 
     return { libraries, files }
   }
@@ -556,7 +479,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
       let size = 0
       let type: 'LIBRARY' | 'NATIVE' = 'LIBRARY'
 
-      if (loader.loader === 'forge' || loader.loader === 'neoforge') {
+      if (loader.loader.toLocaleLowerCase() === 'forge' || loader.loader.toLocaleLowerCase() === 'neoforge') {
         if (lib.natives) {
           native = lib.natives[utils.getOS_MCCode()]
           if (!native) return null
@@ -572,7 +495,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
           name = artifact.path.split('/').pop()!
           path = path_.join('libraries', artifact.path.split('/').slice(0, -1).join('/'), '/')
         }
-        url = artifact.url
+        url = artifact.url || (lib.url ? (lib.url.endsWith('/') ? lib.url : lib.url + '/') + (artifact.path || '') : '')
         sha1 = artifact.sha1
         size = artifact.size
       } else {

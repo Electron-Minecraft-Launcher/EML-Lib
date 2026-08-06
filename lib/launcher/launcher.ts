@@ -66,8 +66,6 @@ export default class Launcher
       window: tmpConfig.window!,
       memory: tmpConfig.memory!
     } as ResolvedConfig
-
-    console.log(this.config)
   }
 
   get launchArgs() {
@@ -191,7 +189,7 @@ export default class Launcher
     this.emit('launch_launch', { ...this.config, java: { ...this.config.java, version: javaInfo.version } })
 
     const customAuth = argumentsManager.getCustomArgs(injectorFiles)
-    const args = argumentsManager.getArgs([...loaderFiles.libraries, ...librariesFiles.libraries], customAuth)
+    const args = argumentsManager.getArgs([...loaderFiles.libraries, ...librariesFiles.libraries, ...loaderLibrariesFiles.libraries], customAuth)
     const blindArgs = args.map((arg, i) => (i === args.findIndex((p) => p === '--accessToken') + 1 ? '**********' : arg))
     this.emit('launch_debug', `Launching Minecraft with args: ${blindArgs.join(' ')}`)
 
