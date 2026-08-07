@@ -245,13 +245,11 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
       libraries.push(...(await this.formatLibraries(this.loaderManifest.libraries, 'LOADER')))
     }
 
-    if (this.installProfile.libraries) {
+    if (this.installProfile?.libraries) {
       libraries.push(...(await this.formatLibraries(this.installProfile.libraries, 'INSTALL')))
     }
 
     files.push(...libraries)
-
-    console.log(libraries)
 
     return { libraries, files }
   }

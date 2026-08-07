@@ -36,10 +36,10 @@ async function main() {
     account: new EMLLib.CrackAuth().auth('GoldFrite'),
     storage: 'isolated',
     minecraft: {
-      version: '26.1.2',
+      version: '26.2',
       loader: {
-        loader: 'neoforge',
-        version: '26.1.2.94'
+        loader: 'quilt',
+        version: '0.30.0'
       }
     }
   })
@@ -114,18 +114,9 @@ async function featureTest() {
     //   }
     // },
     root: 'goldfrite',
-    account: new EMLLib.CrackAuth().auth('GoldFrite'),
+    account: new EMLLib.CrackAuth().auth('GoldFrite')
   })
 }
 
 main()
-
-
-
-
-
-
-
-
-
 

@@ -185,7 +185,7 @@ export default class ForgeLikeLoader extends EventEmitter<FilesManagerEvents> {
             sha1: '',
             size: 0,
             type: 'LIBRARY',
-            extra: 'LOADER'
+            extra: 'INSTALL'
           })
         }
       }
