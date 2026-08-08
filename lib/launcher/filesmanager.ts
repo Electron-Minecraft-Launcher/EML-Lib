@@ -166,7 +166,6 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
     return { libraries, files }
   }
 
-  // TODO handle custom assetIndex.json by reading the minecraftManifest and loaderManifest -> loaderManifest can override the minecraftManifest assetIndex.json
   /**
    * Get assets files.
    * @returns `assets`: Assets files; `files`: all files created by this method or that will be
@@ -174,7 +173,8 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
    */
   async getAssets(): Promise<{ assets: File[]; files: File[] }> {
     try {
-      const req = await fetch(this.minecraftManifest.assetIndex.url)
+      const url = this.loaderManifest?.assetIndex?.url ?? this.minecraftManifest.assetIndex.url
+      const req = await fetch(url)
 
       if (!req.ok) {
         const errorText = await req.text()
@@ -202,7 +202,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
         assets.push({
           name: asset.hash,
           path: path_.join('assets', 'objects', asset.hash.substring(0, 2), '/'),
-          url: `https://resources.download.minecraft.net/${asset.hash.substring(0, 2)}/${asset.hash}`,
+          url: asset.url ?? `https://resources.download.minecraft.net/${asset.hash.substring(0, 2)}/${asset.hash}`,
           sha1: asset.hash,
           size: asset.size,
           type: 'ASSET'
@@ -218,6 +218,11 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
     }
   }
 
+  /**
+   * Get loader libraries files.
+   * @returns `libraries`: Loader libraries files; `files`: all files created by this method or
+   * that will be created (including `libraries`).
+   */
   async getLoaderLibraries(): Promise<{ libraries: ExtraFile[]; files: File[] }> {
     const loader = this.config.minecraft.loader
 
@@ -512,6 +517,18 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
 
   private async getLibInfo(lib: MinecraftManifest['libraries'][number]) {
     const loader = this.config.minecraft.loader!
+
+    if (lib.url && (lib.url.endsWith('.jar') || lib.url.endsWith('.zip') || lib.url.endsWith('.lzma'))) {
+      try {
+        const [size, sha1] = await Promise.all([
+          lib.size ?? utils.getRemoteFileSize(lib.url, `Failed to get size for ${lib.name}`),
+          lib.sha1 ?? utils.getRemoteFileSha1(lib.url, `Failed to get SHA1 for ${lib.name}`)
+        ])
+        return { url: lib.url, size, sha1 }
+      } catch (err) {
+        throw err as Error | EMLLibError
+      }
+    }
 
     let mirrors: string[]
 

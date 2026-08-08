@@ -35,13 +35,7 @@ async function main() {
     root: 'goldfrite',
     account: new EMLLib.CrackAuth().auth('GoldFrite'),
     storage: 'isolated',
-    minecraft: {
-      version: '26.2',
-      loader: {
-        loader: 'quilt',
-        version: '0.30.0'
-      }
-    }
+    url: 'http://localhost:5173'
   })
 
   try {

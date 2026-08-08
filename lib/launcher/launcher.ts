@@ -18,7 +18,6 @@ import LoaderManager from './loadermanager.js'
 import ArgumentsManager from './argumentsmanager.js'
 import { spawn } from 'node:child_process'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
-import loaders from '../utils/loaders.js'
 import loader from '../utils/loader.js'
 
 export default class Launcher
@@ -91,7 +90,6 @@ export default class Launcher
     await downloader.download(installer ? [installer] : [])
 
     //* Init manifests
-    // TODO: Add a isCustom property to config.minecraft.loader => if isCustom is true and config.minecraft.loader is vanilla, then do not download the vanilla manifest
     const minecraftManifest = await manifests.getMinecraftManifest(this.config)
     const installProfile = await manifests.getInstallProfile(this.config, installer)
     const loaderManifest = await manifests.getLoaderManifests(this.config, installProfile, installer)
@@ -317,7 +315,7 @@ export default class Launcher
     }
 
     const version = activeMcSource.version!
-    let loader: { loader: 'vanilla' | 'forge' | 'neoforge' | 'fabric' | 'quilt'; version: string }
+    let loader: { loader: 'vanilla' | 'forge' | 'neoforge' | 'fabric' | 'quilt'; version: string, manifestUrl?: string }
 
     const loaderCfg = activeMcSource.loader
     if (!loaderCfg || loaderCfg.loader === 'vanilla') {
@@ -326,7 +324,7 @@ export default class Launcher
       if (!loaderCfg.version) {
         throw new EMLLibError(ErrorType.CONFIG_ERROR, `You must provide a loader version in the config when using a loader different from vanilla.`)
       }
-      loader = { loader: loaderCfg.loader, version: loaderCfg.version }
+      loader = { loader: loaderCfg.loader, version: loaderCfg.version, manifestUrl: loaderCfg.manifestUrl }
     }
 
     const args = isValidProfile && config.profile?.minecraft?.args ? config.profile.minecraft.args : config.minecraft?.args || []

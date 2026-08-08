@@ -50,7 +50,8 @@ class Loader {
           version: data.minecraftVersion,
           loader: {
             loader: data.type.toLowerCase() as 'vanilla' | 'forge' | 'neoforge' | 'fabric' | 'quilt',
-            version: data.loaderVersion ?? data.minecraftVersion
+            version: data.loaderVersion ?? data.minecraftVersion,
+            manifestUrl: data.file?.url
           },
           modpackUrl: config.url ? `${config.url}/api/files-updater/${config.profile.slug ?? ''}` : config.minecraft.modpackUrl!,
           args: config.minecraft.args
@@ -110,7 +111,6 @@ class Loader {
         ext = Object.keys(meta[use])[0]
       }
 
-      // TODO change file path/name
       const name = `${v.artifact}-${loader.version}-installer.${ext}`
       const path = `versions/`
       const url = `${v.mavenUrl}/${v.group.replace(/\./g, '/')}/${v.artifact}/${loader.version}/${v.artifact}-${loader.version}-${use}.${ext}`

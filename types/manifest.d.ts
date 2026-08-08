@@ -108,6 +108,7 @@ export interface Assets {
     [key: string]: {
       hash: string
       size: number
+      url?: string
     }
   }
 }

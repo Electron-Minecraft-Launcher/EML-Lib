@@ -191,7 +191,7 @@ export default class ArgumentsManager {
           .replaceAll('${version_name}', this.minecraftManifest.id)
           .replaceAll('${game_directory}', gameDirectory)
           .replaceAll('${assets_root}', assetsDirectory)
-          .replaceAll('${assets_index_name}', this.minecraftManifest.assetIndex.id)
+          .replaceAll('${assets_index_name}', this.minecraftManifest.assets)
           .replaceAll('${version_type}', this.minecraftManifest.type)
           .replaceAll('${resolution_width}', this.config.window.width + '')
           .replaceAll('${resolution_height}', this.config.window.height + '')

@@ -22,13 +22,12 @@ class Manifest {
    * @returns The manifest of the Minecraft version.
    */
   async getMinecraftManifest(config: ResolvedConfig): Promise<MinecraftManifest> {
-    let minecraftVersion = config.minecraft.version!
-    if (!minecraftVersion) {
+    if (!config.minecraft.version) {
       throw new EMLLibError(ErrorType.MINECRAFT_ERROR, 'Minecraft version is not specified in the configuration')
     }
 
     try {
-      const manifestUrl = await this.getMinecraftManifestUrl(minecraftVersion)
+      const manifestUrl = await this.getMinecraftManifestUrl(config)
       const req = await fetch(manifestUrl)
 
       if (!req.ok) {
@@ -93,6 +92,24 @@ class Manifest {
       return null
     }
 
+    if (loader.manifestUrl) {
+      let loaderManifest: any
+
+      try {
+        const req = await fetch(loader.manifestUrl)
+        if (!req.ok) {
+          const errorText = await req.text()
+          throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch loader manifest: HTTP ${req.status} ${errorText}`)
+        }
+        loaderManifest = await req.json()
+      } catch (err: unknown) {
+        if (err instanceof EMLLibError) throw err
+        throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch loader manifest: ${err instanceof Error ? err.message : err}`)
+      }
+
+      return loaderManifest
+    }
+
     if (loader.loader === 'forge' || loader.loader === 'neoforge') {
       if (!installProfile || !installer) {
         throw new EMLLibError(ErrorType.CONFIG_ERROR, 'Install profile or installer is missing for Forge/NeoForge loader')
@@ -123,15 +140,8 @@ class Manifest {
         }
       }
 
-      // if (!loader.isCustom) {
-      //   await fs.writeFile(jsonPath, JSON.stringify(loaderManifest, null, 2))
-      // }
-
       return loaderManifest
     } else if (loader.loader === 'fabric' || loader.loader === 'quilt') {
-      // if (loader.isCustom && existsSync(jsonPath)) {
-      //   return { loaderManifest: JSON.parse(await fs.readFile(jsonPath, 'utf-8')), installProfile: null }
-      // }
       let loaderManifest: any
 
       try {
@@ -179,8 +189,12 @@ class Manifest {
     }
   }
 
-  private async getMinecraftManifestUrl(minecraftVersion?: string) {
+  private async getMinecraftManifestUrl(config: ResolvedConfig) {
     try {
+      if (config.minecraft.loader?.loader === 'vanilla' && config.minecraft.loader.manifestUrl) {
+        return config.minecraft.loader.manifestUrl
+      }
+
       const req = await fetch(MINECRAFT_MANIFEST_URL)
 
       if (!req.ok) {
@@ -189,12 +203,12 @@ class Manifest {
       }
       const data = await req.json()
 
-      minecraftVersion =
-        minecraftVersion === 'latest_release'
+      const minecraftVersion =
+        config.minecraft.version === 'latest_release'
           ? data.latest.release
-          : minecraftVersion === 'latest_snapshot'
+          : config.minecraft.version === 'latest_snapshot'
             ? data.latest.snapshot
-            : minecraftVersion || 'latest_release'
+            : config.minecraft.version || 'latest_release'
 
       if (!data.versions.find((version: any) => version.id === minecraftVersion)) {
         throw new EMLLibError(ErrorType.MINECRAFT_ERROR, `Minecraft version ${minecraftVersion} not found in manifest`)

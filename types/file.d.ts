@@ -46,11 +46,8 @@ export interface ILoader {
   type: 'VANILLA' | 'FORGE' | 'NEOFORGE' | 'FABRIC' | 'QUILT'
   minecraftVersion: string
   loaderVersion: string | null
-  format: 'INSTALLER' | 'UNIVERSAL' | 'CLIENT'
-  /**
-   * > IGNORE FILE FOR NOW -> USE IT FOR CUSTOM LOADERS
-   */
-  file: File
+  customVersion: string | null
+  file: File | null
   updatedAt: Date
 }
 
