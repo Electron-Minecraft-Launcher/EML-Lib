@@ -4,28 +4,28 @@
  */
 
 import yauzl from 'yauzl'
-import { ResolvedConfig } from '../../../types/config.js'
-import { ILoader, File } from '../../../types/file.js'
-import { MinecraftManifest } from '../../../types/manifest.js'
-import utils from '../../utils/utils.js'
+import { ResolvedConfig } from '../../types/config.js'
+import { ILoader, File } from '../../types/file.js'
+import { MinecraftManifest } from '../../types/manifest.js'
+import utils from '../utils/utils.js'
 import fs from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import path_ from 'node:path'
 import { spawn } from 'node:child_process'
-import EventEmitter from '../../utils/events.js'
-import { PatcherEvents } from '../../../types/events.js'
+import EventEmitter from '../utils/events.js'
+import { PatcherEvents } from '../../types/events.js'
 
 export default class Patcher extends EventEmitter<PatcherEvents> {
   private readonly config: ResolvedConfig
-  private readonly manifest: MinecraftManifest
-  private readonly loader: ILoader
+  private readonly minecraftManifest: MinecraftManifest
+  private readonly loaderManifest: MinecraftManifest
   private readonly installProfile: any
 
-  constructor(config: ResolvedConfig, manifest: MinecraftManifest, loader: ILoader, installProfile: any) {
+  constructor(config: ResolvedConfig, minecraftManifest: MinecraftManifest, loaderManifest: MinecraftManifest, installProfile: any) {
     super()
     this.config = config
-    this.manifest = manifest
-    this.loader = loader
+    this.minecraftManifest = minecraftManifest
+    this.loaderManifest = loaderManifest
     this.installProfile = installProfile
   }
 
@@ -62,7 +62,7 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
 
       await new Promise((resolve) => {
         const patch = spawn(
-          `"${this.config.java.absolutePath.replace('${X}', this.manifest.javaVersion?.majorVersion + '' || '8')}"`,
+          `"${this.config.java.absolutePath.replace('${X}', this.minecraftManifest.javaVersion?.majorVersion + '' || '8')}"`,
           ['-Xmx2G', '-classpath', [`"${jarExtractPathName}"`, ...classpath].join(path_.delimiter), mainClass, ...args],
           { shell: true }
         )
@@ -169,11 +169,12 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
   }
 
   private mapArg(arg: string) {
+    const loader = this.config.minecraft.loader!
     const argType = arg.replace(/[{}]/g, '')
 
     const universalMaven = this.installProfile.libraries.find((v: any) => {
-      if (this.loader.type === 'FORGE') return v.name.startsWith('net.minecraftforge:forge')
-      if (this.loader.type === 'NEOFORGE') return v.name.startsWith('net.neoforged:neoforge')
+      if (loader.loader === 'forge') return v.name.startsWith('net.minecraftforge:forge')
+      if (loader.loader === 'neoforge') return v.name.startsWith('net.neoforged:neoforge')
     })
 
     if (this.installProfile.data[argType]) {
@@ -191,8 +192,8 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
     const mappedArg = arg
       .replace('{SIDE}', `client`)
       .replace(/{ROOT}(.*?)/, `"${this.config.root}$1"`)
-      .replace('{MINECRAFT_JAR}', `"${path_.join(this.config.root, 'versions', this.manifest.id, `${this.manifest.id}.jar`)}"`)
-      .replace('{MINECRAFT_VERSION}', `"${path_.join(this.config.root, 'versions', this.manifest.id, `${this.manifest.id}.json`)}"`)
+      .replace('{MINECRAFT_JAR}', `"${path_.join(this.config.root, 'versions', this.minecraftManifest.id, `${this.minecraftManifest.id}.jar`)}"`)
+      .replace('{MINECRAFT_VERSION}', `"${path_.join(this.config.root, 'versions', this.minecraftManifest.id, `${this.minecraftManifest.id}.json`)}"`)
       .replace('{INSTALLER}', `"${path_.join(this.config.root, 'libraries')}"`)
       .replace('{LIBRARY_DIR}', `"${path_.join(this.config.root, 'libraries')}"`)
 
@@ -212,5 +213,4 @@ export default class Patcher extends EventEmitter<PatcherEvents> {
     return arg
   }
 }
-
 

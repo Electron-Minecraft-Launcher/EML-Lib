@@ -55,13 +55,24 @@ export interface MinecraftManifest {
     natives?: { windows?: string; osx?: string; linux?: string }
     rules: { action: 'allow' | 'disallow'; os?: { name: 'windows' | 'osx' | 'linux' } }[]
     /**
-     * Old Forge only.
+     * Old Forge or Fabric/Quilt.
      */
     url?: string
     /**
-     * Old Forge only.
+     * Old Forge or Fabric/Quilt.
+     */
+    size?: number
+    /**
+     * Old Forge or Fabric/Quilt.
+     */
+    sha1?: string
+    /**
+     * Old Forge or Fabric/Quilt.
      */
     clientreq?: boolean
+    /**
+     * Old Forge or Fabric/Quilt.
+     */
     serverreq?: boolean
   }[]
   logging: {
@@ -97,6 +108,7 @@ export interface Assets {
     [key: string]: {
       hash: string
       size: number
+      url?: string
     }
   }
 }
@@ -105,3 +117,4 @@ export interface Argument {
   rules: { action: 'allow' | 'disallow'; features: { [key: string]: boolean } }[]
   value: string | string[]
 }
+

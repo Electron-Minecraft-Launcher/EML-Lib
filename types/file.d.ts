@@ -46,11 +46,15 @@ export interface ILoader {
   type: 'VANILLA' | 'FORGE' | 'NEOFORGE' | 'FABRIC' | 'QUILT'
   minecraftVersion: string
   loaderVersion: string | null
-  format: 'INSTALLER' | 'UNIVERSAL' | 'CLIENT'
-  file: File
+  customVersion: string | null
+  file: File | null
   updatedAt: Date
 }
 
 export interface ExtraFile extends File {
   extra: 'INSTALL' | 'LOADER' | 'MINECRAFT'
+}
+
+export interface FormatFile extends File {
+  format: 'INSTALLER' | 'UNIVERSAL' | 'CLIENT'
 }

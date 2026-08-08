@@ -5,65 +5,69 @@
 
 import { ResolvedConfig } from '../../types/config.js'
 import { FilesManagerEvents, PatcherEvents } from '../../types/events.js'
-import { ExtraFile, File, ILoader } from '../../types/file.js'
+import { ExtraFile, File, FormatFile } from '../../types/file.js'
 import { MinecraftManifest } from '../../types/manifest.js'
 import EventEmitter from '../utils/events.js'
-import Patcher from './loaders/patcher.js'
-import ForgeLikeLoader from './loaders/forgelike.js'
-import FabricLikeLoader from './loaders/fabriclike.js'
+import Patcher from './patcher.js'
+import ForgeLikeLoader from './forgelike.js'
+import { EMLLibError, ErrorType } from '../../types/errors.js'
 
 export default class LoaderManager extends EventEmitter<FilesManagerEvents & PatcherEvents> {
   private readonly config: ResolvedConfig
-  private readonly manifest: MinecraftManifest
-  private readonly loader: ILoader
+  private readonly minecraftManifest: MinecraftManifest
+  private readonly loaderManifest: MinecraftManifest | null
+  private readonly installProfile: any
+  private readonly installer?: FormatFile
 
-  constructor(config: ResolvedConfig, manifest: MinecraftManifest, loader: ILoader) {
+  constructor(
+    config: ResolvedConfig,
+    minecraftManifest: MinecraftManifest,
+    loaderManifest: MinecraftManifest | null,
+    installProfile: any,
+    installer?: FormatFile
+  ) {
     super()
     this.config = config
-    this.manifest = manifest
-    this.loader = loader
+    this.minecraftManifest = minecraftManifest
+    this.loaderManifest = loaderManifest
+    this.installProfile = installProfile
+    this.installer = installer
   }
 
-  /**
-   * Setup the loader.
-   * @returns `loaderManifest`: Loader manifest; `installProfile`: Install profile; `libraries`: 
-   * libraries files; `files`: all files created by the method or that will be created (including
-   * `libraries`).
-   */
-  async setupLoader(): Promise<{
-    loaderManifest: MinecraftManifest | null
-    installProfile: any
-    libraries: ExtraFile[]
-    files: File[]
-  }> {
-    let setup = { loaderManifest: null as null | MinecraftManifest, installProfile: null as any, libraries: [] as ExtraFile[], files: [] as File[] }
-
-    if (this.loader.type === 'FORGE' || this.loader.type === 'NEOFORGE') {
-      const forgeLikeLoader = new ForgeLikeLoader(this.config, this.manifest, this.loader)
-      forgeLikeLoader.forwardEvents(this)
-      setup = await forgeLikeLoader.setup()
-    } else if (this.loader.type === 'FABRIC' || this.loader.type === 'QUILT') {
-      const fabricLikeLoader = new FabricLikeLoader(this.config, this.manifest, this.loader)
-      fabricLikeLoader.forwardEvents(this)
-      setup = await fabricLikeLoader.setup()
+  async extract(): Promise<{ libraries: ExtraFile[], files: File[] }> {
+    const loader = this.config.minecraft.loader
+    if (!loader || !this.loaderManifest || !this.installProfile || !this.installer || (loader.loader !== 'forge' && loader.loader !== 'neoforge')) {
+      return { libraries: [], files: [] }
     }
 
-    return setup
+    const forgeLikeLoader = new ForgeLikeLoader(this.config, this.minecraftManifest, this.loaderManifest, this.installProfile, this.installer)
+
+    try {
+      if (this.installer.format !== 'INSTALLER') {
+        return await forgeLikeLoader.extractZip()
+      } else {
+        return await forgeLikeLoader.extractJar()
+      }
+    } catch (err: unknown) {
+      if (err instanceof EMLLibError) throw err
+      throw new EMLLibError(ErrorType.FILE_ERROR, `Failed to extract loader: ${err instanceof Error ? err.message : err}`)
+    }
   }
 
   /**
    * Patch the loader.
-   * @param installProfile The install profile from `LoaderManager.setupLoader()`.
    * @returns `files`: all files created by the method.
    */
-  async patchLoader(installProfile: any): Promise<{ files: File[] }> {
-    if ((this.loader.type === 'FORGE' || this.loader.type === 'NEOFORGE') && installProfile) {
-      const patcher = new Patcher(this.config, this.manifest, this.loader, installProfile)
-      patcher.forwardEvents(this)
-      return { files: await patcher.patch() }
+  async patchLoader(): Promise<{ files: File[] }> {
+    const loader = this.config.minecraft.loader
+
+    if (!loader || !this.loaderManifest || !this.installProfile || (loader.loader !== 'forge' && loader.loader !== 'neoforge')) {
+      return { files: [] }
     }
 
-    return { files: [] }
+    const patcher = new Patcher(this.config, this.minecraftManifest, this.loaderManifest, this.installProfile)
+    patcher.forwardEvents(this)
+    return { files: await patcher.patch() }
   }
 }
 
