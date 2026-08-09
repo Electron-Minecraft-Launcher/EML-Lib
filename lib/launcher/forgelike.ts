@@ -53,6 +53,10 @@ export default class ForgeLikeLoader extends EventEmitter<FilesManagerEvents> {
       const forgeFileNames = new Set(forgeEntries.map((e) => e.fileName))
 
       yazlZip.outputStream.pipe(writeStream)
+      writeStream.on('error', (err) => {
+        yazlZip.end()
+        throw err
+      })
 
       for (const entry of vanillaEntries) {
         if (entry.fileName.startsWith('META-INF/') || entry.fileName.endsWith('/') || forgeFileNames.has(entry.fileName)) continue

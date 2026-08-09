@@ -5,7 +5,7 @@
 
 import yauzl from 'yauzl'
 import { ResolvedConfig } from '../../types/config.js'
-import { ILoader, File } from '../../types/file.js'
+import { File } from '../../types/file.js'
 import { MinecraftManifest } from '../../types/manifest.js'
 import utils from '../utils/utils.js'
 import fs from 'node:fs/promises'

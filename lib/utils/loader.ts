@@ -3,7 +3,7 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
-import { ILoader, File, FormatFile } from '../../types/file.js'
+import { ILoader, FormatFile } from '../../types/file.js'
 import { ResolvedConfig } from '../../types/config.js'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
 import utils from './utils.js'
@@ -87,7 +87,6 @@ class Loader {
 
   async getInstaller(config: ResolvedConfig): Promise<FormatFile | undefined> {
     const loader = config.minecraft?.loader
-    const minecraftVersion = config.minecraft?.version!
 
     if (loader?.loader !== 'forge' && loader?.loader !== 'neoforge') return
 

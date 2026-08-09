@@ -6,7 +6,7 @@
 import { MinecraftManifest } from './../../types/manifest.js'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
 import { JAVA_RUNTIME_URL, MINECRAFT_MANIFEST_URL } from './consts.js'
-import { FormatFile, ILoader } from '../../types/file.js'
+import { FormatFile } from '../../types/file.js'
 import { ResolvedConfig } from '../../types/config.js'
 import { existsSync } from 'node:fs'
 import path_ from 'node:path'
@@ -123,7 +123,6 @@ class Manifest {
       let loaderManifest: MinecraftManifest
       if (installProfile.install) {
         loaderManifest = installProfile.versionInfo
-        installProfile = installProfile.install
       } else {
         const { zipfile, entries } = await utils.openZip(installerPath)
         try {
