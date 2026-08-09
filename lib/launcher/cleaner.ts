@@ -3,41 +3,40 @@
  * @copyright Copyright (c) 2026, GoldFrite
  */
 
-import EventEmitter from './events.js'
+import EventEmitter from '../utils/events.js'
 import path_ from 'node:path'
 import fs from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { CleanerEvents } from '../../types/events.js'
 import { File } from '../../types/file.js'
+import { ResolvedConfig } from '../../types/config.js'
 
 export default class Cleaner extends EventEmitter<CleanerEvents> {
-  private readonly dest: string = ''
+  private readonly config: ResolvedConfig
 
-  /**
-   * @param dest Destination folder.
-   */
-  constructor(dest: string) {
+  constructor(config: ResolvedConfig) {
     super()
-    this.dest = path_.join(dest)
+    this.config = config
   }
 
   /**
    * Clean the destination folder by removing files that are not in the list.
-   * @param files List of files to check ('ok' files; files that should be in the destination 
+   * @param files List of files to check ('ok' files; files that should be in the destination
    * folder).
    * @param ignore List of files to ignore (don't delete them).
    * @param skipClean [Optional: defaults to `false`] Skip the cleaning process (skip this method).
    */
   async clean(files: File[], ignore: string[] = [], skipClean: boolean = false): Promise<void> {
+    const dest = this.config.root
     if (skipClean) return
 
-    const validFilesSet = new Set(files.map((f) => path_.resolve('/', this.dest, f.path, f.name).replace(/\\/g, '/')))
-    const ignoredPaths = ignore.map((ig) => path_.resolve(this.dest, ig))
+    const validFilesSet = new Set(files.map((f) => path_.resolve('/', dest, f.path, f.name).replace(/\\/g, '/')))
+    const ignoredPaths = ignore.map((ig) => path_.resolve(dest, ig))
     const deletePromises: Promise<void>[] = []
     let i = 0
 
     const browsed: { name: string; path: string }[] = []
-    await this.browse(this.dest, browsed)
+    await this.browse(dest, browsed)
     for (const file of browsed) {
       const fullPath = path_.resolve('/', file.path, file.name).replace(/\\/g, '/')
       const isFileValid = validFilesSet.has(fullPath)
@@ -86,5 +85,4 @@ export default class Cleaner extends EventEmitter<CleanerEvents> {
     await Promise.all(promises)
   }
 }
-
 

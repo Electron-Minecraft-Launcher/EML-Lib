@@ -81,7 +81,7 @@ ${sanLatestLog}
           arch: process.arch,
           javaVersion: javaInfo.version ?? 'unknown',
           javaArch: javaInfo.arch ?? 'unknown',
-          profile: launcher.config.slug ?? '',
+          profile: launcher.config.profile.slug ?? '',
           version: launcher.config.minecraft.version ?? 'unknown',
           loader: launcher.config.minecraft.loader?.loader ?? 'vanilla',
           loaderVersion: launcher.config.minecraft.loader?.version ?? '',

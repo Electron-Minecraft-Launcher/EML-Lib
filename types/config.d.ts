@@ -19,7 +19,7 @@ export interface Config {
    * **Attention!** When you set a manual profile, you must ensure the profile contains a valid
    * `slug`. This slug determines the name of the game instance folder.
    */
-  profile?: Partial<IProfile> & { slug: string } & {
+  profile?: Partial<IProfile> & { slug: string | undefined } & {
     /**
      * [Optional: defaults to `{ version: undefined, args: [] }`]
      * Instance-specific Minecraft configuration.
@@ -58,6 +58,14 @@ export interface Config {
          * @see [List of loader versions](https://emlproject.com/resources/minecraft-versions/)
          */
         version?: string
+        /**
+         * [Optional] The URL to a valid custom version manifest (.json) for a custom loader.
+         * Ensure your custom loader is based on the specified Minecraft version, loader and loader
+         * version.
+         *
+         * @see [Learn about custom loaders](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/launcher#set-up-a-custom-loader)
+         */
+        manifestUrl?: string
       }
       /**
        * [Optional] The direct URL to a modpack manifest (.json).
@@ -140,6 +148,14 @@ export interface Config {
        * @see [List of loader versions](https://emlproject.com/resources/minecraft-versions/)
        */
       version?: string
+      /**
+       * [Optional] The URL to a valid custom version manifest (.json) for a custom loader.
+       * Ensure your custom loader is based on the specified Minecraft version, loader and loader
+       * version.
+       *
+       * @see [Learn about custom loaders](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/launcher#set-up-a-custom-loader)
+       */
+      manifestUrl?: string
     }
     /**
      * [Optional] The direct URL to a modpack manifest (.json).
@@ -266,15 +282,18 @@ export interface Config {
 
 export interface ResolvedConfig {
   url?: string
-  slug?: string
-  token?: string
+  profile: {
+    slug?: string
+    token?: string
+  }
   storage: 'isolated' | 'shared'
   root: string
   minecraft: {
     version?: string
     loader?: {
       loader: 'vanilla' | 'forge' | 'neoforge' | 'fabric' | 'quilt'
-      version: string
+      version: string,
+      manifestUrl?: string
     }
     modpackUrl?: string
     args: string[]
@@ -299,4 +318,6 @@ export interface ResolvedConfig {
     max: number
   }
 }
+
+
 
