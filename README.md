@@ -26,7 +26,7 @@ _Read the docs for [MicrosoftAuth](https://emlproject.com/docs/eml-lib-and-launc
 
 ### Launch settings
 
-Choose the Minecraft version and loader that you want to launch. EML Lib supports all Minecraft versions, from Minecraft beta to the latest Minecraft snapshot, and all loaders, including Vanilla, Forge, NeoForge, Fabric and Quilt. MCP support is coming soon. <br/>
+Choose the Minecraft version and loader that you want to launch. EML Lib supports all Minecraft versions, from Minecraft beta to the latest Minecraft snapshot, and all loaders: Vanilla, Forge, NeoForge, Fabric and Quilt, and even custom loaders.<br/>
 EML Lib also allows you to use _Profiles_, which are sets of settings (such as Minecraft version, loader, mods, etc.) that you can save and reuse later.
 
 EML Lib can automatically download and install Java to ensure that you have the correct Java version for the Minecraft version you want to launch. It also supports custom Java paths if you prefer to use your own Java installation.
@@ -37,7 +37,7 @@ _Read the docs for [Profiles](https://emlproject.com/docs/eml-lib-and-launcher/a
 
 ### Skin and cape management
 
-EML Lib can allow your players to manage their skins and capes. It supports the official Miccrosoft skin and cape system, as well as custom skins and capes. Players can change their skins and capes directly from the launcher.
+EML Lib can allow your players to manage their skins and capes. It supports the official Microsoft skin and cape system, as well as custom skins and capes. Players can change their skins and capes directly from the launcher.
 
 _Read the [docs](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/skin)._
 
@@ -79,13 +79,13 @@ _Read the [docs](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/
 
 There are already several Node.js libraries to launch Minecraft. Here is how EML Lib compares to the main ones.
 
-| Solution                         | Language / License       | Actively maintained     | Auth                                 | Loaders                                 | Agnostic mode | Ecosystem                   |
-| -------------------------------- | ------------------------ | ----------------------- | ------------------------------------ | --------------------------------------- | ------------- | --------------------------- |
-| **EML Lib**                      | TypeScript / MIT         | Yes                     | Microsoft, Azuriom, Yggdrasil, Crack | Vanilla, Forge, NeoForge, Fabric, Quilt | Yes (v2.2.0+) | EML AdminTool, EML Template |
-| **MCLC** (Pierce01)              | JavaScript / MIT         | No (last release: 2023) | Via MSMC (external)                  | Forge only                              | Yes           | None                        |
-| **minecraft-java-core** (Luuxis) | TypeScript / Custom [^2] | Yes                     | Microsoft, Azuriom                   | Vanilla, Forge, NeoForge, Fabric, Quilt | Yes           | Selvania Launcher           |
-| **GMLL** (Hanro50)               | TypeScript / MIT         | No (last release: 2023) | Via MSMC (external)                  | Forge, Fabric, Quilt                    | Yes           | None                        |
-| **@xmcl packages** (Voxelum)     | TypeScript / MIT         | Yes                     | — (low-level toolkit)                | All                                     | Yes           | XMCL launcher               |
+| Solution                         | Language / License       | Actively maintained     | Auth                                 | Loaders                                         | Ecosystem                                 |
+| -------------------------------- | ------------------------ | ----------------------- | ------------------------------------ | ----------------------------------------------- | ----------------------------------------- |
+| **EML Lib**                      | TypeScript / MIT         | Yes                     | Microsoft, Azuriom, Yggdrasil, Crack | Vanilla, Forge, NeoForge, Fabric, Quilt, Custom | EML AdminTool, EML Template               |
+| **MCLC** (Pierce01)              | JavaScript / MIT         | No (last release: 2023) | Via MSMC (external)                  | Forge only                                      | None                                      |
+| **minecraft-java-core** (Luuxis) | TypeScript / Custom [^2] | Yes                     | Microsoft, Azuriom, Crack            | Vanilla, Forge, NeoForge, Fabric, Quilt, Custom | LuuxCraft Panel (paid), Selvania Launcher |
+| **GMLL** (Hanro50)               | TypeScript / MIT         | No (last release: 2023) | Via MSMC (external)                  | Forge, Fabric, Quilt                            | None                                      |
+| **@xmcl packages** (Voxelum)     | TypeScript / MIT         | Yes                     | — (low-level toolkit)                | All                                             | XMCL launcher                             |
 
 ### Key difference
 
@@ -104,7 +104,7 @@ If you do not need a backend, use agnostic mode with a [hosted JSON modpack file
 ### Software requirements
 
 - Node.js 20 or higher: see [Node.js](https://nodejs.org/);
-- Electron 23 or higher: please install it with `npm i electron` _if you use Microsoft Authentication_.
+- _For Microsoft authentication:_ Electron 23 or higher: please install it with `npm i electron`.
 
 To get all the capacities of this Node.js library, you should set up your [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool) website! Without it, some features will be unavailable (such as News, Bootstrap, etc.).
 
@@ -143,25 +143,21 @@ Please refer to the [docs](https://emlproject.com/docs/eml-lib-and-launcher/gett
 
 ## Platform compatibility
 
-| OS (platform)              | Supported?     | Minimum version supported  |
-| -------------------------- | -------------- | -------------------------- |
-| Windows (win32)            | Yes            | Windows 7 (Windows NT 6.1) |
-| macOS (Darwin)             | Yes            | Mac OS X Lion (10.7)       |
-| Linux, including Chrome OS | Yes            | Variable                   |
-| Others                     | Not officially | -                          |
+| OS and Architecture | Supported? | Minimum version supported |
+| ------------------- | ---------- | ------------------------- |
+| Windows x64         | Yes        | Windows 7                 |
+| Windows arm64       | Yes        | Windows 10                |
+| macOS x64           | Yes        | Mac OS X Lion (10.7)      |
+| macOS arm64         | Yes        | macOS Big Sur (11)        |
+| Linux x64           | Yes        | Variable                  |
+| Linux arm64         | No         | -                         |
 
 > [!WARNING]
-> Mac with Apple Silicon (M1, M2, etc.) is supported only for Minecraft 1.13 and above.
-
-> [!WARNING]
-> No support will be provided for older versions of Windows, macOS and Linux, or for other operating systems.
+> No support will be provided for any other OS or architecture.
 
 ## Tests
 
 The library has been tested on Windows 11 and macOS Tahoe (M3) with Node.js 22, on multiple Minecraft versions, from 1.0 to the Minecraft 26.1-snapshot, and with multiple loaders (Vanilla, Forge, NeoForge, Fabric and Quilt).
-
-> [!WARNING]
-> Mac with Apple Silicon (M1, M2, etc.) is supported only for Minecraft 1.13 and above.
 
 > [!WARNING]
 > Forge is supported only for Minecraft 1.6 and above.

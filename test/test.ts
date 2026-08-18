@@ -35,7 +35,16 @@ async function main() {
     root: 'goldfrite',
     account: new EMLLib.CrackAuth().auth('GoldFrite'),
     storage: 'isolated',
-    url: 'http://localhost:5173'
+    minecraft: {
+      version: '26.2',
+      loader: {
+        loader: 'quilt',
+        version: '0.30.0'
+      }
+    },
+    cleaning: {
+      // enabled: false,
+    }
   })
 
   try {
@@ -53,7 +62,7 @@ async function main() {
     launcher.on('extract_end', (info) => console.log(`Extracted ${info.amount} files.`))
 
     launcher.on('launch_copy_assets', () => console.log('\nCopying assets...'))
-    launcher.on('copy_progress', (progress) => console.log(`Copyed ${progress.filename} to ${progress.dest}.`))
+    // launcher.on('copy_progress', (progress) => console.log(`Copyed ${progress.filename} to ${progress.dest}.`))
     launcher.on('copy_end', (info) => console.log(`Copied ${info.amount} files.`))
 
     launcher.on('launch_patch_loader', () => console.log('\nPatching loader...'))
@@ -73,7 +82,7 @@ async function main() {
     launcher.on('launch_close', (code) => console.log(`Closed with code ${code}.`))
 
     launcher.on('launch_debug', (message) => console.log(`Debug: ${message}\n`))
-    launcher.on('patch_debug', (message) => console.log(`Debug: ${message}`))
+    // launcher.on('patch_debug', (message) => console.log(`Debug: ${message}`))
 
     launcher.on('launch_crash', async (crashData) => {
       console.error(`\nGame crashed with code ${crashData.code}. Sending crash report...`)
@@ -113,4 +122,34 @@ async function featureTest() {
 }
 
 main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

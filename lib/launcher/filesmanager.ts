@@ -25,6 +25,8 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
   private readonly installProfile: any
   private readonly installer?: FormatFile
 
+  private patches: Record<string, Artifact | null> = {}
+
   constructor(
     config: ResolvedConfig,
     minecraftManifest: MinecraftManifest,
@@ -93,6 +95,8 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
    * be created (including `libraries`).
    */
   async getLibraries(): Promise<{ libraries: ExtraFile[]; files: File[] }> {
+    this.patches = await this.getPatchedManifest()
+
     let files: File[] = []
     let libraries: ExtraFile[] = []
 
@@ -111,20 +115,19 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
       throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to write Minecraft manifest: ${err instanceof Error ? err.message : err}`)
     }
 
-    this.minecraftManifest.libraries.forEach((lib) => {
+    for (const lib of this.minecraftManifest.libraries) {
       let type: 'LIBRARY' | 'NATIVE'
       let artifact: Artifact | undefined
 
       if (lib.natives) {
         type = 'NATIVE'
-        const classifiers = lib.downloads.classifiers as any
-        const native = lib.natives[utils.getOS_MCCode()]
-        if (!native) return
-        artifact = classifiers ? (classifiers[native.replace('${arch}', utils.getArch())] as unknown as Artifact | undefined) : undefined
+        artifact = await this.patchNative(lib)
+        if (!artifact) continue
+        // if (artifact.path && artifact.path.includes('/3.3.1/')) type = 'LIBRARY'
       } else {
-        if (!utils.isLibAllowed(lib)) return
+        if (!utils.isLibAllowed(lib)) continue
         type = 'LIBRARY'
-        artifact = lib.downloads.artifact
+        artifact = await this.patchLibrary(lib)
       }
 
       let name: string
@@ -149,7 +152,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
           extra: 'MINECRAFT'
         })
       }
-    })
+    }
 
     libraries.push({
       name: `${this.minecraftManifest.id}.jar`,
@@ -224,6 +227,8 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
    * that will be created (including `libraries`).
    */
   async getLoaderLibraries(): Promise<{ libraries: ExtraFile[]; files: File[] }> {
+    this.patches = await this.getPatchedManifest()
+
     const loader = this.config.minecraft.loader
 
     if (!this.loaderManifest || !loader) return { libraries: [], files: [] }
@@ -266,16 +271,15 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
   async getInjector(): Promise<{ injector: File[]; files: File[] }> {
     if (this.config.account.meta.type !== 'yggdrasil') return { injector: [], files: [] }
 
-    const url = 'https://github.com/yushijinhun/authlib-injector/releases/download/v1.2.7/authlib-injector-1.2.7.jar'
-    const size = await utils.getRemoteFileSize(url, 'Failed to get authlib-injector file size')
+    const url = 'https://cdn.emlproject.com/authlib-injector/authlib-injector-1.2.8.jar'
 
     const injector: File[] = [
       {
-        name: 'authlib-injector.jar',
-        path: 'libraries/',
-        url: url,
-        sha1: '',
-        size: size,
+        name: 'authlib-injector-1.2.8.jar',
+        path: 'libraries/moe/yushi/authlibinjector/',
+        url: 'https://cdn.emlproject.com/authlib-injector/authlib-injector-1.2.8.jar',
+        sha1: '0e0e66d8a4f91a26f33b9c09f5cdffce4a11f0b8',
+        size: 349681,
         type: 'LIBRARY'
       }
     ]
@@ -284,34 +288,26 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
   }
 
   /**
-   * Get Log4j files to patch the Log4shell.
-   * @returns `log4j`: Log4j files; `files`: all files created by this method or that will be
+   * Get logging and patch Log4Shell.
+   * @returns `logging`: logging files; `files`: all files created by this method or that will be
    * created (including `log4j`).
-   * @see [help.minecraft.net](https://help.minecraft.net/hc/en-us/articles/4416199399693-Security-Vulnerability-in-Minecraft-Java-Edition)
    */
-  async getLog4j(): Promise<{ log4j: File[]; files: File[] }> {
-    let log4j: File[] = []
-    if (+this.minecraftManifest.id.split('.')[1] <= 16 && +this.minecraftManifest.id.split('.')[1] >= 12) {
-      log4j.push({
-        name: 'log4j2_112-116.xml',
-        path: '',
-        url: 'https://launcher.mojang.com/v1/objects/02937d122c86ce73319ef9975b58896fc1b491d1/log4j2_112-116.xml',
-        sha1: '02937d122c86ce73319ef9975b58896fc1b491d1',
-        size: 4096,
-        type: 'CONFIG'
-      })
-    } else if (+this.minecraftManifest.id.split('.')[1] <= 11 && +this.minecraftManifest.id.split('.')[1] >= 7) {
-      log4j.push({
-        name: 'log4j2_17-111.xml',
-        path: '',
-        url: 'https://launcher.mojang.com/v1/objects/4bb89a97a66f350bc9f73b3ca8509632682aea2e/log4j2_17-111.xml',
-        sha1: '4bb89a97a66f350bc9f73b3ca8509632682aea2e',
-        size: 4096,
-        type: 'CONFIG'
-      })
-    }
+  async getLogging(): Promise<{ logging: File[]; files: File[] }> {
+    const logFile = this.minecraftManifest.logging?.client?.file
+    if (!logFile) return { logging: [], files: [] }
 
-    return { log4j: log4j, files: log4j }
+    const logging = [
+      {
+        name: logFile.id,
+        path: '',
+        url: logFile.url,
+        sha1: logFile.sha1,
+        size: logFile.size,
+        type: 'CONFIG' as const
+      }
+    ]
+
+    return { logging, files: logging }
   }
 
   /**
@@ -470,6 +466,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
 
   private async formatLibraries(libs: MinecraftManifest['libraries'], extra: 'INSTALL' | 'LOADER') {
     const loader = this.config.minecraft.loader!
+    const os = utils.getOS_MCCode()
 
     const promises = libs.map(async (lib) => {
       let artifact = lib.downloads?.artifact
@@ -484,12 +481,18 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
 
       if (loader.loader.toLocaleLowerCase() === 'forge' || loader.loader.toLocaleLowerCase() === 'neoforge') {
         if (lib.natives) {
-          native = lib.natives[utils.getOS_MCCode()]
-          if (!native) return null
-          if (artifact && !artifact.path) name = name.replace('.jar', `-${native}.jar`)
           type = 'NATIVE'
+          native = lib.natives[os]
+          if (!native) return null
+          const patch = this.checkPatch(lib.name!, 'NATIVE', native)
+          if (patch === null) return null
+          if (patch !== undefined) artifact = patch
+          if (artifact && !artifact.path) name = name.replace('.jar', `-${native}.jar`)
         } else {
           if (!utils.isLibAllowed(lib) || (!lib.serverreq && !lib.clientreq && !lib.url && !lib.downloads)) return null
+          const patch = this.checkPatch(lib.name!, 'LIBRARY')
+          if (patch === null) return null
+          if (patch !== undefined) artifact = patch
         }
       }
 
@@ -503,6 +506,7 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
         size = artifact.size
       } else {
         const info = await this.getLibInfo(lib)
+        if (!info) return null
         url = info.url
         sha1 = info.sha1
         size = info.size
@@ -516,6 +520,11 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
   }
 
   private async getLibInfo(lib: MinecraftManifest['libraries'][number]) {
+    const nameStr = lib.name || ''
+    if (nameStr.startsWith('net.minecraftforge:forge:') || nameStr.startsWith('net.neoforged:neoforge:')) {
+      return { url: '', size: 0, sha1: '' }
+    }
+
     const loader = this.config.minecraft.loader!
 
     if (lib.url && (lib.url.endsWith('.jar') || lib.url.endsWith('.zip') || lib.url.endsWith('.lzma'))) {
@@ -530,29 +539,35 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
       }
     }
 
-    let mirrors: string[]
+    let mirrors: (string | undefined)[]
 
-    if (lib.url) {
-      mirrors = [lib.url]
-    } else if (loader.loader === 'forge') {
-      mirrors = ['https://libraries.minecraft.net', 'https://maven.minecraftforge.net', 'https://maven.creeperhost.net']
+    const mirrorUrl = lib.url ? (lib.url.endsWith('/') ? lib.url.slice(0, -1) : lib.url) : undefined
+    if (loader.loader === 'forge') {
+      mirrors = [
+        mirrorUrl,
+        'https://libraries.minecraft.net',
+        'https://maven.minecraftforge.net',
+        'https://files.minecraftforge.net/maven',
+        'https://maven.creeperhost.net'
+      ]
     } else if (loader.loader === 'neoforge') {
-      mirrors = ['https://libraries.minecraft.net', 'https://maven.neoforged.net/releases']
+      mirrors = [mirrorUrl, 'https://libraries.minecraft.net', 'https://maven.neoforged.net/releases', 'https://repo1.maven.org/maven2']
     } else if (loader.loader === 'fabric') {
-      mirrors = ['https://maven.fabricmc.net']
+      mirrors = [mirrorUrl, 'https://maven.fabricmc.net']
     } else if (loader.loader === 'quilt') {
-      mirrors = ['https://maven.quiltmc.org/repository/release']
+      mirrors = [mirrorUrl, 'https://maven.quiltmc.org/repository/release']
     } else {
       mirrors = ['https://libraries.minecraft.net']
     }
 
     let lastError: Error | null = null
     for (const mirror of mirrors) {
+      if (!mirror) continue
       const url = `${mirror}/${utils.getLibraryPath(lib.name!).replaceAll('\\', '/')}${utils.getLibraryName(lib.name!)}`
       try {
         const [size, sha1] = await Promise.all([
           lib.size ?? utils.getRemoteFileSize(url, `Failed to get size for ${lib.name}`),
-          lib.sha1 ?? utils.getRemoteFileSha1(url, `Failed to get SHA1 for ${lib.name}`)
+          lib.sha1 ?? lib.checksums?.[0] ?? utils.getRemoteFileSha1(url, `Failed to get SHA1 for ${lib.name}`)
         ])
         return { url, size, sha1 }
       } catch (err) {
@@ -565,6 +580,70 @@ export default class FilesManager extends EventEmitter<FilesManagerEvents> {
     }
 
     return { url: '', size: 0, sha1: '' }
+  }
+
+  private async getPatchedManifest() {
+    if (this.patches.credits) return this.patches
+
+    try {
+      const req = await fetch('https://cdn.emlproject.com/patches/patches.json')
+
+      if (!req.ok) {
+        const errorText = await req.text()
+        throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch patched manifest: HTTP ${req.status} ${errorText}`)
+      }
+      const data = await req.json()
+
+      return data as Record<string, Artifact | null>
+    } catch (err: unknown) {
+      if (err instanceof EMLLibError) throw err
+      throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch modpack files: ${err instanceof Error ? err.message : err}`)
+    }
+  }
+
+  private async patchNative(lib: MinecraftManifest['libraries'][number]) {
+    const os = utils.getOS_MCCode()
+    const classifiers = lib.downloads?.classifiers as any
+    const native = lib.natives ? lib.natives[os] : undefined
+
+    let artifact = native && classifiers ? (classifiers[native.replace('${arch}', utils.getArch())] as unknown as Artifact | undefined) : undefined
+    const libNameOrPath = lib.name || artifact?.path
+
+    if (libNameOrPath && native) {
+      const patch = this.checkPatch(libNameOrPath, 'NATIVE', native)
+      if (patch === null) return undefined
+      if (patch !== undefined) return patch
+    }
+
+    return artifact
+  }
+
+  private async patchLibrary(lib: MinecraftManifest['libraries'][number]) {
+    let artifact = lib.downloads?.artifact
+    const libNameOrPath = lib.name || artifact?.path
+
+    if (libNameOrPath) {
+      const patch = this.checkPatch(libNameOrPath, 'LIBRARY')
+      if (patch === null) return undefined
+      if (patch !== undefined) return patch
+    }
+
+    return artifact
+  }
+
+  private checkPatch(libNameOrPath: string, type: 'LIBRARY' | 'NATIVE', nativeSuffix?: string): Artifact | null | undefined {
+    const os = utils.getOS_MCCode()
+    const arch = process.arch
+    const { group, name, version } = utils.getPartsFromNameOrPath(libNameOrPath)
+
+    let key =
+      type === 'NATIVE'
+        ? `${os}:${arch}:${group}:${name}:${version.replace(/-nightly-[^:]+/, '-nightly-*')}:${nativeSuffix}`
+        : `${os}:${arch}:${group}:${name}:${version.replace(/-nightly-[^:]+/, '-nightly-*')}`
+
+    if (key in this.patches) return this.patches[key]
+
+    return undefined
   }
 }
 
