@@ -152,11 +152,9 @@ Please refer to the [docs](https://emlproject.com/docs/eml-lib-and-launcher/gett
 | Linux x64           | Probably yes       | —                         |
 | Linux arm64         | Probably partially | —                         |
 
-<small>
-
-- _Yes_ means that the library has been tested and is known to work on this platform at least for Minecraft 1.6 and above (Vanilla and modded).
-- _Probably yes_ means that the library has not been tested on this platform, but it is expected to work for Minecraft 1.6 and above (Vanilla and modded), since the Minecraft manifests are complete for this platform.
-- _Probably partially_ means that the library has not been tested on this platform, and it is expected to work only for some Minecraft versions (Vanilla or modded), since the Minecraft manifests are not fully complete for this platform.
+<sub>- _Yes_ means that the library has been tested and is known to work on this platform at least for Minecraft 1.6 and above (Vanilla and modded).</sub><br />
+<sub>- _Probably yes_ means that the library has not been tested on this platform, but it is expected to work for Minecraft 1.6 and above (Vanilla and modded), since the Minecraft manifests are complete for this platform.</sub><br />
+<sub>- _Probably partially_ means that the library has not been tested on this platform, and it is expected to work only for some Minecraft versions (Vanilla or modded), since the Minecraft manifests are not fully complete for this platform.</sub>
 
 </small>
 
@@ -164,10 +162,8 @@ Please refer to the [docs](https://emlproject.com/docs/eml-lib-and-launcher/gett
 > No support will be provided for any other OS or architecture.
 
 <details>
-<summary>Note about the ARM architecture</summary>
-
----
-
+<summary><b>Note about the ARM architecture</b></summary>
+<br>
 Historically, Minecraft was developed for x86 architectures (32-bit and 64-bit), including:
 
 - Windows PCs with Intel or AMD processors;
@@ -181,7 +177,7 @@ Thanks to a system of smart patches, EML Lib allows Minecraft to run natively on
 
 As for Windows 11 ARM, EML Lib has made the strategic choice to rely on the built-in x64 emulation for older versions. Extremely efficient on Windows, this approach guarantees maximum stability and full compatibility with the mod ecosystem.
 
----
+##
 
 </details>
 
