@@ -152,9 +152,9 @@ Please refer to the [docs](https://emlproject.com/docs/eml-lib-and-launcher/gett
 | Linux x64           | Probably yes       | —                         |
 | Linux arm64         | Probably partially | —                         |
 
-<sub>- _Yes_ means that the library has been tested and is known to work on this platform at least for Minecraft 1.6 and above (Vanilla and modded).</sub><br />
-<sub>- _Probably yes_ means that the library has not been tested on this platform, but it is expected to work for Minecraft 1.6 and above (Vanilla and modded), since the Minecraft manifests are complete for this platform.</sub><br />
-<sub>- _Probably partially_ means that the library has not been tested on this platform, and it is expected to work only for some Minecraft versions (Vanilla or modded), since the Minecraft manifests are not fully complete for this platform.</sub>
+<sup>- _Yes_ means that the library has been tested and is known to work on this platform at least for Minecraft 1.6 and above (Vanilla and modded).</sup><br />
+<sup>- _Probably yes_ means that the library has not been tested on this platform, but it is expected to work for Minecraft 1.6 and above (Vanilla and modded), since the Minecraft manifests are complete for this platform.</sup><br />
+<sup>- _Probably partially_ means that the library has not been tested on this platform, and it is expected to work only for some Minecraft versions (Vanilla or modded), since the Minecraft manifests are not fully complete for this platform.</sup>
 
 </small>
 
