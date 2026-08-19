@@ -99,14 +99,18 @@ export default class ForgeLikeLoader extends EventEmitter<FilesManagerEvents> {
     const { zipfile, entries } = await utils.openZip(forgeZipPath)
 
     try {
-      if (this.installProfile.filePath) {
-        const universalName = utils.getLibraryName(this.installProfile.path)
-        const universalPath = utils.getLibraryPath(this.installProfile.path)
+      let profile = this.installProfile
+      if (profile.install) {
+        profile = profile.install
+      }
+      if (profile.filePath) {
+        const universalName = utils.getLibraryName(profile.path)
+        const universalPath = utils.getLibraryPath(profile.path)
         const universalExtractPath = path_.join(this.config.root, 'libraries', universalPath)
 
         if (!existsSync(universalExtractPath)) await fs.mkdir(universalExtractPath, { recursive: true })
 
-        const universalEntry = entries.find((e) => e.fileName === this.installProfile.filePath)
+        const universalEntry = entries.find((e) => e.fileName === profile.filePath)
         if (universalEntry) {
           await utils.extractEntryToFile(zipfile, universalEntry, path_.join(universalExtractPath, universalName))
           libraries.push({
@@ -116,10 +120,10 @@ export default class ForgeLikeLoader extends EventEmitter<FilesManagerEvents> {
             type: 'LIBRARY',
             extra: 'LOADER'
           })
-          this.emit('extract_progress', { filename: this.installProfile.filePath })
+          this.emit('extract_progress', { filename: profile.filePath })
         }
-      } else if (this.installProfile.path) {
-        const universalPath = utils.getLibraryPath(this.installProfile.path)
+      } else if (profile.path) {
+        const universalPath = utils.getLibraryPath(profile.path)
         const universalExtractPath = path_.join(this.config.root, 'libraries', universalPath)
 
         if (!existsSync(universalExtractPath)) await fs.mkdir(universalExtractPath, { recursive: true })
@@ -146,12 +150,12 @@ export default class ForgeLikeLoader extends EventEmitter<FilesManagerEvents> {
         await Promise.all(promises)
       }
 
-      if (this.installProfile.processors && this.installProfile.processors.length > 0) {
-        const universalMaven = this.installProfile.libraries.find(
+      if (profile.processors && profile.processors.length > 0) {
+        const universalMaven = profile.libraries.find(
           (lib: any) => (lib.name + '').startsWith('net.minecraftforge:forge:') || (lib.name + '').startsWith('net.neoforged:neoforge:')
         )
 
-        const targetName = this.installProfile.path ?? universalMaven?.name
+        const targetName = profile.path ?? universalMaven?.name
 
         const clientDataName = utils.getLibraryName(targetName).replace('.jar', '-clientdata.lzma')
         const clientDataPath = utils.getLibraryPath(targetName)
@@ -173,8 +177,8 @@ export default class ForgeLikeLoader extends EventEmitter<FilesManagerEvents> {
         }
       }
 
-      if (this.installProfile.data?.PATCHED) {
-        const entry = this.installProfile.data.PATCHED
+      if (profile.data?.PATCHED) {
+        const entry = profile.data.PATCHED
         const rawValue = entry.client || entry.path || (typeof entry === 'string' ? entry : '')
 
         if (rawValue && rawValue.startsWith('[')) {
