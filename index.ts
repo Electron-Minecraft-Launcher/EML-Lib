@@ -244,7 +244,7 @@ export { CrashReport }
  *
  * ---
  *
- * @version 2.7.0
+ * @version 2.7.1
  * @license MIT — See the `LICENSE` file for more information
  * @copyright Copyright (c) 2026, GoldFrite and contributors
  */
