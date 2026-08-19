@@ -49,10 +49,11 @@ class Utils {
 
   /**
    * Get the current architecture Minecraft-code.
-   * @returns The architecture (`'x64'` or `'x86'`).
+   * @returns The architecture (`'x64'`, `'arm64'` or `'x86'`).
    */
   getArch_MCCode() {
-    if (process.arch === 'x64' || process.arch === 'arm64') return 'x64'
+    if (process.arch === 'x64') return 'x64'
+    if (process.arch === 'arm64') return 'arm64'
     return 'x86'
   }
 
@@ -62,6 +63,20 @@ class Utils {
    */
   getOSVersion(): string {
     return os.release()
+  }
+
+  /**
+   * Check if the current operating system is supported by EML Lib.
+   * @returns `true` if the operating system is supported, `false` otherwise.
+   */
+  isOSSupported(): boolean {
+    const os = this.getOS()
+    const arch = this.getArch()
+    if (arch === '32') return false
+    if (os === 'win') return true
+    if (os === 'mac') return true
+    if (os === 'lin' && process.arch === 'x64') return true
+    return false
   }
 
   /**
@@ -195,29 +210,32 @@ class Utils {
    * @returns The name of the library.
    */
   getLibraryName(libName: string): string {
-    if (libName.includes('@')) {
-      const parts = libName.split(':')
+    const parts = libName.split(':')
 
+    if (libName.includes('@')) {
       if (parts.length === 4) {
-        const artifact = parts[1] || ''
-        const version = parts[2] || ''
-        const classifierExt = parts[3] || ''
+        const name = parts[1]
+        const version = parts[2]
+        const classifierExt = parts[3]
 
         const [classifier, extension] = classifierExt.split('@')
-        return `${artifact}-${version}${classifier ? '-' + classifier : ''}.${extension}`
+        return `${name}-${version}${classifier ? '-' + classifier : ''}.${extension}`
       }
       if (parts.length === 3) {
-        const artifact = parts[1] || ''
-        const versionExt = parts[2] || ''
+        const name = parts[1]
+        const versionExt = parts[2]
 
         const [version, extension] = versionExt.split('@')
-        return `${artifact}-${version}.${extension}`
+        return `${name}-${version}.${extension}`
       }
     }
 
+    const name = parts[1] || ''
+    const version = parts[2] || ''
+    const classifier = parts[3] || ''
     const ext = 'jar'
-    const l = libName.split(':')
-    return `${l[1]}-${l[2]}${l[3] ? '-' + l[3] : ''}.${ext}`
+
+    return `${name}-${version}${classifier ? '-' + classifier : ''}.${ext}`
   }
 
   /**
@@ -229,6 +247,29 @@ class Utils {
   getLibraryPath(libName: string, ...path: string[]): string {
     const l = libName.replace(/@([a-z]*)$/, '').split(':')
     return path_.join(...path, `${l[0].replace(/\./g, '/')}/${l[1]}/${l[2]}/`)
+  }
+
+  /**
+   * Get the group, name and version of a Maven library from its name or path.
+   * @param libNameOrPath The name or path of the library.
+   * @returns An object containing the group, name and version of the library.
+   */
+  getPartsFromNameOrPath(libNameOrPath: string): { group: string; name: string; version: string } {
+    if (libNameOrPath.includes(':') && libNameOrPath.includes('@')) {
+      libNameOrPath = this.getLibraryPath(libNameOrPath)
+    }
+
+    if (libNameOrPath.includes(':')) {
+      const parts = libNameOrPath.split(':')
+      return { group: parts[0], name: parts[1], version: parts[2] }
+    }
+
+    const parts = libNameOrPath.split('/')
+    const l = parts.length
+    const version = parts[l - 2]
+    const group = parts.slice(0, l - 2).join('.')
+    const name = parts[l - 1].replace(`-${version}.jar`, '')
+    return { group, name, version }
   }
 
   /**

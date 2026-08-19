@@ -73,7 +73,11 @@ export interface MinecraftManifest {
     /**
      * Old Forge or Fabric/Quilt.
      */
-    serverreq?: boolean
+    serverreq?: boolean,
+    /**
+     * Old Forge.
+     */
+    checksums?: string[]
   }[]
   logging: {
     client: {

@@ -19,6 +19,7 @@ import ArgumentsManager from './argumentsmanager.js'
 import { spawn } from 'node:child_process'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
 import loader from '../utils/loader.js'
+import logParser from '../utils/logparser.js'
 
 export default class Launcher
   extends EventEmitter<LauncherEvents & DownloaderEvents & CleanerEvents & FilesManagerEvents & JavaEvents & PatcherEvents>
@@ -40,6 +41,10 @@ export default class Launcher
    */
   constructor(config: Config) {
     super()
+
+    if (!utils.isOSSupported()) {
+      throw new EMLLibError(ErrorType.UNKNOWN_OS, `Unsupported OS: ${utils.getOS_MCCode()} ${utils.getArch_MCCode()}`)
+    }
 
     let tmpConfig: Config & { slug?: string; token?: string } = { ...config, slug: undefined, token: undefined }
     tmpConfig.minecraft = this.setMinecraft(tmpConfig)
@@ -115,7 +120,7 @@ export default class Launcher
     const assetsFiles = await filesManager.getAssets()
     const loaderLibrariesFiles = await filesManager.getLoaderLibraries()
     const injectorFiles = await filesManager.getInjector()
-    const log4jFiles = await filesManager.getLog4j()
+    const loggingFiles = await filesManager.getLogging()
 
     const javaFilesToDownload = await downloader.getFilesToDownload(javaFiles.java)
     const modpackFilesToDownload = await downloader.getFilesToDownload(modpackFiles.modpack)
@@ -123,7 +128,7 @@ export default class Launcher
     const assetsFilesToDownload = await downloader.getFilesToDownload(assetsFiles.assets)
     const loaderLibrariesFilesToDownload = await downloader.getFilesToDownload(loaderLibrariesFiles.libraries)
     const injectorFilesToDownload = await downloader.getFilesToDownload(injectorFiles.injector)
-    const log4jFilesToDownload = await downloader.getFilesToDownload(log4jFiles.log4j)
+    const loggingFilesToDownload = await downloader.getFilesToDownload(loggingFiles.logging)
     const filesToDownload = [
       ...javaFilesToDownload,
       ...modpackFilesToDownload,
@@ -131,7 +136,7 @@ export default class Launcher
       ...assetsFilesToDownload,
       ...loaderLibrariesFilesToDownload,
       ...injectorFilesToDownload,
-      ...log4jFilesToDownload
+      ...loggingFilesToDownload
     ]
 
     //* Download
@@ -143,7 +148,7 @@ export default class Launcher
     await downloader.download(assetsFilesToDownload, true)
     await downloader.download(loaderLibrariesFilesToDownload, true)
     await downloader.download(injectorFilesToDownload, true)
-    await downloader.download(log4jFilesToDownload, true)
+    await downloader.download(loggingFilesToDownload, true)
 
     //* Install loader
     this.emit('launch_install_loader', this.config.minecraft)
@@ -155,15 +160,11 @@ export default class Launcher
 
     //* Extract natives
     this.emit('launch_extract_natives')
-    const extractedNatives = await filesManager.extractNatives([...librariesFiles.libraries, ...loaderFiles.libraries])
+    const extractedNativesFiles = await filesManager.extractNatives([...librariesFiles.libraries, ...loaderFiles.libraries])
 
     //* Copy assets
     this.emit('launch_copy_assets')
-    const copiedAssets = await filesManager.copyAssets()
-
-    //* Check Java
-    this.emit('launch_check_java')
-    const javaInfo = await java.check(this.config.java.absolutePath, minecraftManifest.javaVersion?.majorVersion ?? 8)
+    const copiedAssetsFiles = await filesManager.copyAssets()
 
     //* Clean
     this.emit('launch_clean')
@@ -175,13 +176,17 @@ export default class Launcher
       ...assetsFiles.files,
       ...loaderLibrariesFiles.files,
       ...injectorFiles.files,
-      ...log4jFiles.files,
-      ...extractedNatives.files,
-      ...copiedAssets.files,
+      ...loggingFiles.files,
+      ...extractedNativesFiles.files,
+      ...copiedAssetsFiles.files,
       ...loaderFiles.files,
       ...patchedFiles.files
     ]
     await cleaner.clean(files, this.config.cleaning.ignored, !this.config.cleaning.enabled)
+
+    //* Check Java
+    this.emit('launch_check_java')
+    const javaInfo = await java.check(this.config.java.absolutePath, minecraftManifest.javaVersion?.majorVersion ?? 8)
 
     //* Launch
     this.emit('launch_launch', { ...this.config, java: { ...this.config.java, version: javaInfo.version } })
@@ -315,7 +320,7 @@ export default class Launcher
     }
 
     const version = activeMcSource.version!
-    let loader: { loader: 'vanilla' | 'forge' | 'neoforge' | 'fabric' | 'quilt'; version: string, manifestUrl?: string }
+    let loader: { loader: 'vanilla' | 'forge' | 'neoforge' | 'fabric' | 'quilt'; version: string; manifestUrl?: string }
 
     const loaderCfg = activeMcSource.loader
     if (!loaderCfg || loaderCfg.loader === 'vanilla') {
@@ -483,8 +488,12 @@ export default class Launcher
     return new Promise<void>((resolve, reject) => {
       const minecraft = spawn(javaPath, args, { cwd: this.config.root, detached: true })
 
-      minecraft.stdout.on('data', (data: Buffer) => this.emit('launch_data', data.toString('utf8').replace(/\n$/, '')))
-      minecraft.stderr.on('data', (data: Buffer) => this.emit('launch_data', data.toString('utf8').replace(/\n$/, '')))
+      minecraft.stdout.on('data', (data: Buffer) => {
+        logParser.parse(data.toString()).forEach((line) => this.emit('launch_data', line))
+      })
+      minecraft.stderr.on('data', (data: Buffer) => {
+        logParser.parse(data.toString()).forEach((line) => this.emit('launch_data', line))
+      })
       minecraft.on('error', reject)
       minecraft.on('exit', (code) => {
         const exitCode = code ?? -1

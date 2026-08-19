@@ -37,10 +37,7 @@ export default class ArgumentsManager {
    * authlib-injector).
    * @returns The arguments to launch the game.
    */
-  getArgs(
-    libraries: ExtraFile[],
-    customAuth?: { injectorPath: string; authServerUrl: string }
-  ): string[] {
+  getArgs(libraries: ExtraFile[], customAuth?: { injectorPath: string; authServerUrl: string }): string[] {
     const jvmArgs = this.getJvmArgs(libraries, customAuth)
     const mainClass = this.getMainClass()
     const minecraftArgs = this.getMinecraftArgs()
@@ -61,18 +58,21 @@ export default class ArgumentsManager {
     }
 
     if (this.minecraftManifest.arguments?.jvm) {
-      ;[...this.minecraftManifest.arguments.jvm, ...(this.loaderManifest?.arguments?.jvm || [])].forEach((arg) => {
+      const manifestArgs = [...this.minecraftManifest.arguments.jvm, ...(this.loaderManifest?.arguments?.jvm || [])]
+      manifestArgs.forEach((arg) => {
         if (typeof arg === 'string') {
           args.push(arg)
         } else if (arg.rules && utils.isArgAllowed(arg)) {
-          if (typeof arg.value === 'string') {
-            args.push(arg.value)
-          } else {
-            args.push(...arg.value)
-          }
+          if (typeof arg.value === 'string') args.push(arg.value)
+          else args.push(...arg.value)
         }
       })
     } else {
+      // const isLWJGL2 = libraries.some((lib) => lib.name && (lib.name.startsWith('lwjgl-2.')))
+      // const isMacARM = process.platform === 'darwin' && process.arch === 'arm64'
+      // const isMacIntel = process.platform === 'darwin' && process.arch === 'x64'
+      // const useStartOnFirstThread = false //(isMacARM && isLWJGL2) || isMacIntel
+
       args.push('-Djava.library.path=${natives_directory}')
       args.push('-Dminecraft.launcher.brand=${launcher_name}')
       args.push('-Dminecraft.launcher.version=${launcher_version}')
@@ -84,11 +84,11 @@ export default class ArgumentsManager {
         args.push('-Dos.version=10.0')
       }
       if (utils.getOS() === 'win') args.push('-XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump')
-      if (utils.getOS() === 'mac') args.push('-XstartOnFirstThread')
+      // if (useStartOnFirstThread) args.push('-XstartOnFirstThread')
       if (utils.getArch() === '32') args.push('-Xss1M')
     }
 
-    args.push(...this.getLog4jArgs())
+    args.push(...this.getLoggingArgs())
     args.push('-Xmx${max_memory}M')
     args.push('-Xms${min_memory}M')
     args.push('-Dfml.ignoreInvalidMinecraftCertificates=true')
@@ -97,10 +97,14 @@ export default class ArgumentsManager {
       arg
         .replaceAll('${natives_directory}', nativeDirectory)
         .replaceAll('${library_directory}', libraryDirectory)
+        .replaceAll('${root_directory}', this.config.root)
         .replaceAll('${launcher_name}', `${this.config.root}-launcher`)
         .replaceAll('${launcher_version}', '2')
         .replaceAll('${version_name}', this.minecraftManifest.id)
-        .replaceAll('${jar_path}', path_.join(this.config.root, 'versions', this.minecraftManifest.id, `${this.minecraftManifest.id}.jar`).replaceAll('\\', '/'))
+        .replaceAll(
+          '${jar_path}',
+          path_.join(this.config.root, 'versions', this.minecraftManifest.id, `${this.minecraftManifest.id}.jar`).replaceAll('\\', '/')
+        )
         .replaceAll('${classpath}', classpath)
         .replaceAll('${max_memory}', this.config.memory.max + '')
         .replaceAll('${min_memory}', this.config.memory.min + '')
@@ -108,19 +112,17 @@ export default class ArgumentsManager {
     )
   }
 
-  /**
-   * Patch Log4j vulnerability.
-   * @see [help.minecraft.net](https://help.minecraft.net/hc/en-us/articles/4416199399693-Security-Vulnerability-in-Minecraft-Java-Edition)
-   */
-  private getLog4jArgs(): string[] {
+  private getLoggingArgs(): string[] {
     let args: string[] = []
+    const javaVersion = this.minecraftManifest.javaVersion?.majorVersion
 
-    if (this.minecraftManifest.id === '1.18' || this.minecraftManifest.id.startsWith('1.17')) {
+    if (javaVersion === 16 || javaVersion === 17) {
       args.push('-Dlog4j2.formatMsgNoLookups=true')
-    } else if (+this.minecraftManifest.id.split('.')[1] <= 16 && +this.minecraftManifest.id.split('.')[1] >= 12) {
-      args.push('-Dlog4j.configurationFile=log4j2_112-116.xml')
-    } else if (+this.minecraftManifest.id.split('.')[1] <= 11 && +this.minecraftManifest.id.split('.')[1] >= 7) {
-      args.push('-Dlog4j.configurationFile=log4j2_17-111.xml')
+    }
+
+    const logging = this.minecraftManifest.logging?.client
+    if (logging?.argument && logging?.file?.id) {
+      args.push(logging.argument.replace('${path}', logging.file.id))
     }
 
     return args
@@ -241,3 +243,4 @@ export default class ArgumentsManager {
     return this.loaderManifest?.mainClass ?? this.minecraftManifest.mainClass
   }
 }
+

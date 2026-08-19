@@ -242,6 +242,17 @@ class Manifest {
       throw new EMLLibError(ErrorType.UNKNOWN_OS, `Unsupported architecture: ${arch}`)
     }
 
+    if (javaVersion === 'jre-legacy' && arch === 'arm64') {
+      if (platform === 'win32') return 'https://piston-meta.mojang.com/v1/packages/03828bb8455f3cef94869286a0d941dd16933239/manifest.json'
+      if (platform === 'darwin') return 'https://cdn.emlproject.com/patches/jre8/manifest-mac.json'
+      else throw new EMLLibError(ErrorType.UNKNOWN_OS, `Unsupported platform for jre-legacy: ${platform} arm64`)
+    }
+    if ((javaVersion === 'java-runtime-alpha' || javaVersion === 'java-runtime-beta') && arch === 'arm64') {
+      if (platform === 'win32') return 'https://cdn.emlproject.com/patches/jre17/manifest-win.json'
+      if (platform === 'darwin') return 'https://cdn.emlproject.com/patches/jre17/manifest-mac.json'
+      else throw new EMLLibError(ErrorType.UNKNOWN_OS, `Unsupported platform for java-runtime-alpha: ${platform} arm64`)
+    }
+
     try {
       const req = await fetch(JAVA_RUNTIME_URL)
 
