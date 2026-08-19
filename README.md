@@ -143,24 +143,47 @@ Please refer to the [docs](https://emlproject.com/docs/eml-lib-and-launcher/gett
 
 ## Platform compatibility
 
-| OS and Architecture | Supported? | Minimum version supported |
-| ------------------- | ---------- | ------------------------- |
-| Windows x64         | Yes        | Windows 7                 |
-| Windows arm64       | Yes        | Windows 10                |
-| macOS x64           | Yes        | Mac OS X Lion (10.7)      |
-| macOS arm64         | Yes        | macOS Big Sur (11)        |
-| Linux x64           | Yes        | Variable                  |
-| Linux arm64         | No         | -                         |
+| OS and Architecture | Supported?         | Minimum version supported |
+| ------------------- | ------------------ | ------------------------- |
+| Windows x64         | Yes                | Windows 7                 |
+| Windows arm64       | Yes                | Windows 10                |
+| macOS x64           | Yes                | Mac OS X Lion (10.7)      |
+| macOS arm64         | Yes                | macOS Big Sur (11)        |
+| Linux x64           | Probably yes       | —                         |
+| Linux arm64         | Probably partially | —                         |
+
+<small>
+
+- _Yes_ means that the library has been tested and is known to work on this platform at least for Minecraft 1.6 and above (Vanilla and modded).
+- _Probably yes_ means that the library has not been tested on this platform, but it is expected to work for Minecraft 1.6 and above (Vanilla and modded), since the Minecraft manifests are complete for this platform.
+- _Probably partially_ means that the library has not been tested on this platform, and it is expected to work only for some Minecraft versions (Vanilla or modded), since the Minecraft manifests are not fully complete for this platform.
+
+</small>
 
 > [!WARNING]
 > No support will be provided for any other OS or architecture.
 
-## Tests
+<details>
+<summary>Note about the ARM architecture</summary>
 
-The library has been tested on Windows 11 and macOS Tahoe (M3) with Node.js 22, on multiple Minecraft versions, from 1.0 to the Minecraft 26.1-snapshot, and with multiple loaders (Vanilla, Forge, NeoForge, Fabric and Quilt).
+---
 
-> [!WARNING]
-> Forge is supported only for Minecraft 1.6 and above.
+Historically, Minecraft was developed for x86 architectures (32-bit and 64-bit), including:
+
+- Windows PCs with Intel or AMD processors;
+- Macs with Intel processors;
+- x86 Linux distributions.
+
+Since 2020, the ARM architecture has become more widespread with Apple Silicon chips (M1, M2, etc.) and Windows 11 ARM laptops. Since the game was not initially compatible, Apple and Microsoft have integrated virtualization/emulation layers (Rosetta 2 for macOS, Prism/native emulation for Windows). While this simplifies things for developers, it comes at the expense of user performance. Furthermore, Rosetta can sometimes be finicky with very old versions of Minecraft (1.12.2 and earlier), forcing launchers to resort to workarounds.
+
+In 2022, Minecraft finally became available on ARM architecture with the release of version 1.19, enabling a native, high-performance experience. However, given the evolution of operating systems and Apple's announced phased-out support for Rosetta 2 for general applications, launchers must ensure continued access to older versions of the game. This is where EML Lib comes in: the library meticulously corrects and updates every obsolete file in a completely transparent manner.
+Thanks to a system of smart patches, EML Lib allows Minecraft to run natively on all Macs (Intel and Apple Silicon), from version 1.6 to the latest! A few trade-offs remain, such as minor bugs when resizing the window or incompatibilities with certain older, unupdated mods.
+
+As for Windows 11 ARM, EML Lib has made the strategic choice to rely on the built-in x64 emulation for older versions. Extremely efficient on Windows, this approach guarantees maximum stability and full compatibility with the mod ecosystem.
+
+---
+
+</details>
 
 ## Contributing
 

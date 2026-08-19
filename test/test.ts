@@ -36,11 +36,11 @@ async function main() {
     account: new EMLLib.CrackAuth().auth('GoldFrite'),
     storage: 'isolated',
     minecraft: {
-      version: '26.2',
-      loader: {
-        loader: 'quilt',
-        version: '0.30.0'
-      }
+      version: '1.18.2',
+      // loader: {
+      //   loader: 'quilt',
+      //   version: '0.30.0'
+      // }
     },
     cleaning: {
       // enabled: false,
