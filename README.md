@@ -26,7 +26,7 @@ _Read the docs for [MicrosoftAuth](https://emlproject.com/docs/eml-lib-and-launc
 
 ### Launch settings
 
-Choose the Minecraft version and loader that you want to launch. EML Lib supports all Minecraft versions, from Minecraft beta to the latest Minecraft snapshot, and all loaders: Vanilla, Forge, NeoForge, Fabric and Quilt, and even custom loaders.<br/>
+Choose the Minecraft version and loader that you want to launch. EML Lib supports all Minecraft versions, from Minecraft beta [^1] to the latest Minecraft snapshot, and all loaders: Vanilla, Forge, NeoForge, Fabric and Quilt, and even custom loaders.<br/>
 EML Lib also allows you to use _Profiles_, which are sets of settings (such as Minecraft version, loader, mods, etc.) that you can save and reuse later.
 
 EML Lib can automatically download and install Java to ensure that you have the correct Java version for the Minecraft version you want to launch. It also supports custom Java paths if you prefer to use your own Java installation.
@@ -41,19 +41,19 @@ EML Lib can allow your players to manage their skins and capes. It supports the 
 
 _Read the [docs](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/skin)._
 
-### Bootstrap [^1]
+### Bootstrap [^2]
 
 _Bootstrap_ is a powerful feature that allows you to auto-update your launcher. It checks for updates on a specified URL and downloads and installs them automatically. This ensures that your launcher is always up to date with the latest features and bug fixes.
 
 _Read the [docs](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/bootstrap)._
 
-### Maintenance mode [^1]
+### Maintenance mode [^2]
 
 _Maintenance_ mode is a feature that allows you to block the launcher during maintenance. When maintenance mode is enabled, users will see a message indicating that the launcher is under maintenance and will not be able to launch Minecraft until the maintenance is complete.
 
 _Read the [docs](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/maintenance)._
 
-### Customization [^1]
+### Customization [^2]
 
 EML Lib allows you to customize the launcher with various features, including:
 
@@ -63,13 +63,13 @@ EML Lib allows you to customize the launcher with various features, including:
 
 _Read the docs for [News](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/news), [Background](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/background) and [ServerStatus](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/serverstatus)._
 
-### Stats [^1]
+### Stats [^2]
 
 _Stats_ is a feature that allows you to collect and send anonymized usage statistics to EML AdminTool. This helps you understand how users are interacting with your launcher and can help you improve the user experience.
 
 _Read the [docs](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/stats)._
 
-### Crash Reports [^1]
+### Crash Reports [^2]
 
 _Crash Reports_ is a feature that allows you to collect and send crash reports to EML AdminTool. This helps you understand what went wrong when the launcher crashes and can help you fix the issues.
 
@@ -83,7 +83,7 @@ There are already several Node.js libraries to launch Minecraft. Here is how EML
 | -------------------------------- | ------------------------ | ----------------------- | ------------------------------------ | ----------------------------------------------- | ----------------------------------------- |
 | **EML Lib**                      | TypeScript / MIT         | Yes                     | Microsoft, Azuriom, Yggdrasil, Crack | Vanilla, Forge, NeoForge, Fabric, Quilt, Custom | EML AdminTool, EML Template               |
 | **MCLC** (Pierce01)              | JavaScript / MIT         | No (last release: 2023) | Via MSMC (external)                  | Forge only                                      | None                                      |
-| **minecraft-java-core** (Luuxis) | TypeScript / Custom [^2] | Yes                     | Microsoft, Azuriom, Crack            | Vanilla, Forge, NeoForge, Fabric, Quilt, Custom | LuuxCraft Panel (paid), Selvania Launcher |
+| **minecraft-java-core** (Luuxis) | TypeScript / Custom [^3] | Yes                     | Microsoft, Azuriom, Crack            | Vanilla, Forge, NeoForge, Fabric, Quilt, Custom | LuuxCraft Panel (paid), Selvania Launcher |
 | **GMLL** (Hanro50)               | TypeScript / MIT         | No (last release: 2023) | Via MSMC (external)                  | Forge, Fabric, Quilt                            | None                                      |
 | **@xmcl packages** (Voxelum)     | TypeScript / MIT         | Yes                     | — (low-level toolkit)                | All                                             | XMCL launcher                             |
 
@@ -193,7 +193,9 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on how to contribute to 
 
 <br/>
 
-[^1]: These features require the use of the [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool)
+[^1]: Depends on the OS and the architecture. ARM architectures (such as Apple Silicon) only supports Minecraft 1.6 and above. See the [Platform compatibility](#platform-compatibility) section for more information.
 
-[^2]: `minecraft-java-core` is distributed under a custom restrictive license. Commercial use by third parties and closed-source derivatives are prohibited. Read the LICENSE file carefully before adopting it.
+[^2]: These features require the use of the [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool)
+
+[^3]: `minecraft-java-core` is distributed under a custom restrictive license. Commercial use by third parties and closed-source derivatives are prohibited. Read the LICENSE file carefully before adopting it.
 
