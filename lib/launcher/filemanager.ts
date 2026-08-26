@@ -15,10 +15,10 @@ import { createWriteStream } from 'node:fs'
 import { existsSync } from 'node:fs'
 import yauzl from 'yauzl'
 import EventEmitter from '../utils/events.js'
-import { FilesManagerEvents } from '../../types/events.js'
+import { FileManagerEvents } from '../../types/events.js'
 import Java from '../java/java.js'
 
-export default class FilesManager extends EventEmitter<FilesManagerEvents> {
+export default class FileManager extends EventEmitter<FileManagerEvents> {
   private readonly config: ResolvedConfig
   private readonly minecraftManifest: MinecraftManifest
   private readonly loaderManifest: MinecraftManifest | null

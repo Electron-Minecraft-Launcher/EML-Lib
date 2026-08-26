@@ -196,8 +196,9 @@ export { CrashReport }
  *
  * **Requirements:**
  * - Node.js 18 or higher: see [Node.js](https://nodejs.org/);
- * - Electron 20 or higher _if you use Microsoft Authentication_: please install it with
- * `npm i electron`.
+ * - Windows 10 or higher, macOS 10.15 or higher, Linux with glibc 2.28 or higher;
+ * - _For Microsoft authentication:_ electron 21 or higher: please install it with `npm i electron`;
+ * - _For skin and cape management:_ pngjs 6 or higher: please install it with `npm i pngjs`.
  *
  * **Recommandations:**
  * - Always use this library from the `main` process of Electron, and forward events to the
@@ -224,10 +225,10 @@ export { CrashReport }
  *
  *   // 2. Setup launcher
  *   const launcher = new Launcher({
- *     url: 'https://at.emlproject.com',
+ *     url: 'https://at.emlproject.com', // Your EML AdminTool URL
  *     root: 'goldfrite',
  *     account: account,
- *     memory: { min: 2048, max: 1024 },
+ *     memory: { min: 1024, max: 2048 },
  *   })
  *
  *   // 3. Launch
@@ -385,3 +386,4 @@ const EMLLib = {
 } as EMLLib
 
 export default EMLLib
+

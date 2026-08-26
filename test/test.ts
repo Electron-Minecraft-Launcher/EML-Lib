@@ -36,7 +36,7 @@ async function main() {
     account: new EMLLib.CrackAuth().auth('GoldFrite'),
     storage: 'isolated',
     minecraft: {
-      version: '1.18.2',
+      version: '1.18.2'
       // loader: {
       //   loader: 'quilt',
       //   version: '0.30.0'
@@ -121,35 +121,5 @@ async function featureTest() {
   })
 }
 
-main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+mainWithElectron()
 

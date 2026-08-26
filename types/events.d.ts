@@ -47,7 +47,7 @@ export interface LauncherEvents {
   launch_crash: [CrashData]
 }
 
-export interface FilesManagerEvents {
+export interface FileManagerEvents {
   extract_progress: [{ filename: string }]
   extract_end: [{ amount: number }]
   copy_progress: [{ filename: string; dest: string }]

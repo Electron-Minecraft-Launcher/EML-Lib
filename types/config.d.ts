@@ -292,7 +292,7 @@ export interface ResolvedConfig {
     version?: string
     loader?: {
       loader: 'vanilla' | 'forge' | 'neoforge' | 'fabric' | 'quilt'
-      version: string,
+      version: string
       manifestUrl?: string
     }
     modpackUrl?: string
@@ -318,6 +318,4 @@ export interface ResolvedConfig {
     max: number
   }
 }
-
-
 

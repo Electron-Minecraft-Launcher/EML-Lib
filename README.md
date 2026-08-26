@@ -103,8 +103,10 @@ If you do not need a backend, use agnostic mode with a [hosted JSON modpack file
 
 ### Software requirements
 
-- Node.js 20 or higher: see [Node.js](https://nodejs.org/);
-- _For Microsoft authentication:_ Electron 23 or higher: please install it with `npm i electron`.
+- Node.js 18 or higher: see [Node.js](https://nodejs.org/);
+- Windows 10 or higher, macOS 10.15 or higher, Linux with glibc 2.28 or higher;
+- _For Microsoft authentication:_ electron 21 or higher: please install it with `npm i electron`;
+- _For skin and cape management:_ pngjs 6 or higher: please install it with `npm i pngjs`.
 
 To get all the capacities of this Node.js library, you should set up your [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool) website! Without it, some features will be unavailable (such as News, Bootstrap, etc.).
 
@@ -147,7 +149,7 @@ Please refer to the [docs](https://emlproject.com/docs/eml-lib-and-launcher/gett
 | ------------------- | ------------------ | ------------------------- |
 | Windows x64         | Yes                | Windows 7                 |
 | Windows arm64       | Yes                | Windows 10                |
-| macOS x64           | Yes                | Mac OS X Lion (10.7)      |
+| macOS x64           | Yes                | macOS Catalina (10.15)    |
 | macOS arm64         | Yes                | macOS Big Sur (11)        |
 | Linux x64           | Probably yes       | —                         |
 | Linux arm64         | Probably partially | —                         |

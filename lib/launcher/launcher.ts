@@ -4,25 +4,25 @@
  */
 
 import { IStatProvider, StatProvider } from '../../types/stats.js'
-import { CleanerEvents, DownloaderEvents, FilesManagerEvents, JavaEvents, LauncherEvents, PatcherEvents } from '../../types/events.js'
+import { CleanerEvents, DownloaderEvents, FileManagerEvents, JavaEvents, LauncherEvents, PatcherEvents } from '../../types/events.js'
 import EventEmitter from '../utils/events.js'
 import manifests from '../utils/manifests.js'
 import utils from '../utils/utils.js'
 import { Config, ResolvedConfig } from './../../types/config.js'
 import path_ from 'node:path'
-import FilesManager from './filesmanager.js'
+import FileManager from './filemanager.js'
 import Downloader from '../utils/downloader.js'
 import Cleaner from './cleaner.js'
 import Java from '../java/java.js'
 import LoaderManager from './loadermanager.js'
-import ArgumentsManager from './argumentsmanager.js'
+import ArgumentManager from './argumentmanager.js'
 import { spawn } from 'node:child_process'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
 import loader from '../utils/loader.js'
 import logParser from '../utils/logparser.js'
 
 export default class Launcher
-  extends EventEmitter<LauncherEvents & DownloaderEvents & CleanerEvents & FilesManagerEvents & JavaEvents & PatcherEvents>
+  extends EventEmitter<LauncherEvents & DownloaderEvents & CleanerEvents & FileManagerEvents & JavaEvents & PatcherEvents>
   implements IStatProvider
 {
   readonly statType: StatProvider = 'LAUNCHER'
@@ -99,13 +99,13 @@ export default class Launcher
     const installProfile = await manifests.getInstallProfile(this.config, installer)
     const loaderManifest = await manifests.getLoaderManifests(this.config, installProfile, installer)
 
-    const filesManager = new FilesManager(this.config, minecraftManifest, loaderManifest, installProfile, installer)
+    const fileManager = new FileManager(this.config, minecraftManifest, loaderManifest, installProfile, installer)
     const loaderManager = new LoaderManager(this.config, minecraftManifest, loaderManifest, installProfile, installer)
-    const argumentsManager = new ArgumentsManager(this.config, minecraftManifest, loaderManifest)
+    const argumentManager = new ArgumentManager(this.config, minecraftManifest, loaderManifest)
     const cleaner = new Cleaner(this.config)
     const java = new Java(this.config)
 
-    filesManager.forwardEvents(this)
+    fileManager.forwardEvents(this)
     loaderManager.forwardEvents(this)
     downloader.forwardEvents(this)
     cleaner.forwardEvents(this)
@@ -114,13 +114,13 @@ export default class Launcher
     //* Compute download
     this.emit('launch_compute_download')
 
-    const javaFiles = await filesManager.getJava()
-    const modpackFiles = await filesManager.getModpack()
-    const librariesFiles = await filesManager.getLibraries()
-    const assetsFiles = await filesManager.getAssets()
-    const loaderLibrariesFiles = await filesManager.getLoaderLibraries()
-    const injectorFiles = await filesManager.getInjector()
-    const loggingFiles = await filesManager.getLogging()
+    const javaFiles = await fileManager.getJava()
+    const modpackFiles = await fileManager.getModpack()
+    const librariesFiles = await fileManager.getLibraries()
+    const assetsFiles = await fileManager.getAssets()
+    const loaderLibrariesFiles = await fileManager.getLoaderLibraries()
+    const injectorFiles = await fileManager.getInjector()
+    const loggingFiles = await fileManager.getLogging()
 
     const javaFilesToDownload = await downloader.getFilesToDownload(javaFiles.java)
     const modpackFilesToDownload = await downloader.getFilesToDownload(modpackFiles.modpack)
@@ -160,11 +160,11 @@ export default class Launcher
 
     //* Extract natives
     this.emit('launch_extract_natives')
-    const extractedNativesFiles = await filesManager.extractNatives([...librariesFiles.libraries, ...loaderFiles.libraries])
+    const extractedNativesFiles = await fileManager.extractNatives([...librariesFiles.libraries, ...loaderFiles.libraries])
 
     //* Copy assets
     this.emit('launch_copy_assets')
-    const copiedAssetsFiles = await filesManager.copyAssets()
+    const copiedAssetsFiles = await fileManager.copyAssets()
 
     //* Clean
     this.emit('launch_clean')
@@ -191,8 +191,8 @@ export default class Launcher
     //* Launch
     this.emit('launch_launch', { ...this.config, java: { ...this.config.java, version: javaInfo.version } })
 
-    const customAuth = argumentsManager.getCustomArgs(injectorFiles)
-    const args = argumentsManager.getArgs([...loaderFiles.libraries, ...librariesFiles.libraries, ...loaderLibrariesFiles.libraries], customAuth)
+    const customAuth = argumentManager.getCustomArgs(injectorFiles)
+    const args = argumentManager.getArgs([...loaderFiles.libraries, ...librariesFiles.libraries, ...loaderLibrariesFiles.libraries], customAuth)
     const blindArgs = args.map((arg, i) => (i === args.findIndex((p) => p === '--accessToken') + 1 ? '**********' : arg))
     this.emit('launch_debug', `Launching Minecraft with args: ${blindArgs.join(' ')}`)
 
@@ -263,7 +263,7 @@ export default class Launcher
       case 'launch_debug':
         return 'Launching Minecraft with args: see below.'
 
-      // Downloader / FilesManager / Cleaner
+      // Downloader / FileManager / Cleaner
       case 'download_end':
         return `Download completed (${arg?.downloaded?.amount ?? 0} files).`
       case 'extract_end':

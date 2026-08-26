@@ -13,9 +13,9 @@ import { existsSync } from 'node:fs'
 import path_ from 'node:path'
 import utils from '../utils/utils.js'
 import EventEmitter from '../utils/events.js'
-import { FilesManagerEvents } from '../../types/events.js'
+import { FileManagerEvents } from '../../types/events.js'
 
-export default class ForgeLikeLoader extends EventEmitter<FilesManagerEvents> {
+export default class ForgeLikeLoader extends EventEmitter<FileManagerEvents> {
   private readonly config: ResolvedConfig
   private readonly minecraftManifest: MinecraftManifest
   private readonly loaderManifest: MinecraftManifest
