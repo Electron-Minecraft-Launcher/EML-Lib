@@ -1,6 +1,6 @@
 {
   "name": "eml-lib",
-  "version": "2.7.1",
+  "version": "2.7.2",
   "description": "Create your Electron Minecraft Launcher easily!",
   "author": "GoldFrite",
   "license": "MIT",
@@ -57,12 +57,9 @@
     },
     "electron-updater": {
       "optional": true
-    },
-    "pngjs": {
-      "optional": true
-    },
-    "engines": {
-      "node": ">=18.0.0"
     }
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

@@ -4,7 +4,7 @@
 
 [<img src="https://img.shields.io/badge/Discord-EML-5561e6?&style=for-the-badge">](https://emlproject.com/discord/github)
 [<img src="https://img.shields.io/badge/platforms-Windows%2C%20macOS%2C%20Linux-0077DA?style=for-the-badge&color=0077DA">](#platforms)
-[<img src="https://img.shields.io/badge/version-2.7.1-orangered?style=for-the-badge&color=orangered">](package.json)
+[<img src="https://img.shields.io/badge/version-2.7.2-orangered?style=for-the-badge&color=orangered">](package.json)
 
 <p>
 <center>
@@ -108,7 +108,7 @@ EML Lib runs in **Node.js (`>= 18`)**. It is primarily built to power **Electron
 | **Azuriom, Yggdrasil & Crack authentication** |                         ✅                         |            ✅             |         ✅         |
 | **Microsoft authentication**                  |           ❌<br />_(requires Electron)_            |            ✅             |         ❌         |
 | **Launching Minecraft**                       |                         ✅                         |            ✅             |         ❌         |
-| **Skin and cape management**                  |           ❌<br />_(requires Electron)_            |            ✅             |         ✅         |
+| **Skin and cape management**                  |                         ✅                         |            ✅             |         ✅         |
 | **Bootstrap**                                 | ❌<br />_(requires Electron and electron-updater)_ |            ✅             |         ❌         |
 | **Maintenance mode**                          |                         ✅                         |            ✅             |         ✅         |
 | **News**                                      |                         ✅                         |            ✅             |         ✅         |

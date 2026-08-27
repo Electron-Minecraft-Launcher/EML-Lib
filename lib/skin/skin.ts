@@ -6,6 +6,7 @@
 import { Account } from '../../types/account.js'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
 import { IAvatar, ICape, ISkin } from '../../types/skin.js'
+import png from '../utils/png.js'
 
 export default class Skin {
   private readonly account: Account
@@ -636,95 +637,159 @@ export default class Skin {
   }
 
   private async getAvatarFromSkin(skinUrl: string | null, size: number = 256) {
-    if (!skinUrl) {
-      return null
-    }
-
-    const inRenderer = typeof window !== 'undefined' && typeof document !== 'undefined'
+    if (!skinUrl) return null
 
     try {
       const req = await fetch(skinUrl)
-
       if (!req.ok) {
-        const errorText = await req.text()
-        throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching avatar from skin: HTTP ${req.status} ${errorText}`)
+        throw new EMLLibError(ErrorType.FETCH_ERROR, `Failed to fetch skin: HTTP ${req.status}`)
       }
 
-      if (inRenderer) {
-        const blob = await req.blob()
-        const img = await createImageBitmap(blob)
+      const arrayBuffer = await req.arrayBuffer()
+      const skin = await png.decodeSkin(new Uint8Array(arrayBuffer))
 
-        const canvas = document.createElement('canvas')
-        canvas.width = size
-        canvas.height = size
+      const base8x8 = new Uint8Array(8 * 8 * 4)
+      for (let y = 0; y < 8; y++) {
+        for (let x = 0; x < 8; x++) {
+          const dstIdx = (y * 8 + x) * 4
+          const headIdx = ((y + 8) * skin.width + (x + 8)) * 4
+          const hatIdx = ((y + 8) * skin.width + (x + 40)) * 4
 
-        const ctx = canvas.getContext('2d')!
-        ctx.imageSmoothingEnabled = false
-        ctx.drawImage(img, 8, 8, 8, 8, 0, 0, size, size)
-        ctx.drawImage(img, 40, 8, 8, 8, 0, 0, size, size)
-
-        return canvas.toDataURL('image/png')
-      } else {
-        let electron
-        try {
-          electron = await import('electron')
-        } catch {
-          throw new EMLLibError(
-            ErrorType.MODULE_NOT_FOUND,
-            '`electron` module is not installed. Please install it with `npm i electron` to use Microsoft authentication.'
-          )
-        }
-        const nativeImage = electron.nativeImage
-
-        const arrayBuffer = await req.arrayBuffer()
-        const fullSkin = nativeImage.createFromBuffer(Buffer.from(arrayBuffer))
-
-        const head = fullSkin.crop({ x: 8, y: 8, width: 8, height: 8 })
-        const hat = fullSkin.crop({ x: 40, y: 8, width: 8, height: 8 })
-
-        const headBmp = head.toBitmap()
-        const hatBmp = hat.toBitmap()
-
-        const base8x8 = Buffer.alloc(8 * 8 * 4)
-        for (let i = 0; i < 64; i++) {
-          const idx = i * 4
-          const hatAlpha = hatBmp[idx + 3]
+          const hatAlpha = skin.data[hatIdx + 3]
           if (hatAlpha > 0) {
             const a = hatAlpha / 255
-            base8x8[idx + 0] = Math.round(hatBmp[idx + 0] * a + headBmp[idx + 0] * (1 - a))
-            base8x8[idx + 1] = Math.round(hatBmp[idx + 1] * a + headBmp[idx + 1] * (1 - a))
-            base8x8[idx + 2] = Math.round(hatBmp[idx + 2] * a + headBmp[idx + 2] * (1 - a))
-            base8x8[idx + 3] = 255
+            base8x8[dstIdx + 0] = Math.round(skin.data[hatIdx + 0] * a + skin.data[headIdx + 0] * (1 - a))
+            base8x8[dstIdx + 1] = Math.round(skin.data[hatIdx + 1] * a + skin.data[headIdx + 1] * (1 - a))
+            base8x8[dstIdx + 2] = Math.round(skin.data[hatIdx + 2] * a + skin.data[headIdx + 2] * (1 - a))
+            base8x8[dstIdx + 3] = 255
           } else {
-            base8x8[idx + 0] = headBmp[idx + 0]
-            base8x8[idx + 1] = headBmp[idx + 1]
-            base8x8[idx + 2] = headBmp[idx + 2]
-            base8x8[idx + 3] = 255
+            base8x8[dstIdx + 0] = skin.data[headIdx + 0]
+            base8x8[dstIdx + 1] = skin.data[headIdx + 1]
+            base8x8[dstIdx + 2] = skin.data[headIdx + 2]
+            base8x8[dstIdx + 3] = 255
           }
         }
-
-        const scaledBuffer = Buffer.alloc(size * size * 4)
-        for (let y = 0; y < size; y++) {
-          const srcY = Math.floor((y / size) * 8)
-          for (let x = 0; x < size; x++) {
-            const srcX = Math.floor((x / size) * 8)
-            const srcIdx = (srcY * 8 + srcX) * 4
-            const dstIdx = (y * size + x) * 4
-
-            scaledBuffer[dstIdx + 0] = base8x8[srcIdx + 0]
-            scaledBuffer[dstIdx + 1] = base8x8[srcIdx + 1]
-            scaledBuffer[dstIdx + 2] = base8x8[srcIdx + 2]
-            scaledBuffer[dstIdx + 3] = base8x8[srcIdx + 3]
-          }
-        }
-
-        const finalAvatar = nativeImage.createFromBitmap(scaledBuffer, { width: size, height: size })
-        return finalAvatar.toDataURL()
       }
-    } catch (err: any) {
+
+      const scaled = new Uint8Array(size * size * 4)
+      for (let y = 0; y < size; y++) {
+        const srcY = Math.floor((y / size) * 8)
+        for (let x = 0; x < size; x++) {
+          const srcX = Math.floor((x / size) * 8)
+          const srcIdx = (srcY * 8 + srcX) * 4
+          const dstIdx = (y * size + x) * 4
+
+          scaled[dstIdx + 0] = base8x8[srcIdx + 0]
+          scaled[dstIdx + 1] = base8x8[srcIdx + 1]
+          scaled[dstIdx + 2] = base8x8[srcIdx + 2]
+          scaled[dstIdx + 3] = base8x8[srcIdx + 3]
+        }
+      }
+
+      const pngBytes = await png.encodeRGBA(scaled, size, size)
+
+      let base64 = ''
+      if (typeof Buffer !== 'undefined') {
+        base64 = Buffer.from(pngBytes).toString('base64')
+      } else {
+        let binary = ''
+        for (let i = 0; i < pngBytes.byteLength; i++) {
+          binary += String.fromCharCode(pngBytes[i])
+        }
+        base64 = btoa(binary)
+      }
+
+      return `data:image/png;base64,${base64}`
+    } catch (err) {
       if (err instanceof EMLLibError) throw err
-      throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching avatar from skin: ${err.message ?? err}`)
+      throw new EMLLibError(ErrorType.FETCH_ERROR, `Avatar extraction failed: ${err instanceof Error ? err.message : err}`)
     }
+
+    // const inRenderer = typeof window !== 'undefined' && typeof document !== 'undefined'
+
+    // try {
+    //   const req = await fetch(skinUrl)
+
+    //   if (!req.ok) {
+    //     const errorText = await req.text()
+    //     throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching avatar from skin: HTTP ${req.status} ${errorText}`)
+    //   }
+
+    //   if (inRenderer) {
+    //     const blob = await req.blob()
+    //     const img = await createImageBitmap(blob)
+
+    //     const canvas = document.createElement('canvas')
+    //     canvas.width = size
+    //     canvas.height = size
+
+    //     const ctx = canvas.getContext('2d')!
+    //     ctx.imageSmoothingEnabled = false
+    //     ctx.drawImage(img, 8, 8, 8, 8, 0, 0, size, size)
+    //     ctx.drawImage(img, 40, 8, 8, 8, 0, 0, size, size)
+
+    //     return canvas.toDataURL('image/png')
+    //   } else {
+    //     let electron
+    //     try {
+    //       electron = await import('electron')
+    //     } catch {
+    //       throw new EMLLibError(
+    //         ErrorType.MODULE_NOT_FOUND,
+    //         '`electron` module is not installed. Please install it with `npm i electron` to use Microsoft authentication.'
+    //       )
+    //     }
+    //     const nativeImage = electron.nativeImage
+
+    //     const arrayBuffer = await req.arrayBuffer()
+    //     const fullSkin = nativeImage.createFromBuffer(Buffer.from(arrayBuffer))
+
+    //     const head = fullSkin.crop({ x: 8, y: 8, width: 8, height: 8 })
+    //     const hat = fullSkin.crop({ x: 40, y: 8, width: 8, height: 8 })
+
+    //     const headBmp = head.toBitmap()
+    //     const hatBmp = hat.toBitmap()
+
+    //     const base8x8 = Buffer.alloc(8 * 8 * 4)
+    //     for (let i = 0; i < 64; i++) {
+    //       const idx = i * 4
+    //       const hatAlpha = hatBmp[idx + 3]
+    //       if (hatAlpha > 0) {
+    //         const a = hatAlpha / 255
+    //         base8x8[idx + 0] = Math.round(hatBmp[idx + 0] * a + headBmp[idx + 0] * (1 - a))
+    //         base8x8[idx + 1] = Math.round(hatBmp[idx + 1] * a + headBmp[idx + 1] * (1 - a))
+    //         base8x8[idx + 2] = Math.round(hatBmp[idx + 2] * a + headBmp[idx + 2] * (1 - a))
+    //         base8x8[idx + 3] = 255
+    //       } else {
+    //         base8x8[idx + 0] = headBmp[idx + 0]
+    //         base8x8[idx + 1] = headBmp[idx + 1]
+    //         base8x8[idx + 2] = headBmp[idx + 2]
+    //         base8x8[idx + 3] = 255
+    //       }
+    //     }
+
+    //     const scaledBuffer = Buffer.alloc(size * size * 4)
+    //     for (let y = 0; y < size; y++) {
+    //       const srcY = Math.floor((y / size) * 8)
+    //       for (let x = 0; x < size; x++) {
+    //         const srcX = Math.floor((x / size) * 8)
+    //         const srcIdx = (srcY * 8 + srcX) * 4
+    //         const dstIdx = (y * size + x) * 4
+
+    //         scaledBuffer[dstIdx + 0] = base8x8[srcIdx + 0]
+    //         scaledBuffer[dstIdx + 1] = base8x8[srcIdx + 1]
+    //         scaledBuffer[dstIdx + 2] = base8x8[srcIdx + 2]
+    //         scaledBuffer[dstIdx + 3] = base8x8[srcIdx + 3]
+    //       }
+    //     }
+
+    //     const finalAvatar = nativeImage.createFromBitmap(scaledBuffer, { width: size, height: size })
+    //     return finalAvatar.toDataURL()
+    //   }
+    // } catch (err: any) {
+    //   if (err instanceof EMLLibError) throw err
+    //   throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching avatar from skin: ${err.message ?? err}`)
+    // }
   }
 }
 
