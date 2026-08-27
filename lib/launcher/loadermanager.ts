@@ -4,7 +4,7 @@
  */
 
 import { ResolvedConfig } from '../../types/config.js'
-import { FilesManagerEvents, PatcherEvents } from '../../types/events.js'
+import { FileManagerEvents, PatcherEvents } from '../../types/events.js'
 import { ExtraFile, File, FormatFile } from '../../types/file.js'
 import { MinecraftManifest } from '../../types/manifest.js'
 import EventEmitter from '../utils/events.js'
@@ -12,7 +12,7 @@ import Patcher from './patcher.js'
 import ForgeLikeLoader from './forgelike.js'
 import { EMLLibError, ErrorType } from '../../types/errors.js'
 
-export default class LoaderManager extends EventEmitter<FilesManagerEvents & PatcherEvents> {
+export default class LoaderManager extends EventEmitter<FileManagerEvents & PatcherEvents> {
   private readonly config: ResolvedConfig
   private readonly minecraftManifest: MinecraftManifest
   private readonly loaderManifest: MinecraftManifest | null

@@ -7,10 +7,10 @@ import { ResolvedConfig } from '../../types/config.js'
 import { MinecraftManifest } from '../../types/manifest.js'
 import utils from '../utils/utils.js'
 import path_ from 'node:path'
-import { ExtraFile, ILoader } from '../../types/file.js'
+import { ExtraFile } from '../../types/file.js'
 import type { File as File_ } from '../../types/file.js'
 
-export default class ArgumentsManager {
+export default class ArgumentManager {
   private readonly config: ResolvedConfig
   private readonly minecraftManifest: MinecraftManifest
   private readonly loaderManifest: MinecraftManifest | null
