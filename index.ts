@@ -197,12 +197,14 @@ export { CrashReport }
  * **Requirements:**
  * - Node.js 18 or higher: see [Node.js](https://nodejs.org/);
  * - Windows 10 or higher, macOS 10.15 or higher, Linux with glibc 2.28 or higher;
- * - _For Microsoft authentication:_ electron 21 or higher: please install it with `npm i electron`;
- * - _For skin and cape management:_ pngjs 6 or higher: please install it with `npm i pngjs`.
+ * - Electron 21 or higher: please install it with `npm i electron` (see README for more 
+ * information about this requirement);
+ * - electron-updater 6.0 or higher: please install it with `npm i electron-updater` (see README 
+ * for more information about this requirement);
  *
  * **Recommandations:**
- * - Always use this library from the `main` process of Electron, and forward events to the
- * `renderer` process using IPC if needed.
+ * - Always use this library from the `main` process of Electron (Node.js context), and forward 
+ * events to the `renderer` process using IPC if needed.
  * - To get all the capacities of this Node.js library, you should set up your
  * [EML AdminTool](https://emlproject.com/docs/eml-admintool/system-requirements) instance!
  * - If you don't want to set up EML AdminTool, you can use our [modpack generator](https://emlproject.com/resources/modpack-json-generator/)
@@ -226,7 +228,7 @@ export { CrashReport }
  *   // 2. Setup launcher
  *   const launcher = new Launcher({
  *     url: 'https://at.emlproject.com', // Your EML AdminTool URL
- *     root: 'goldfrite',
+ *     root: 'my-server',
  *     account: account,
  *     memory: { min: 1024, max: 2048 },
  *   })

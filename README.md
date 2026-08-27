@@ -1,4 +1,4 @@
-# Electron Minecraft Launcher Lib (EML Lib)
+# EML Lib
 
 **Electron Minecraft Launcher Lib (EML Lib) is a Node.js library. It permits to authenticate, download Java and Minecraft and launch Minecraft.**
 
@@ -24,7 +24,7 @@ EML Lib supports multiple authentication methods, including Microsoft, Azuriom, 
 
 _Read the docs for [MicrosoftAuth](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/microsoftauth), [YggdrasilAuth](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/yggdrasilauth), [AzAuth](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/azuriomauth) and [CrackAuth](https://emlproject.com/docs/eml-lib-and-launcher/api-reference/crackauth)._
 
-### Launch settings
+### Launching Minecraft
 
 Choose the Minecraft version and loader that you want to launch. EML Lib supports all Minecraft versions, from Minecraft beta [^1] to the latest Minecraft snapshot, and all loaders: Vanilla, Forge, NeoForge, Fabric and Quilt, and even custom loaders.<br/>
 EML Lib also allows you to use _Profiles_, which are sets of settings (such as Minecraft version, loader, mods, etc.) that you can save and reuse later.
@@ -99,46 +99,76 @@ This is especially useful for:
 
 If you do not need a backend, use agnostic mode with a [hosted JSON modpack file](https://emlproject.com/resources/modpack-json-generator). If you want a full administration dashboard, pair EML Lib with [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool).
 
+## Runtime environments & Architecture
+
+EML Lib runs in **Node.js (`>= 18`)**. It is primarily built to power **Electron** desktop applications, but it can also be used in **standalone Node.js** (CLI tools, automation scripts, server bots) with minor limitations.
+
+| Feature                                       |                 Standalone Node.js                 | Electron (`main` process) | Browser / Renderer |
+| --------------------------------------------- | :------------------------------------------------: | :-----------------------: | :----------------: |
+| **Azuriom, Yggdrasil & Crack authentication** |                         ✅                         |            ✅             |         ✅         |
+| **Microsoft authentication**                  |           ❌<br />_(requires Electron)_            |            ✅             |         ❌         |
+| **Launching Minecraft**                       |                         ✅                         |            ✅             |         ❌         |
+| **Skin and cape management**                  |           ❌<br />_(requires Electron)_            |            ✅             |         ✅         |
+| **Bootstrap**                                 | ❌<br />_(requires Electron and electron-updater)_ |            ✅             |         ❌         |
+| **Maintenance mode**                          |                         ✅                         |            ✅             |         ✅         |
+| **News**                                      |                         ✅                         |            ✅             |         ✅         |
+| **Background**                                |                         ✅                         |            ✅             |         ✅         |
+| **Server status**                             |                         ✅                         |            ✅             |         ❌         |
+| **Stats**                                     |                         ✅                         |            ✅             |         ✅         |
+| **Crash report**                              |                         ✅                         |            ✅             |         ❌         |
+
+> [!IMPORTANT]
+> **Best Practice for Electron apps:** Always instantiate EML Lib in the **Electron Main Process** (Node.js context) and bridge actions/events to your Renderer (UI) via standard IPC (`ipcMain` / `ipcRenderer`). Do not attempt to run the core launcher inside the frontend renderer.
+
 ## Installation
 
 ### Software requirements
 
-- Node.js 18 or higher: see [Node.js](https://nodejs.org/);
-- Windows 10 or higher, macOS 10.15 or higher, Linux with glibc 2.28 or higher;
-- _For Microsoft authentication:_ electron 21 or higher: please install it with `npm i electron`;
-- _For skin and cape management:_ pngjs 6 or higher: please install it with `npm i pngjs`.
+- **Node.js** (`>= 18.0.0`): required for development and build.
+- **Operating systems (development and build)**:
+  - Windows 10 or 11;
+  - macOS 10.15 (Catalina) or higher;
+  - Linux with `glibc >= 2.28` (e.g. Ubuntu 20.04+, Debian 10+).
+- **Target operating systems (end-user runtime)**:
+  - Windows 7 or higher (when packaged with Electron 21/22);
+  - macOS 10.13 or higher (when packaged with Electron 21/22);
+  - Linux 64-bit (`glibc >= 2.28`).
+- **Optional peer dependencies**: (see [above](#runtime-environments--architecture) for details)
+  - `electron` (`>= 21.0.0`);
+  - `electron-updater` (`>= 6.0.0`).
 
 To get all the capacities of this Node.js library, you should set up your [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool) website! Without it, some features will be unavailable (such as News, Bootstrap, etc.).
 
 ### EML Lib installation
 
-You need [Node.js](https://nodejs.org) and [Electron](https://electronjs.org).
-
 ```bash
-# Using npm
+# Core library
 npm i eml-lib
+
+# Optional peer dependencies for full Electron support
+npm i electron electron-updater
 ```
 
-`eml-lib` package includes TypeScript typings, so you don't need to install `@types/eml-lib`.
+`eml-lib` is written in TypeScript and exports its types natively.
 
 ### Template
 
-You can use the [EML Template](https://github.com/Electron-Minecraft-Launcher/EML-Template) to create a Minecraft launcher with EML Lib. It is an Electron application that uses EML Lib to launch Minecraft. It is a good starting point to create your own Minecraft launcher.
+You can use [EML Template](https://github.com/Electron-Minecraft-Launcher/EML-Template) to create a Minecraft launcher with EML Lib. It is an Electron application that uses EML Lib to launch Minecraft. It is a good starting point to create your own Minecraft launcher.
 
 ### Quick start
 
-Quick start using the [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool):
+Quick start using [EML AdminTool](https://github.com/Electron-Minecraft-Launcher/EML-AdminTool):
 
 ```js
-const EMLLib = require('eml-lib')
+import EMLLib from 'eml-lib'
 
 const launcher = new EMLLib.Launcher({
   url: 'https://at.emlproject.com', // Your EML AdminTool URL
-  root: 'eml',
+  root: 'my-server',
   account: new EMLLib.CrackAuth().auth('GoldFrite')
 })
 
-launcher.launch()
+await launcher.launch()
 ```
 
 Please refer to the [docs](https://emlproject.com/docs/eml-lib-and-launcher/getting-started/set-up-environment) for more information.
@@ -166,6 +196,7 @@ Please refer to the [docs](https://emlproject.com/docs/eml-lib-and-launcher/gett
 <details>
 <summary><b>Note about the ARM architecture</b></summary>
 <br>
+
 Historically, Minecraft was developed for x86 architectures (32-bit and 64-bit), including:
 
 - Windows PCs with Intel or AMD processors;

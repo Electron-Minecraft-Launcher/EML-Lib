@@ -43,15 +43,13 @@
     "@types/yazl": "^3.3.1",
     "electron": "^44.0.0",
     "electron-updater": "^6.8.9",
-    "pngjs": "^7.0.0",
     "prettier": "^3.9.6",
     "tsx": "^4.23.12",
     "typescript": "^6.0.3"
   },
   "peerDependencies": {
     "electron": ">=21.0.0",
-    "electron-updater": ">=6.0.0",
-    "pngjs": ">=6.0.0"
+    "electron-updater": ">=6.0.0"
   },
   "peerDependenciesMeta": {
     "electron": {

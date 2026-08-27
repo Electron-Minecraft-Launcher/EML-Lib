@@ -21,7 +21,7 @@ async function mainWithElectron() {
       const skin = new EMLLib.Skin(account)
 
       console.log('Authenticated account:', account)
-      console.log('Skin is:', await skin.getSkin())
+      console.log('Avatar is:', await skin.getAvatar())
     } catch (err) {
       console.error('Authentication error:', err)
     }
@@ -101,24 +101,7 @@ async function main() {
 }
 
 async function featureTest() {
-  const launcher = new EMLLib.Launcher({
-    // url: 'http://localhost:5173',
-    // profile: {
-    //   slug: 'test',
-    //   minecraft: {
-    //     version: '1.21.1',
-    //   }
-    // },
-    // minecraft: {
-    //   version: '1.20.1',
-    //   loader: {
-    //     loader: 'forge',
-    //     version: '1.21.1-47.0.0'
-    //   }
-    // },
-    root: 'goldfrite',
-    account: new EMLLib.CrackAuth().auth('GoldFrite')
-  })
+  
 }
 
 mainWithElectron()

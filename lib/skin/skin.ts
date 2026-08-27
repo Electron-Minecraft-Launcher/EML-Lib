@@ -635,7 +635,6 @@ export default class Skin {
     }
   }
 
-  // util
   private async getAvatarFromSkin(skinUrl: string | null, size: number = 256) {
     if (!skinUrl) {
       return null
@@ -666,38 +665,61 @@ export default class Skin {
 
         return canvas.toDataURL('image/png')
       } else {
-        const { PNG } = await import('pngjs')
+        let electron
+        try {
+          electron = await import('electron')
+        } catch {
+          throw new EMLLibError(
+            ErrorType.MODULE_NOT_FOUND,
+            '`electron` module is not installed. Please install it with `npm i electron` to use Microsoft authentication.'
+          )
+        }
+        const nativeImage = electron.nativeImage
 
         const arrayBuffer = await req.arrayBuffer()
-        const src = PNG.sync.read(Buffer.from(arrayBuffer))
+        const fullSkin = nativeImage.createFromBuffer(Buffer.from(arrayBuffer))
 
-        const out = new PNG({ width: size, height: size, filterType: -1 })
-        for (let y = 0; y < size; y++) {
-          for (let x = 0; x < size; x++) {
-            const srcX = Math.floor((x / size) * 8)
-            const srcY = Math.floor((y / size) * 8)
-            const dstIdx = (y * size + x) * 4
+        const head = fullSkin.crop({ x: 8, y: 8, width: 8, height: 8 })
+        const hat = fullSkin.crop({ x: 40, y: 8, width: 8, height: 8 })
 
-            const faceIdx = ((srcY + 8) * src.width + (srcX + 8)) * 4
-            out.data[dstIdx + 0] = src.data[faceIdx + 0]
-            out.data[dstIdx + 1] = src.data[faceIdx + 1]
-            out.data[dstIdx + 2] = src.data[faceIdx + 2]
-            out.data[dstIdx + 3] = src.data[faceIdx + 3]
+        const headBmp = head.toBitmap()
+        const hatBmp = hat.toBitmap()
 
-            const hatIdx = ((srcY + 8) * src.width + (srcX + 40)) * 4
-            const hatAlpha = src.data[hatIdx + 3]
-            if (hatAlpha > 0) {
-              const a = hatAlpha / 255
-              out.data[dstIdx + 0] = Math.round(src.data[hatIdx + 0] * a + out.data[dstIdx + 0] * (1 - a))
-              out.data[dstIdx + 1] = Math.round(src.data[hatIdx + 1] * a + out.data[dstIdx + 1] * (1 - a))
-              out.data[dstIdx + 2] = Math.round(src.data[hatIdx + 2] * a + out.data[dstIdx + 2] * (1 - a))
-              out.data[dstIdx + 3] = 255
-            }
+        const base8x8 = Buffer.alloc(8 * 8 * 4)
+        for (let i = 0; i < 64; i++) {
+          const idx = i * 4
+          const hatAlpha = hatBmp[idx + 3]
+          if (hatAlpha > 0) {
+            const a = hatAlpha / 255
+            base8x8[idx + 0] = Math.round(hatBmp[idx + 0] * a + headBmp[idx + 0] * (1 - a))
+            base8x8[idx + 1] = Math.round(hatBmp[idx + 1] * a + headBmp[idx + 1] * (1 - a))
+            base8x8[idx + 2] = Math.round(hatBmp[idx + 2] * a + headBmp[idx + 2] * (1 - a))
+            base8x8[idx + 3] = 255
+          } else {
+            base8x8[idx + 0] = headBmp[idx + 0]
+            base8x8[idx + 1] = headBmp[idx + 1]
+            base8x8[idx + 2] = headBmp[idx + 2]
+            base8x8[idx + 3] = 255
           }
         }
 
-        const buffer = PNG.sync.write(out)
-        return `data:image/png;base64,${buffer.toString('base64')}`
+        const scaledBuffer = Buffer.alloc(size * size * 4)
+        for (let y = 0; y < size; y++) {
+          const srcY = Math.floor((y / size) * 8)
+          for (let x = 0; x < size; x++) {
+            const srcX = Math.floor((x / size) * 8)
+            const srcIdx = (srcY * 8 + srcX) * 4
+            const dstIdx = (y * size + x) * 4
+
+            scaledBuffer[dstIdx + 0] = base8x8[srcIdx + 0]
+            scaledBuffer[dstIdx + 1] = base8x8[srcIdx + 1]
+            scaledBuffer[dstIdx + 2] = base8x8[srcIdx + 2]
+            scaledBuffer[dstIdx + 3] = base8x8[srcIdx + 3]
+          }
+        }
+
+        const finalAvatar = nativeImage.createFromBitmap(scaledBuffer, { width: size, height: size })
+        return finalAvatar.toDataURL()
       }
     } catch (err: any) {
       if (err instanceof EMLLibError) throw err
@@ -705,5 +727,4 @@ export default class Skin {
     }
   }
 }
-
 
