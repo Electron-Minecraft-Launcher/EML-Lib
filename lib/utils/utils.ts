@@ -264,7 +264,7 @@ class Utils {
       return { group: parts[0], name: parts[1], version: parts[2] }
     }
 
-    const parts = libNameOrPath.split('/')
+    const parts = libNameOrPath.replaceAll('\\', '/').split('/')
     const l = parts.length
     const version = parts[l - 2]
     const group = parts.slice(0, l - 2).join('.')
