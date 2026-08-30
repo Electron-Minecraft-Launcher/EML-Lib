@@ -635,7 +635,7 @@ export default class FileManager extends EventEmitter<FileManagerEvents> {
     const os = utils.getOS_MCCode()
     const arch = process.arch
     const { group, name, version } = utils.getPartsFromNameOrPath(libNameOrPath)
-
+    console.log(group, name, version)
     let key =
       type === 'NATIVE'
         ? `${os}:${arch}:${group}:${name}:${version.replace(/-nightly-[^:]+/, '-nightly-*')}:${nativeSuffix}`
