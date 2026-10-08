@@ -29,7 +29,7 @@ export default class CrackAuth extends EventEmitter<AuthEvents> implements IStat
    * servers!
    */
   auth(username: string): Account {
-    if (/^[a-zA-Z0-9_]+$/gm.test(username) && username.length > 2) {
+    if (/^[a-zA-Z0-9_]+$/g.test(username) && username.length > 2) {
       const uuid = this.getOfflineUUID(username)
       this.emit('auth_success', { name: username })
       return {

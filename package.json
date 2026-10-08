@@ -38,12 +38,13 @@
     "yazl": "^3.3.1"
   },
   "devDependencies": {
+    "@types/node": "^26.6.4",
     "@types/yauzl": "^3.4.0",
     "@types/yazl": "^3.3.1",
-    "electron": "^44.0.0",
+    "electron": "^44.7.0",
     "electron-updater": "^6.8.9",
-    "prettier": "^3.9.6",
-    "tsx": "^4.23.12",
+    "prettier": "^3.9.9",
+    "tsx": "^4.23.15",
     "typescript": "^6.0.3"
   },
   "peerDependencies": {

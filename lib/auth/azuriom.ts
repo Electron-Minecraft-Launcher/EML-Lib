@@ -14,7 +14,7 @@ export default class AzAuth extends EventEmitter<AuthEvents> implements IStatPro
   private readonly url: string
 
   /**
-   * Authenticate a user with [Azuriom](https://azuriom.com/).
+   * (Authenticate a user with [Azuriom](https://azuriom.com/).)
    * @param url The URL of your Azuriom website (e.g., https://yourwebsite.com).
    */
   constructor(url: string) {
