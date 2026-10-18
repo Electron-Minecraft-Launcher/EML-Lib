@@ -359,19 +359,19 @@ export default class Skin {
     const headers: Record<string, string> = { Authorization: `Bearer ${this.account.accessToken}` }
 
     try {
-      let body: any
-
+      const body = new FormData()
       if (typeof source === 'string') {
-        headers['Content-Type'] = 'application/json'
-        body = JSON.stringify({
-          url: source,
-          variant: variant
+        const image = await fetch(source).then((res) => {
+          if (!res.ok) {
+            throw new EMLLibError(ErrorType.FETCH_ERROR, `Error while fetching skin image from URL: HTTP ${res.status} ${res.statusText}`)
+          }
+          return res.blob()
         })
+        body.append('file', image, 'skin.png')
+        body.append('variant', variant)
       } else {
-        const formData = new FormData()
-        formData.append('file', source, 'skin.png')
-        formData.append('variant', variant)
-        body = formData
+        body.append('file', source, 'skin.png')
+        body.append('variant', variant)
       }
 
       const req = await fetch('https://api.minecraftservices.com/minecraft/profile/skins', { method: 'POST', headers, body })
@@ -792,4 +792,3 @@ export default class Skin {
     // }
   }
 }
-
